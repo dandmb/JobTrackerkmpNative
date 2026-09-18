@@ -8,7 +8,8 @@ struct iOSApp: App {
     }
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            //ContentView()
+            JobOfferListView(viewModel: KoinHelper().jobOfferListViewModel())
         }
     }
 }

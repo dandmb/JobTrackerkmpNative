@@ -5,7 +5,7 @@ import com.dmb.jobtracker.data.local.entity.JobOfferEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface JobOfferDao {
+internal interface JobOfferDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(offer: JobOfferEntity): Long

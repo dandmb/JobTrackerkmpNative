@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
+    alias(libs.plugins.kmp.nativecoroutines)
 }
 
 kotlin {
@@ -50,9 +51,18 @@ kotlin {
             implementation(libs.koin.android)
         }
     }
+
+    sourceSets.all {
+        languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
+    }
 }
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+nativeCoroutines {
+    exposedSeverity = com.rickclephas.kmp.nativecoroutines.gradle.ExposedSeverity.ERROR
+    // force à annoter tout Flow/suspend exposé, pour ne rien oublier — pratique courante en pro
 }
 
 dependencies {

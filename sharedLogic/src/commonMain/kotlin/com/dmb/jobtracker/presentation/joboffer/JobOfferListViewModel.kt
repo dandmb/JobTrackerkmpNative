@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
+import com.rickclephas.kmp.nativecoroutines.NativeCoroutinesState
+
 
 class JobOfferListViewModel(
     private val getAllJobOffers: GetAllJobOffersUseCase,
@@ -31,6 +33,8 @@ class JobOfferListViewModel(
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val _state = MutableStateFlow(JobOfferListState())
+
+    @NativeCoroutinesState
     val state: StateFlow<JobOfferListState> = _state.asStateFlow()
 
     init {

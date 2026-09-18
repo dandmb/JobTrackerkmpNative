@@ -10,7 +10,7 @@ import com.dmb.jobtracker.domain.repository.JobOfferRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class JobOfferRepositoryImpl(
+internal class JobOfferRepositoryImpl(
     private val dao: JobOfferDao
 ) : JobOfferRepository {
 
