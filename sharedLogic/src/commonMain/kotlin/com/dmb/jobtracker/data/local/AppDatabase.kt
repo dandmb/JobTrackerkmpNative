@@ -14,7 +14,7 @@ import com.dmb.jobtracker.data.local.entity.JobOfferEntity
 @TypeConverters(Converters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun jobOfferDao(): JobOfferDao
+    internal abstract fun jobOfferDao(): JobOfferDao
 }
 
 // Nécessaire pour Room KMP (génération par KSP sur chaque plateforme)

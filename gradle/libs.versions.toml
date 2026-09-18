@@ -19,7 +19,9 @@ sqlite = "2.7.1"
 ksp = "2.3.12"
 koin = "4.2.2"
 
-kotlinx-coroutines = "1.10.2"
+kotlinx-coroutines = "1.10.1"
+kmp-nativecoroutines = "1.0.6"
+
 kotlinx-datetime = "0.7.1"
 
 
@@ -65,3 +67,5 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
+kmp-nativecoroutines = { id = "com.rickclephas.kmp.nativecoroutines", version.ref = "kmp-nativecoroutines" }
+
