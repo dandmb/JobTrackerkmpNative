@@ -22,7 +22,7 @@ koin = "4.2.2"
 kotlinx-coroutines = "1.10.1"
 kmp-nativecoroutines = "1.0.6"
 
-kotlinx-datetime = "0.7.1"
+kotlinx-datetime = "0.6.1"
 
 
 [libraries]
@@ -50,6 +50,9 @@ androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.r
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+
+androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 
 
 # Coroutines
@@ -57,6 +60,9 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 
 # Dates
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-datetime-j = { module = "org.jetbrains.kotlinx:kotlinx-datetime-jvm", version.ref = "kotlinx-datetime" }
+
+androidx-compose-material-icons = { module = "androidx.compose.material:material-icons-extended", version = "1.7.8" }
 
 
 [plugins]

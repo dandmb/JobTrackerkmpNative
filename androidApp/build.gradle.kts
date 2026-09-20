@@ -15,9 +15,17 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.core)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.koin.compose)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
+
+    implementation(libs.androidx.compose.material.icons)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material3)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+
 }
 
 android {

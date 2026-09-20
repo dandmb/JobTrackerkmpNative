@@ -5,7 +5,7 @@ import com.dmb.jobtracker.domain.model.JobOffer
 import com.dmb.jobtracker.domain.usecase.AddJobOfferUseCase
 import com.dmb.jobtracker.domain.usecase.DeleteJobOfferUseCase
 import com.dmb.jobtracker.domain.usecase.GetAllJobOffersUseCase
-import com.dmb.jobtracker.domain.usecase.UpdateJobOfferStatusUseCase
+import com.dmb.jobtracker.domain.usecase.UpdateJobOfferUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,10 +22,10 @@ import kotlinx.datetime.todayIn
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutinesState
 
 
-class JobOfferListViewModel(
+class JobOfferListViewModel internal constructor(
     private val getAllJobOffers: GetAllJobOffersUseCase,
     private val addJobOffer: AddJobOfferUseCase,
-    private val updateStatus: UpdateJobOfferStatusUseCase,
+    private val updateJobOffer: UpdateJobOfferUseCase,
     private val deleteJobOffer: DeleteJobOfferUseCase
 ) {
     // Pas d'androidx.lifecycle.ViewModel ici : on reste 100% Kotlin pur
@@ -51,19 +51,20 @@ class JobOfferListViewModel(
             }
             .launchIn(viewModelScope)
     }
-
-    fun onAddOffer(title: String, company: String, url: String?) {
+    fun onAddOffer(offer: JobOffer) {
         viewModelScope.launch {
             try {
-                addJobOffer(
-                    JobOffer(
-                        title = title,
-                        company = company,
-                        url = url,
-                        appliedDate = kotlin.time.Clock.System.todayIn(TimeZone.currentSystemDefault()),
-                        status = ApplicationStatus.APPLIED
-                    )
-                )
+                addJobOffer(offer)
+            } catch (e: IllegalArgumentException) {
+                _state.value = _state.value.copy(errorMessage = e.message)
+            }
+        }
+    }
+
+    fun onUpdateOffer(offer: JobOffer) {
+        viewModelScope.launch {
+            try {
+                updateJobOffer(offer)
             } catch (e: IllegalArgumentException) {
                 _state.value = _state.value.copy(errorMessage = e.message)
             }
@@ -71,7 +72,7 @@ class JobOfferListViewModel(
     }
 
     fun onStatusChanged(offer: JobOffer, newStatus: ApplicationStatus) {
-        viewModelScope.launch { updateStatus(offer, newStatus) }
+        viewModelScope.launch { updateJobOffer(offer.copy(status = newStatus)) }
     }
 
     fun onDeleteOffer(offer: JobOffer) {

@@ -23,8 +23,10 @@ internal class JobOfferRepositoryImpl(
     override suspend fun add(offer: JobOffer): Long =
         dao.insert(offer.toEntity())
 
-    override suspend fun update(offer: JobOffer) =
-        dao.update(offer.toEntity())
+    override suspend fun update(offer: JobOffer) {
+        val existing = dao.getById(offer.id)
+        dao.update(offer.toEntity(existingCreatedAt = existing?.createdAtEpochMillis))
+    }
 
     override suspend fun delete(offer: JobOffer) =
         dao.delete(offer.toEntity())

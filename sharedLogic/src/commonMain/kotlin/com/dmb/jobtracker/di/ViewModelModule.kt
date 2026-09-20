@@ -9,7 +9,7 @@ val viewModelModule = module {
         JobOfferListViewModel(
             getAllJobOffers = get(),
             addJobOffer = get(),
-            updateStatus = get(),
+            updateJobOffer = get(),
             deleteJobOffer = get()
         )
     }
