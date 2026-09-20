@@ -2,7 +2,7 @@
 
 > Ce fichier reflète l'état **actuel** du projet (pas son historique). À mettre à jour à chaque
 > intervention : ajouter ce qui change, retirer ce qui n'est plus vrai.
-> Dernière mise à jour : 2026-09-20 (correctifs de régression : état de swipe Android après « Annuler », marges de la carte stats iOS).
+> Dernière mise à jour : 2026-09-20 (mise en place des tests unitaires et de la couverture de code).
 
 ## 1. Architecture générale
 
@@ -14,7 +14,7 @@ ViewModel partagé.
 |---|---|
 | `sharedLogic` | Logique partagée (KMP : `androidMain`, `commonMain`, `iosMain`). Domaine, use cases, repository, Room, Koin, `JobOfferListViewModel`. Compilé en framework iOS statique `SharedLogic` (`iosArm64` + `iosSimulatorArm64`). |
 | `androidApp` | App Android : Compose + Material3, thème, écrans (`ui/joboffer`, `ui/theme`, `ui/util`). |
-| `iosApp` | App iOS : SwiftUI (`iosApp/iosApp/Core`, `Features/JobOffer`, `Resources/Fonts`). Xcode lance `./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode` avant de compiler. Groupes Xcode « synchronisés » : tout fichier ajouté dans `iosApp/iosApp/` est inclus automatiquement dans la cible. |
+| `iosApp` | App iOS : SwiftUI (`iosApp/iosApp/Core`, `Features/JobOffer`, `Resources/Fonts`) + tests XCTest (`iosApp/iosAppTests`). Xcode lance `./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode` avant de compiler. Groupes Xcode « synchronisés » : tout fichier ajouté dans `iosApp/iosApp/` est inclus automatiquement dans la cible. |
 | `sharedUI` | Module Compose Multiplatform **quasi vide** (`App.kt` du template). Non utilisé par les écrans réels : l'UI Android vit dans `androidApp`. |
 
 Couches dans `sharedLogic` (`com.dmb.jobtracker`) : `domain` (model, repository, usecase) →
@@ -37,7 +37,10 @@ Côté iOS : `KoinInitKt.doInitKoin()` dans `iOSApp.init`, puis `KoinHelper().jo
 | AndroidX SQLite (bundled) | 2.7.1 |
 | Koin (core / android / compose) | 4.2.2 |
 | KMP-NativeCoroutines | 1.0.6 (Android : plugin Gradle ; iOS : package SPM `KMPNativeCoroutines`, branche `master`, + RxSwift 6.10.2 résolu) |
-| kotlinx-coroutines | 1.10.1 |
+| kotlinx-coroutines (core et test, alignés) | 1.10.1 |
+| Turbine (test de Flow) | 1.2.1 |
+| Kover (couverture) | 0.9.9 |
+| JUnit 4 (tests app Android) | 4.13.2 |
 | kotlinx-datetime | 0.6.1 |
 | androidx.lifecycle | 2.11.0 |
 | androidx.activity | 1.13.0 |
@@ -162,8 +165,52 @@ Fait :
 
 Constats / reste à faire (observés dans le code, pas de roadmap officielle) :
 - `JobOfferListEvent` est une classe vide ; `sharedUI` est un template non utilisé.
-- Aucun test dans le dépôt (les dépendances `kotlin-test` sont déclarées).
+- **Constat (confirmé par expérience, non corrigé)** : `JobOfferListViewModel.onStatusChanged` et `onDeleteOffer` ne capturent aucune exception (contrairement à `onAddOffer` / `onUpdateOffer`) : si le repository échoue, l'exception s'échappe du scope du ViewModel (`errorMessage` reste `null`) et ferait planter l'app en production. À traiter (`try/catch` + `errorMessage`).
+- **Constat** : la recherche « espaces seulement » diffère entre plateformes : Android l'ignore (`isBlank()` → aucun filtre), iOS ne teste que `isEmpty` et filtre tout (liste vide). Test de caractérisation dans `JobOfferListLogicTests`.
+- **Constat** : `errorMessage` du ViewModel n'est remis à `null` que par la prochaine émission du flux de données (pas de « dismiss » explicite).
+- **Constat** : tri alphabétique par point de code Unicode, non localisé (« École » passe après « Zoé »), identique sur les deux plateformes.
+- Amorçage Room (`AppDatabase`, `DatabaseBuilder*`, `Migrations`) non testé unitairement : il demande un vrai SQLite (à tester en instrumenté Android ou en natif iOS avec base en mémoire).
 - Le libellé salaire garde l'emoji `💰` (rendu différent Apple/Noto, annoncé « sac d'argent » par les lecteurs d'écran) : à remplacer par une icône + libellé « Salaire » si souhaité.
+
+## 5 bis. Tests et couverture
+
+### Commandes (racine du projet)
+
+| Objet | Commande |
+|---|---|
+| **Toute la suite Kotlin** (Android JVM + natif iOS + app Android) | `./gradlew allUnitTests` |
+| Tests Android uniquement | `./gradlew testAndroidHostTest :androidApp:testDebugUnitTest` |
+| Tests natifs iOS du module partagé (simulateur) | `./gradlew :sharedLogic:iosSimulatorArm64Test` |
+| **Tests Swift (XCTest)** | `xcodebuild test -project iosApp/iosApp.xcodeproj -scheme iosAppTests -destination 'platform=iOS Simulator,name=<simulateur>' -enableCodeCoverage YES` |
+| **Rapport de couverture Kotlin (HTML)** | `./gradlew koverHtmlReport` → `build/reports/kover/html/index.html` (XML : `./gradlew koverXmlReport` → `build/reports/kover/report.xml`) |
+| Couverture brute (Composables inclus) | `./gradlew koverHtmlReport -PkoverFull` |
+| Couverture Swift (après `xcodebuild test -resultBundlePath X.xcresult`) | `xcrun xccov view --report X.xcresult` |
+
+**Piège** : `./gradlew test` ne lance **pas** les tests de `sharedLogic` (un module Kotlin Multiplatform n'a pas de tâche `test`) ; utiliser `allUnitTests`.
+
+Résultats JUnit XML : `sharedLogic/build/test-results/{testAndroidHostTest,iosSimulatorArm64Test}/`, `androidApp/build/test-results/testDebugUnitTest/`.
+
+### Où sont les tests
+
+- `sharedLogic/src/commonTest/kotlin/com/dmb/jobtracker/` : exécutés sur **deux runtimes** (JVM Android host test et Kotlin/Native iOS Simulator) — use cases, mappers, convertisseurs, repository (avec `FakeJobOfferDao`), ViewModel (`kotlinx-coroutines-test` + Turbine), graphe Koin (`DiModulesTest`, `databaseModule` remplacé par un DAO fake), code template. Fixtures et fakes dans `testutil/` (`jobOffer(...)`, `jobOfferEntity(...)`, `FakeJobOfferRepository`, `FakeJobOfferDao`).
+- `androidApp/src/test/kotlin/` (JUnit 4 + `kotlin-test-junit`) : `TextCase`, `DateFormatting`, `OfferListLogic` (recherche + tri), `StatusLabels`, `SortOption`, contraste WCAG des couleurs de statut (`StatusColorsTest`).
+- `iosApp/iosAppTests/` (XCTest, cible **hébergée par l'app**, schéma partagé `iosAppTests`) : `String+Case`, `FlowLayout.arrange`, `LocalDate+Bridge`, `JobOfferListLogic`, libellés / couleurs de statut (WCAG), format de date de la carte.
+- Convention de nommage : `fonction_condition_résultatAttendu` (Kotlin) / `test_fonction_condition_résultatAttendu` (Swift). Les cas sont volontairement identiques Android/iOS (mêmes tableaux d'attendus) pour qu'une divergence de logique soit détectée.
+
+### Périmètre de la couverture (Kover)
+
+Le chiffre principal mesure la **logique** : sont exclus le code généré Room (`*_Impl`, `AppDatabaseConstructor`), les fonctions `@Composable`, `MainActivity` et `MonApplication` (le rendu n'est pas testé unitairement). Les exclusions du rapport agrégé sont définies dans le `build.gradle.kts` **racine** (celles des modules ne concernent que leur rapport propre). Instantané au 2026-09-20 : **78,5 % des lignes (226/288)**, 96,3 % des branches sur ce périmètre ; 19,0 % (226/1190) avec les Composables. Tout ce qui est logique métier (`domain`, `data.mapper`, `data.repository`, `presentation`, `di`, `ui.util`, `ui.joboffer` non Compose) est à 100 % ; le reste est l'amorçage Room, `Theme.kt`/`Type.kt` et `JobOfferListEvent` (classe vide).
+
+### Décisions à ne pas refaire par erreur
+
+- **`kotlinx-coroutines-test` reste à 1.10.1**, aligné sur `kotlinx-coroutines-core` (même `version.ref`) ; Turbine 1.2.1 tire coroutines 1.10.2 dans le seul classpath de test.
+- **Les fakes de test sont `internal`** : `exposedSeverity = ERROR` (KMP-NativeCoroutines) s'applique aussi aux sources de test ; une classe publique exposant un `Flow`/`StateFlow` ne compile pas pour la cible iOS.
+- **Le ViewModel est testé avec `Dispatchers.setMain(StandardTestDispatcher())`** (il crée son scope sur `Dispatchers.Main`) et `advanceUntilIdle()` : aucune attente réelle, pas de test dépendant de l'horloge.
+- **Cible XCTest hébergée par l'app** (`TEST_HOST` = `JobTracker.app` : les symboles Kotlin viennent de l'app hôte ; aucun avertissement de classes Kotlin dupliquées constaté au lancement des tests). Elle a été créée par script avec la gem `xcodeproj` (le projet utilise des groupes synchronisés : tout `.swift` ajouté dans `iosApp/iosAppTests/` est compilé automatiquement). `PRODUCT_NAME = $(TARGET_NAME)` est surchargé, sinon la cible hérite de `PRODUCT_NAME=JobTracker` du `.xcconfig`. Le module de l'app s'importe avec `@testable import JobTracker`.
+- **Le schéma s'appelle `iosAppTests`** (partagé, dans `xcshareddata`) : un schéma utilisateur `iosApp` (dans `xcuserdata`, créé par Xcode, non versionné) masque un schéma partagé de même nom et n'a pas d'action de test.
+- **Couverture Swift : lire avec prudence** : l'app hôte se lance pendant les tests, donc les vues SwiftUI (`JobOfferListView`, `JobOfferCard`…) apparaissent partiellement « couvertes » sans être vérifiées. Seuls les fichiers de logique (`String+Case`, `FlowLayout`, `LocalDate+Bridge`, `JobOfferListLogic`, `Color+Theme`, `JobOffer+Display`) reflètent des tests réels.
+- **Petites extractions faites pour rendre la logique testable (comportement inchangé)** : Android `ui/util/DateFormatting.kt`, `ui/joboffer/OfferListLogic.kt`, `ui/joboffer/StatusLabels.kt` ; iOS `Features/JobOffer/JobOfferListLogic.swift`, `FlowLayout.arrange(sizes:maxWidth:spacing:)` (fonction statique pure), `JobOfferCard.dateFormatter` (plus `private`).
+- **Ne jamais laisser un test « qui passe pour rien »** : les tests clés ont été validés par mutation (défaut injecté dans le code de production → tests rouges → code restauré).
 
 ## 6. Décisions d'architecture à ne pas refaire par erreur
 

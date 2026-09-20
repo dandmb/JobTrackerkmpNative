@@ -22,7 +22,7 @@ struct JobOfferCard: View {
     @ScaledMetric(relativeTo: .body) private var chipArrowBox: CGFloat = 18
 
     // « 5 sept. » — Android reproduit les mêmes abréviations (MonthNames français explicites, jour sans zéro).
-    private static let dateFormatter: DateFormatter = {
+    static let dateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.dateFormat = "d MMM"
         df.locale = Locale(identifier: "fr_FR")

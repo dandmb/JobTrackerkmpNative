@@ -11,11 +11,19 @@ struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        arrange(in: proposal.width ?? .infinity, subviews: subviews).size
+        Self.arrange(
+            sizes: subviews.map { $0.sizeThatFits(.unspecified) },
+            maxWidth: proposal.width ?? .infinity,
+            spacing: spacing
+        ).size
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = arrange(in: bounds.width, subviews: subviews)
+        let result = Self.arrange(
+            sizes: subviews.map { $0.sizeThatFits(.unspecified) },
+            maxWidth: bounds.width,
+            spacing: spacing
+        )
         for (index, origin) in result.origins.enumerated() {
             subviews[index].place(
                 at: CGPoint(x: bounds.minX + origin.x, y: bounds.minY + origin.y),
@@ -24,11 +32,12 @@ struct FlowLayout: Layout {
         }
     }
 
-    private func arrange(in maxWidth: CGFloat, subviews: Subviews) -> (size: CGSize, origins: [CGPoint]) {
+    /// Calcul de placement pur (sans SwiftUI) : retourne la taille totale et l'origine de chaque vue.
+    /// Une vue passe à la ligne suivante quand elle ne tient plus dans `maxWidth` (sauf en début de ligne).
+    static func arrange(sizes: [CGSize], maxWidth: CGFloat, spacing: CGFloat) -> (size: CGSize, origins: [CGPoint]) {
         var origins: [CGPoint] = []
         var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0, usedWidth: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
+        for size in sizes {
             if x > 0 && x + size.width > maxWidth {
                 x = 0
                 y += rowHeight + spacing

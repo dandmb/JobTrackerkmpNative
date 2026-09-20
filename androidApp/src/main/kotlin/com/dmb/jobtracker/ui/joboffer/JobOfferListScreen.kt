@@ -41,20 +41,7 @@ fun JobOfferListScreen(
     val scope = rememberCoroutineScope()
 
     val visibleOffers = remember(state.offers, searchQuery, sortOption) {
-        state.offers
-            .filter {
-                searchQuery.isBlank() ||
-                        it.title.contains(searchQuery, ignoreCase = true) ||
-                        it.company.contains(searchQuery, ignoreCase = true)
-            }
-            .let { list ->
-                when (sortOption) {
-                    SortOption.DATE_DESC -> list.sortedByDescending { it.appliedDate }
-                    SortOption.DATE_ASC -> list.sortedBy { it.appliedDate }
-                    SortOption.ALPHA_ASC -> list.sortedBy { it.title.lowercase() }
-                    SortOption.ALPHA_DESC -> list.sortedByDescending { it.title.lowercase() }
-                }
-            }
+        state.offers.searchedAndSorted(searchQuery, sortOption)
     }
 
     LaunchedEffect(restoredOfferId, state.offers, visibleOffers) {

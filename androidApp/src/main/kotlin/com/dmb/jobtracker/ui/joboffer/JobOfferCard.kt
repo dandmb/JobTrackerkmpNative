@@ -18,24 +18,9 @@ import com.dmb.jobtracker.domain.model.ApplicationStatus
 import com.dmb.jobtracker.domain.model.JobOffer
 import com.dmb.jobtracker.ui.theme.color
 import com.dmb.jobtracker.ui.util.capitalizeFirst
+import com.dmb.jobtracker.ui.util.toShortFrenchDate
 import com.dmb.jobtracker.ui.util.toTitleCase
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.format
-import kotlinx.datetime.format.MonthNames
-import kotlinx.datetime.format.Padding
-import kotlinx.datetime.format.char
-
-// kotlinx-datetime n'a pas de noms de mois français intégrés : mêmes abréviations que iOS (fr_FR, « d MMM »).
-private val FrenchMonthsAbbreviated = MonthNames(
-    "janv.", "févr.", "mars", "avr.", "mai", "juin",
-    "juil.", "août", "sept.", "oct.", "nov.", "déc."
-)
-
-private val dateFormat = LocalDate.Format {
-    dayOfMonth(Padding.NONE)
-    char(' ')
-    monthName(FrenchMonthsAbbreviated)
-}
 
 @Composable
 fun JobOfferCard(
@@ -160,16 +145,8 @@ private fun DateRow(label: String, date: LocalDate) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            date.format(dateFormat),
+            date.toShortFrenchDate(),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
         )
     }
-}
-
-private fun ApplicationStatus.displayLabel(): String = when (this) {
-    ApplicationStatus.PENDING -> "En attente"
-    ApplicationStatus.APPLIED -> "Postulé"
-    ApplicationStatus.INTERVIEW -> "Entretien"
-    ApplicationStatus.REJECTED -> "Refusé"
-    ApplicationStatus.ACCEPTED -> "Accepté"
 }

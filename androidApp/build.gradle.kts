@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
@@ -26,6 +27,8 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.compose.ui.text.google.fonts)
 
+    testImplementation(libs.kotlin.testJunit)   // kotlin.test + annotation @Test JUnit 4
+    testImplementation(libs.junit)
 }
 
 android {
@@ -59,5 +62,24 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+// Couverture (Kover) : par défaut on mesure la LOGIQUE de l'app (le rendu des Composables n'est pas testé unitairement).
+// `./gradlew koverHtmlReport -PkoverFull` inclut aussi les Composables pour voir le chiffre brut.
+kover {
+    reports {
+        filters {
+            excludes {
+                classes("*.BuildConfig", "*.R", "*.R\$*")
+                if (!providers.gradleProperty("koverFull").isPresent) {
+                    annotatedBy("androidx.compose.runtime.Composable")
+                    classes(
+                        "*ComposableSingletons*",
+                        "com.dmb.jobtracker.MainActivity*",
+                        "com.dmb.jobtracker.MonApplication*",
+                    )
+                }
+            }
+        }
     }
 }

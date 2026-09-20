@@ -59,17 +59,7 @@ struct JobOfferListView: View {
     }
 
     private var visibleOffers: [JobOffer] {
-        let filtered = observable.state.offers.filter {
-            searchQuery.isEmpty ||
-            $0.title.localizedCaseInsensitiveContains(searchQuery) ||
-            $0.company.localizedCaseInsensitiveContains(searchQuery)
-        }
-        switch sortOption {
-        case .dateDesc: return filtered.sorted { $0.appliedDate.toDate() > $1.appliedDate.toDate() }
-        case .dateAsc: return filtered.sorted { $0.appliedDate.toDate() < $1.appliedDate.toDate() }
-        case .alphaAsc: return filtered.sorted { $0.title.lowercased() < $1.title.lowercased() }
-        case .alphaDesc: return filtered.sorted { $0.title.lowercased() > $1.title.lowercased() }
-        }
+        observable.state.offers.searchedAndSorted(query: searchQuery, sortOption: sortOption)
     }
 
     var body: some View {

@@ -78,11 +78,3 @@ private fun StatusBadge(status: ApplicationStatus, count: Int) {
         )
     }
 }
-
-private fun ApplicationStatus.shortLabel(): String = when (this) {
-    ApplicationStatus.PENDING -> "attente"
-    ApplicationStatus.APPLIED -> "postulé"
-    ApplicationStatus.INTERVIEW -> "entretien"
-    ApplicationStatus.REJECTED -> "refusé"
-    ApplicationStatus.ACCEPTED -> "accepté"
-}

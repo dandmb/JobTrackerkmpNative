@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.kmp.nativecoroutines)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
@@ -46,6 +47,8 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
@@ -69,4 +72,22 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+}
+// Couverture (Kover) : on exclut le code généré (Room, KSP) qui n'est pas du code du projet ;
+// il est couvert indirectement, via le Repository testé avec un DAO fake.
+kover {
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*_Impl",
+                    "*_Impl\$*",
+                    "*AppDatabaseConstructor*",
+                    "*.BuildConfig",
+                    "*.R",
+                    "*.R\$*",
+                )
+            }
+        }
+    }
 }
