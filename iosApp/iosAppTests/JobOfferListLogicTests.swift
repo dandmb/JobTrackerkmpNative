@@ -54,10 +54,17 @@ final class JobOfferListLogicTests: XCTestCase {
         XCTAssertTrue([offer].searchedAndSorted(query: "paris", sortOption: .dateDesc).isEmpty)
     }
 
-    func test_searchedAndSorted_whitespaceOnlyQuery_currentlyFiltersEverythingOutUnlikeAndroid() {
-        // ÉCART iOS/Android (à corriger, voir rapport) : Android traite une recherche d'espaces comme « pas de filtre »
-        // (`query.isBlank()`), iOS teste seulement `isEmpty` : « » + espaces ne correspond à aucun titre.
-        XCTAssertTrue(all.searchedAndSorted(query: "   ", sortOption: .dateDesc).isEmpty)
+    func test_searchedAndSorted_whitespaceOnlyQuery_isTreatedAsNoFilterLikeAndroid() {
+        // Parité avec Android (`query.isBlank()`) : une recherche d'espaces ne filtre rien (avant : liste vide sur iOS).
+        XCTAssertEqual(all.searchedAndSorted(query: "   ", sortOption: .dateDesc).count, 3)
+        XCTAssertEqual(all.searchedAndSorted(query: "\t", sortOption: .dateDesc).count, 3)
+        XCTAssertEqual(all.searchedAndSorted(query: " \n ", sortOption: .dateDesc).count, 3)
+    }
+
+    func test_searchedAndSorted_queryWithSurroundingSpaces_isUsedAsIsWithoutTrimming() {
+        // Comme Android (caractérisation) : seul un query 100 % blanc est ignoré ; « dev  » n'est pas nettoyé.
+        XCTAssertTrue(all.searchedAndSorted(query: "dev  ", sortOption: .dateDesc).isEmpty)
+        XCTAssertEqual(ids(all.searchedAndSorted(query: "end dev", sortOption: .dateDesc)), [3])
     }
 
     // MARK: tri

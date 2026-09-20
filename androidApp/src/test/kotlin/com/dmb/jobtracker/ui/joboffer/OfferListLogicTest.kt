@@ -36,6 +36,7 @@ class OfferListLogicTest {
     fun searchedAndSorted_whitespaceOnlyQuery_isTreatedAsNoFilter() {
         assertEquals(3, all.searchedAndSorted("   ", SortOption.DATE_DESC).size)
         assertEquals(3, all.searchedAndSorted("\t", SortOption.DATE_DESC).size)
+        assertEquals(3, all.searchedAndSorted(" \n ", SortOption.DATE_DESC).size)
     }
 
     @Test

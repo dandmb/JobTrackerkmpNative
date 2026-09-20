@@ -53,6 +53,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.koin.android)
         }
+        // Tests Room réels (DAO + migration) : SQLite natif sur iOS Simulator, sans appareil ni émulateur
+        iosTest.dependencies {
+            implementation(libs.androidx.room.testing)
+        }
     }
 
     sourceSets.all {
@@ -61,6 +65,12 @@ kotlin {
 }
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+// Le processus de test natif (simulateur) doit connaître le dossier des schémas Room exportés (MigrationTestHelper).
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+    // `simctl spawn` ne relaie à l'app que les variables préfixées SIMCTL_CHILD_ (le préfixe est retiré côté processus)
+    environment("SIMCTL_CHILD_ROOM_SCHEMA_DIR", "$projectDir/schemas")
 }
 
 nativeCoroutines {

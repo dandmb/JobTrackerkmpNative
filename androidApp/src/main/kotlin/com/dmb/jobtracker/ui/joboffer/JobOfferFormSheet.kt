@@ -7,16 +7,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.dmb.jobtracker.domain.model.ApplicationStatus
 import com.dmb.jobtracker.domain.model.JobOffer
+import com.dmb.jobtracker.presentation.form.JobOfferFormDraft
+import com.dmb.jobtracker.presentation.form.JobOfferFormLogic
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.todayIn
-import kotlinx.datetime.toLocalDateTime
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,13 +38,17 @@ fun JobOfferFormSheet(
     var location by remember { mutableStateOf(existingOffer?.location ?: "") }
     var source by remember { mutableStateOf(existingOffer?.source ?: "") }
     var notes by remember { mutableStateOf(existingOffer?.notes ?: "") }
-    var appliedDate by remember { mutableStateOf(existingOffer?.appliedDate ?: today) }
+    var appliedDate by remember { mutableStateOf(JobOfferFormLogic.initialAppliedDate(existingOffer, today)) }
     var interviewDate by remember { mutableStateOf(existingOffer?.interviewDate) }
     var resultDate by remember { mutableStateOf(existingOffer?.resultDate) }
 
-    var salaryMin by remember { mutableStateOf(existingOffer?.salaryRange?.substringBefore("-")?.trim()?.filter { it.isDigit() } ?: "") }
-    var salaryMax by remember { mutableStateOf(existingOffer?.salaryRange?.substringAfter("-", "")?.trim()?.filter { it.isDigit() } ?: "") }
+    val initialSalary = remember { JobOfferFormLogic.parseSalaryFields(existingOffer?.salaryRange) }
+    var salaryMin by remember { mutableStateOf(initialSalary.min) }
+    var salaryMax by remember { mutableStateOf(initialSalary.max) }
 
+
+    // Validation partagée (sharedLogic) : Enregistrer n'est actif que si `isValid` ; `errorMessage` (salaire max sans min) est affiché
+    val validation = JobOfferFormLogic.validate(title, company, salaryMin, salaryMax)
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -92,14 +97,15 @@ fun JobOfferFormSheet(
             ) {
                 OutlinedTextField(
                     value = salaryMin,
-                    onValueChange = { if (it.length <= 4) salaryMin = it.filter { c -> c.isDigit() } },
+                    onValueChange = { salaryMin = JobOfferFormLogic.nextSalaryInput(salaryMin, it) },
                     label = { Text("Salaire min (k€)") },
+                    isError = validation.errorMessage != null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f), singleLine = true
                 )
                 OutlinedTextField(
                     value = salaryMax,
-                    onValueChange = { if (it.length <= 4) salaryMax = it.filter { c -> c.isDigit() } },
+                    onValueChange = { salaryMax = JobOfferFormLogic.nextSalaryInput(salaryMax, it) },
                     label = { Text("Salaire max (k€)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f), singleLine = true
@@ -145,30 +151,39 @@ fun JobOfferFormSheet(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+            validation.errorMessage?.let { message ->
+                Text(
+                    message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .semantics { liveRegion = LiveRegionMode.Polite }   // annoncé par TalkBack dès qu'il apparaît
+                )
+            }
             Button(
                 onClick = {
                     onSave(
-                        JobOffer(
-                            id = existingOffer?.id ?: 0,
-                            title = title,
-                            company = company,
-                            url = url.ifBlank { null },
-                            location = location.ifBlank { null },
-                            source = source.ifBlank { null },
-                            salaryRange = when {
-                                salaryMin.isNotBlank() && salaryMax.isNotBlank() -> "${salaryMin}k - ${salaryMax}k"
-                                salaryMin.isNotBlank() -> "${salaryMin}k+"
-                                else -> null
-                            },
-                            appliedDate = appliedDate,
-                            interviewDate = interviewDate,
-                            resultDate = resultDate,
-                            status = existingOffer?.status ?: ApplicationStatus.APPLIED,
-                            notes = notes.ifBlank { null }
+                        JobOfferFormLogic.toJobOffer(
+                            JobOfferFormDraft(
+                                title = title,
+                                company = company,
+                                url = url,
+                                location = location,
+                                source = source,
+                                salaryMin = salaryMin,
+                                salaryMax = salaryMax,
+                                appliedDate = appliedDate,
+                                interviewDate = interviewDate,
+                                resultDate = resultDate,
+                                notes = notes,
+                            ),
+                            existingOffer,
                         )
                     )
                 },
-                enabled = title.isNotBlank() && company.isNotBlank(),
+                enabled = validation.isValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(if (isEditing) "Enregistrer" else "Ajouter")
@@ -213,9 +228,7 @@ private fun DatePickerField(
     )
 
     if (showPicker) {
-        val initialMillis = date
-            ?.atStartOfDayIn(TimeZone.UTC)
-            ?.toEpochMilliseconds()
+        val initialMillis = date?.toDatePickerMillis()
         val pickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
 
         DatePickerDialog(
@@ -223,9 +236,7 @@ private fun DatePickerField(
             confirmButton = {
                 TextButton(onClick = {
                     pickerState.selectedDateMillis?.let { millis ->
-                        val localDate = Instant.fromEpochMilliseconds(millis)
-                            .toLocalDateTime(TimeZone.UTC).date
-                        onDateSelected(localDate)
+                        onDateSelected(datePickerMillisToLocalDate(millis))
                     }
                     showPicker = false
                 }) { Text("OK") }

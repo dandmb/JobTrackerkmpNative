@@ -20,7 +20,7 @@ enum AppFontWeight: String {
     case bold = "PlusJakartaSans-Bold"
 }
 
-private enum AppFontRegistry {
+enum AppFontRegistry {
     /// Enregistre les .ttf du bundle auprès de CoreText, une seule fois.
     /// Fait au runtime pour ne pas dépendre de UIAppFonts (Info.plist) ni de l'emplacement
     /// exact des fichiers dans le bundle.

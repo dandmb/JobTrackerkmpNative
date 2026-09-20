@@ -46,15 +46,16 @@ fun JobOfferListScreen(
 
     LaunchedEffect(restoredOfferId, state.offers, visibleOffers) {
         val id = restoredOfferId ?: return@LaunchedEffect
-        if (state.offers.none { it.id == id }) return@LaunchedEffect   // ré-ajout pas encore reflété par le flow
-        val index = visibleOffers.indexOfFirst { it.id == id }
-        if (index >= 0) {                       // sinon : filtrée par la recherche, rien à montrer
-            withFrameNanos { }                  // laisse le LazyColumn mesurer avec l'offre ré-insérée
-            val info = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == id }
-            val fullyVisible = info != null &&
-                info.offset >= 0 &&
-                info.offset + info.size <= listState.layoutInfo.viewportEndOffset
-            if (!fullyVisible) listState.animateScrollToItem(index)
+        when (val target = locateRestoredOffer(state.offers, visibleOffers, id)) {
+            RestoredOfferTarget.AwaitingData -> return@LaunchedEffect   // ré-ajout pas encore reflété par le flow
+            RestoredOfferTarget.HiddenBySearch -> Unit                  // filtrée par la recherche : rien à montrer
+            is RestoredOfferTarget.InList -> {
+                withFrameNanos { }                  // laisse le LazyColumn mesurer avec l'offre ré-insérée
+                val layoutInfo = listState.layoutInfo
+                val bounds = layoutInfo.visibleItemsInfo.firstOrNull { it.key == id }
+                    ?.let { ItemBounds(it.offset, it.size) }
+                if (!isItemFullyVisible(bounds, layoutInfo.viewportEndOffset)) listState.animateScrollToItem(target.index)
+            }
         }
         // En dernier : restoredOfferId est une clé de cet effet, le remettre à null plus tôt l'annulerait
         restoredOfferId = null

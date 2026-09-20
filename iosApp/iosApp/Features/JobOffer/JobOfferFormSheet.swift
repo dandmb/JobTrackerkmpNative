@@ -34,9 +34,9 @@ struct JobOfferFormSheet: View {
         _url = State(initialValue: existingOffer?.url ?? "")
         _location = State(initialValue: existingOffer?.location ?? "")
         _source = State(initialValue: existingOffer?.source ?? "")
-        let parts = (existingOffer?.salaryRange ?? "").split(separator: "-")
-        _salaryMin = State(initialValue: parts.first.map { $0.filter(\.isNumber) } ?? "")
-        _salaryMax = State(initialValue: parts.count > 1 ? parts[1].filter(\.isNumber) : "")
+        let salary = JobOfferFormLogic.shared.parseSalaryFields(salaryRange: existingOffer?.salaryRange)
+        _salaryMin = State(initialValue: salary.min)
+        _salaryMax = State(initialValue: salary.max)
         _notes = State(initialValue: existingOffer?.notes ?? "")
         _appliedDate = State(initialValue: existingOffer?.appliedDate.toDate() ?? Date())
         _interviewDate = State(initialValue: existingOffer?.interviewDate?.toDate())
@@ -44,6 +44,11 @@ struct JobOfferFormSheet: View {
     }
 
     private var isEditing: Bool { existingOffer != nil }
+
+    // Validation partagée (sharedLogic) : Enregistrer n'est actif que si `isValid` ; `errorMessage` (salaire max sans min) est affiché
+    private var validation: FormValidation {
+        JobOfferFormLogic.shared.validate(title: title, company: company, salaryMin: salaryMin, salaryMax: salaryMax)
+    }
 
     var body: some View {
         NavigationStack {
@@ -58,12 +63,26 @@ struct JobOfferFormSheet: View {
                         .autocapitalization(.none)
                 }
 
-                Section("Salaire") {
+                Section {
                     HStack {
+                        // Même filtre de saisie que sur Android (4 chiffres, non-chiffres retirés) : règle partagée
                         TextField("Min (k€)", text: $salaryMin)
                             .keyboardType(.numberPad)
+                            .onChange(of: salaryMin) { old, new in
+                                salaryMin = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
+                            }
                         TextField("Max (k€)", text: $salaryMax)
                             .keyboardType(.numberPad)
+                            .onChange(of: salaryMax) { old, new in
+                                salaryMax = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
+                            }
+                    }
+                } header: {
+                    Text("Salaire")
+                } footer: {
+                    // Message de validation en pied de section (convention SwiftUI/HIG), lu par VoiceOver avec la section
+                    if let message = validation.errorMessage {
+                        Text(message).foregroundStyle(.red)
                     }
                 }
 
@@ -102,33 +121,26 @@ struct JobOfferFormSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Enregistrer") { save() }
-                        .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty ||
-                                  company.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .disabled(!validation.isValid)
                 }
             }
         }
     }
 
     private func save() {
-        let salaryRange: String? = {
-            if !salaryMin.isEmpty && !salaryMax.isEmpty { return "\(salaryMin)k - \(salaryMax)k" }
-            if !salaryMin.isEmpty { return "\(salaryMin)k+" }
-            return nil
-        }()
-
-        let offer = JobOffer(
-            id: existingOffer?.id ?? 0,
+        let offer = JobOfferFormBridge.buildOffer(
+            existing: existingOffer,
             title: title,
             company: company,
-            url: url.isEmpty ? nil : url,
-            location: location.isEmpty ? nil : location,
-            source: source.isEmpty ? nil : source,
-            salaryRange: salaryRange,
-            appliedDate: appliedDate.toKotlinLocalDate(),
-            interviewDate: interviewDate?.toKotlinLocalDate(),
-            resultDate: resultDate?.toKotlinLocalDate(),
-            status: existingOffer?.status ?? .applied,
-            notes: notes.isEmpty ? nil : notes
+            url: url,
+            location: location,
+            source: source,
+            salaryMin: salaryMin,
+            salaryMax: salaryMax,
+            notes: notes,
+            appliedDate: appliedDate,
+            interviewDate: interviewDate,
+            resultDate: resultDate
         )
 
         if isEditing {

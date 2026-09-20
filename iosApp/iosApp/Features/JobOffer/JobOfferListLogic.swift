@@ -10,8 +10,10 @@ import SharedLogic
 // Miroir de `searchedAndSorted` côté Android (ui/joboffer/OfferListLogic.kt).
 extension Array where Element == JobOffer {
     func searchedAndSorted(query: String, sortOption: SortOption) -> [JobOffer] {
+        // Comme Android (`query.isBlank()`) : une recherche vide OU composée uniquement d'espaces / retours à la ligne ne filtre rien.
+        let isBlankQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let filtered = filter {
-            query.isEmpty ||
+            isBlankQuery ||
             $0.title.localizedCaseInsensitiveContains(query) ||
             $0.company.localizedCaseInsensitiveContains(query)
         }

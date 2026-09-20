@@ -8,12 +8,14 @@ import com.dmb.jobtracker.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.jobtracker.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.jobtracker.testutil.FakeJobOfferRepository
 import com.dmb.jobtracker.testutil.jobOffer
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
@@ -128,7 +130,7 @@ class JobOfferListViewModelTest {
     }
 
     @Test
-    fun init_upstreamFlowFailsWithoutMessage_stopsLoadingWithNullError() = runTest {
+    fun init_upstreamFlowFailsWithoutMessage_stopsLoadingAndShowsTheFallbackMessage() = runTest {
         val repository = FakeJobOfferRepository()
         repository.getAllOverride = flow { throw IllegalStateException() }
         val viewModel = viewModelFor(repository)
@@ -136,7 +138,7 @@ class JobOfferListViewModelTest {
         advanceUntilIdle()
 
         assertFalse(viewModel.state.value.isLoading)
-        assertNull(viewModel.state.value.errorMessage)
+        assertEquals("Une erreur est survenue, réessaie.", viewModel.state.value.errorMessage)
         viewModel.onCleared()
     }
 
@@ -383,6 +385,204 @@ class JobOfferListViewModelTest {
 
         assertEquals(listOf(offer), viewModel.state.value.offers)
         viewModel.onCleared()
+    }
+
+    // ---------- erreurs du repository (pas de validation) : jamais d'exception qui s'échappe du scope ----------
+
+    @Test
+    fun onStatusChanged_repositoryFails_setsErrorMessageInsteadOfLettingTheExceptionEscape() = runTest {
+        val offer = jobOffer(id = 1, status = ApplicationStatus.APPLIED)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("base verrouillée")
+
+        viewModel.onStatusChanged(offer, ApplicationStatus.INTERVIEW)
+        advanceUntilIdle()
+
+        assertEquals("base verrouillée", viewModel.state.value.errorMessage)
+        assertEquals(listOf(offer), viewModel.state.value.offers)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onDeleteOffer_repositoryFails_setsErrorMessageAndKeepsTheOffer() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("suppression impossible")
+
+        viewModel.onDeleteOffer(offer)
+        advanceUntilIdle()
+
+        assertEquals("suppression impossible", viewModel.state.value.errorMessage)
+        assertEquals(listOf(offer), viewModel.state.value.offers)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onAddOffer_repositoryFailsWithNonValidationError_setsErrorMessage() = runTest {
+        val repository = FakeJobOfferRepository()
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("disque plein")
+
+        viewModel.onAddOffer(jobOffer())
+        advanceUntilIdle()
+
+        assertEquals("disque plein", viewModel.state.value.errorMessage)
+        assertTrue(viewModel.state.value.offers.isEmpty())
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onUpdateOffer_repositoryFailsWithNonValidationError_setsErrorMessage() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("écriture refusée")
+
+        viewModel.onUpdateOffer(offer.copy(title = "Modifiée"))
+        advanceUntilIdle()
+
+        assertEquals("écriture refusée", viewModel.state.value.errorMessage)
+        assertEquals(listOf(offer), viewModel.state.value.offers)
+        viewModel.onCleared()
+    }
+
+    // ---------- message de repli quand l'exception n'a pas de message exploitable ----------
+
+    @Test
+    fun onDeleteOffer_repositoryFailsWithoutMessage_showsTheFallbackMessageAndKeepsTheOffer() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException()
+
+        viewModel.onDeleteOffer(offer)
+        advanceUntilIdle()
+
+        assertEquals("Une erreur est survenue, réessaie.", viewModel.state.value.errorMessage)
+        assertEquals(listOf(offer), viewModel.state.value.offers)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onStatusChanged_repositoryFailsWithoutMessage_showsTheFallbackMessage() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException()
+
+        viewModel.onStatusChanged(offer, ApplicationStatus.INTERVIEW)
+        advanceUntilIdle()
+
+        assertEquals("Une erreur est survenue, réessaie.", viewModel.state.value.errorMessage)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onAddOffer_repositoryFailsWithoutMessage_showsTheFallbackMessage() = runTest {
+        val repository = FakeJobOfferRepository()
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = RuntimeException()
+
+        viewModel.onAddOffer(jobOffer())
+        advanceUntilIdle()
+
+        assertEquals("Une erreur est survenue, réessaie.", viewModel.state.value.errorMessage)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onUpdateOffer_repositoryFailsWithoutMessage_showsTheFallbackMessage() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = RuntimeException()
+
+        viewModel.onUpdateOffer(offer.copy(title = "Modifiée"))
+        advanceUntilIdle()
+
+        assertEquals("Une erreur est survenue, réessaie.", viewModel.state.value.errorMessage)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onDeleteOffer_repositoryFailsWithBlankMessage_showsTheFallbackMessage() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("   ")
+
+        viewModel.onDeleteOffer(offer)
+        advanceUntilIdle()
+
+        assertEquals("Une erreur est survenue, réessaie.", viewModel.state.value.errorMessage)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onDeleteOffer_repositoryFailsWithARealMessage_keepsThatMessageInsteadOfTheFallback() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("disque plein")
+
+        viewModel.onDeleteOffer(offer)
+        advanceUntilIdle()
+
+        assertEquals("disque plein", viewModel.state.value.errorMessage)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun fallbackMessage_isTheDocumentedFrenchSentence() {
+        assertEquals("Une erreur est survenue, réessaie.", DEFAULT_ERROR_MESSAGE)
+    }
+
+    @Test
+    fun viewModel_afterARepositoryFailure_stillHandlesLaterActions() = runTest {
+        val offer = jobOffer(id = 1, status = ApplicationStatus.APPLIED)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.failure = IllegalStateException("panne passagère")
+        viewModel.onStatusChanged(offer, ApplicationStatus.INTERVIEW)
+        advanceUntilIdle()
+
+        repository.failure = null
+        viewModel.onStatusChanged(offer, ApplicationStatus.ACCEPTED)
+        advanceUntilIdle()
+
+        assertEquals(ApplicationStatus.ACCEPTED, viewModel.state.value.offers.single().status)
+        assertNull(viewModel.state.value.errorMessage, "l'erreur est effacée par l'émission qui suit le succès")
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun onDeleteOffer_cancelledByOnCleared_isNotReportedAsAnError() = runTest {
+        val offer = jobOffer(id = 1)
+        val repository = FakeJobOfferRepository(listOf(offer))
+        val viewModel = viewModelFor(repository)
+        advanceUntilIdle()
+        repository.gate = CompletableDeferred()      // l'action reste suspendue dans le repository
+
+        viewModel.onDeleteOffer(offer)
+        runCurrent()                                 // l'action démarre et attend la porte
+        viewModel.onCleared()                        // annulation du scope pendant l'action
+        advanceUntilIdle()
+
+        assertNull(viewModel.state.value.errorMessage, "une annulation n'est pas une erreur à afficher")
+        assertTrue(repository.deleteCalls.isEmpty())
     }
 
     // ---------- cycle de vie ----------
