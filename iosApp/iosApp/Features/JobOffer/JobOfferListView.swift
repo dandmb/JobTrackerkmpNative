@@ -78,11 +78,17 @@ struct JobOfferListView: View {
                         if observable.state.isLoading {
                             ProgressView()
                         } else if observable.state.offers.isEmpty {
-                            ContentUnavailableView(
-                                "Aucune candidature",
-                                systemImage: "briefcase",
-                                description: Text("Ajoute ta première candidature avec le bouton +")
-                            )
+                            // Miroir de EmptyOffersMessage (JobOfferListScreen.kt)
+                            VStack(spacing: 8) {
+                                Text("Aucune candidature")
+                                    .appTextStyle(.titleMedium)
+                                    .foregroundStyle(Color.onAppBackground)
+                                Text("Ajoute ta première candidature avec le bouton +")
+                                    .appTextStyle(.bodyMedium)
+                                    .foregroundStyle(Color.onSurfaceVariant)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(24)
                         } else {
                             List {
                                 Section {
@@ -94,8 +100,10 @@ struct JobOfferListView: View {
 
                                 if visibleOffers.isEmpty {
                                     Text("Aucun résultat pour « \(searchQuery) »")
-                                        .foregroundStyle(.secondary)
+                                        .appTextStyle(.bodyLarge)
+                                        .foregroundStyle(Color.onSurfaceVariant)
                                         .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
                                 } else {
                                     ForEach(visibleOffers) { offer in
                                         JobOfferCard(
@@ -107,6 +115,7 @@ struct JobOfferListView: View {
                                         )
                                         .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                                         .listRowSeparator(.hidden)
+                                        .listRowBackground(Color.clear)
                                         .swipeActions(edge: .trailing) {
                                             Button(role: .destructive) {
                                                 observable.viewModelRef.onDeleteOffer(offer: offer)
@@ -118,6 +127,7 @@ struct JobOfferListView: View {
                                 }
                             }
                             .listStyle(.plain)
+                            .scrollContentBackground(.hidden)   // laisse voir le fond appBackground (Scaffold Android)
                             // Force la recherche SOUS le titre, comportement classique et prévisible
                             .searchable(
                                 text: $searchQuery,
@@ -126,11 +136,13 @@ struct JobOfferListView: View {
                             )
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)   // l'état vide doit remplir l'écran (le FAB reste en bas à droite)
 
                     Button(action: { showingAddSheet = true }) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.white)
+                        // FAB Android : Text("+", headlineSmall), secondary / onSecondary
+                        Text("+")
+                            .appTextStyle(.headlineSmall)
+                            .foregroundStyle(Color.onCoralSecondary)
                             .frame(width: 56, height: 56)
                             .background(Color.coralSecondary)
                             .clipShape(Circle())
@@ -138,6 +150,7 @@ struct JobOfferListView: View {
                     }
                     .padding(20)
                 }
+                .background(Color.appBackground.ignoresSafeArea())   // Scaffold : colorScheme.background
                 .navigationTitle("Candidatures")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {

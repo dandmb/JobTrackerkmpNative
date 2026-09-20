@@ -9,6 +9,7 @@
 import SwiftUI
 import SharedLogic
 
+// Miroir de androidApp/.../ui/joboffer/JobOfferStatsCard.kt.
 struct JobOfferStatsCard: View {
     let offers: [JobOffer]
 
@@ -20,19 +21,20 @@ struct JobOfferStatsCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 0) {
+            // headlineSmall.copy(fontSize = 34.sp, Bold) — le lineHeight reste celui de headlineSmall (30sp)
             Text("\(offers.count)")
-                .font(.system(size: 34, weight: .bold))
+                .appTextStyle(.headlineSmall.copy(weight: .bold, size: 34), fixedLineHeight: true)
                 .foregroundStyle(Color.tealOnContainer)
             Text(offers.count > 1 ? "candidatures suivies" : "candidature suivie")
-                .font(.subheadline)
+                .appTextStyle(.bodyMedium)
                 .foregroundStyle(Color.tealOnContainer.opacity(0.8))
 
             if !counts.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(counts, id: \.0) { status, count in
                         Text("\(count) \(status.shortLabel)")
-                            .font(.system(size: 13, weight: .semibold))
+                            .appTextStyle(.labelLarge.copy(weight: .semiBold))
                             .foregroundStyle(status.color)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
@@ -40,13 +42,14 @@ struct JobOfferStatsCard: View {
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
-                .padding(.top, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 16)
             }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.tealContainer)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(Color.tealContainer)                  // primaryContainer
+        .clipShape(RoundedRectangle(cornerRadius: 12))    // Card : shapes.medium (était 16)
     }
 }
 
