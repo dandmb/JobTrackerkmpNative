@@ -8,13 +8,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dmb.jobtracker.domain.model.ApplicationStatus
 import com.dmb.jobtracker.domain.model.JobOffer
+import com.dmb.jobtracker.ui.theme.LocalStatusPalette
 import com.dmb.jobtracker.ui.theme.color
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun JobOfferStatsCard(offers: List<JobOffer>) {
     val total = offers.size
@@ -30,21 +33,26 @@ fun JobOfferStatsCard(offers: List<JobOffer>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                "$total",
-                style = MaterialTheme.typography.headlineSmall.copy(fontSize = 34.sp, fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Text(
-                if (total > 1) "candidatures suivies" else "candidature suivie",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-            )
+            // Total + libellé lus ensemble (« 3 candidatures suivies »)
+            Column(modifier = Modifier.semantics(mergeDescendants = true) {}) {
+                Text(
+                    "$total",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontSize = 34.sp, fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    if (total > 1) "candidatures suivies" else "candidature suivie",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
 
             if (counts.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(
+                // FlowRow : avec 4-5 statuts, une Row simple déborde de l'écran (360 dp) ou à grande taille de police
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     counts.forEach { (status, count) ->
@@ -60,7 +68,7 @@ fun JobOfferStatsCard(offers: List<JobOffer>) {
 private fun StatusBadge(status: ApplicationStatus, count: Int) {
     Box(
         modifier = Modifier
-            .background(status.color().copy(alpha = 0.16f), RoundedCornerShape(10.dp))
+            .background(status.color().copy(alpha = LocalStatusPalette.current.badgeTintAlpha), RoundedCornerShape(10.dp))
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Text(

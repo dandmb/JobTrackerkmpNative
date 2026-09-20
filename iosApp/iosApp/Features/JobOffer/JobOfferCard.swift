@@ -15,11 +15,17 @@ struct JobOfferCard: View {
     let onStatusChanged: (ApplicationStatus) -> Void
     let onEditTap: () -> Void
 
-    // Android : LocalDate.Format { dayOfMonth(); ' '; monthName(ENGLISH_ABBREVIATED) } → "20 Sep"
+    // Les icônes suivent Dynamic Type comme le texte (sinon elles deviennent minuscules à grande taille de police)
+    @ScaledMetric(relativeTo: .body) private var pencilSize: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var pinSize: CGFloat = 14
+    @ScaledMetric(relativeTo: .body) private var chipArrowSize: CGFloat = 8
+    @ScaledMetric(relativeTo: .body) private var chipArrowBox: CGFloat = 18
+
+    // « 5 sept. » — Android reproduit les mêmes abréviations (MonthNames français explicites, jour sans zéro).
     private static let dateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.dateFormat = "d MMM"
-        df.locale = Locale(identifier: "en_US_POSIX")
+        df.locale = Locale(identifier: "fr_FR")
         return df
     }()
 
@@ -33,12 +39,12 @@ struct JobOfferCard: View {
             }
 
             statusChip
-                .padding(.top, 8)
+                .padding(.top, 2)                         // 8 - 6 : la zone tactile de 44 pt déborde de 6 pt de chaque côté du chip de 32
 
             Rectangle()                                   // HorizontalDivider() : 1dp, outlineVariant
                 .fill(Color.outlineVariant)
                 .frame(height: 1)
-                .padding(.top, 12)
+                .padding(.top, 6)                         // 12 - 6 (idem)
                 .padding(.bottom, 8)
 
             dateRow(label: "Postulé", date: offer.appliedDate)
@@ -77,12 +83,12 @@ struct JobOfferCard: View {
             // IconButton Material : zone tactile 48dp, icône 24dp centrée
             Button(action: onEditTap) {
                 Image(systemName: "pencil")
-                    .font(.system(size: 20))
-                    .frame(width: 48, height: 48)
+                    .font(.system(size: pencilSize))
+                    .frame(minWidth: 48, minHeight: 48)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Modifier")
+            .accessibilityLabel("Modifier la candidature \(offer.title)")
         }
     }
 
@@ -93,7 +99,7 @@ struct JobOfferCard: View {
             Image(systemName: "mappin.and.ellipse")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 14, height: 14)
+                .frame(width: pinSize, height: pinSize)
             Text(location)
                 .appTextStyle(.labelLarge)
         }
@@ -115,20 +121,24 @@ struct JobOfferCard: View {
                     .appTextStyle(.labelLarge)
                     .foregroundStyle(offer.status.color)
                 Image(systemName: "arrowtriangle.down.fill")
-                    .font(.system(size: 8))
+                    .font(.system(size: chipArrowSize))
                     .foregroundStyle(Color.tealPrimary)
-                    .frame(width: 18, height: 18)
+                    .frame(width: chipArrowBox, height: chipArrowBox)
             }
             .padding(.leading, 16)
             .padding(.trailing, 8)
-            .frame(height: 32)
+            .frame(minHeight: 32)                          // minHeight : le chip grandit avec Dynamic Type au lieu de tronquer
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(Color.outlineVariant, lineWidth: 1)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 8))
+            // HIG : zone tactile >= 44 x 44 pt. Le chip reste visuellement à 32 pt.
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Statut : \(offer.status.displayLabel)")
+        .accessibilityHint("Ouvre le menu pour changer le statut")
     }
 
     // MARK: Timeline des dates
@@ -143,6 +153,7 @@ struct JobOfferCard: View {
             Text(Self.dateFormatter.string(from: date.toDate()))
                 .appTextStyle(.labelLarge.copy(weight: .semiBold))
         }
+        .accessibilityElement(children: .combine)         // VoiceOver : « Postulé, 5 sept. » d'un bloc
     }
 }
 

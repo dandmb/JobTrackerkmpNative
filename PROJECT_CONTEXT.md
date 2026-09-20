@@ -2,7 +2,7 @@
 
 > Ce fichier reflète l'état **actuel** du projet (pas son historique). À mettre à jour à chaque
 > intervention : ajouter ce qui change, retirer ce qui n'est plus vrai.
-> Dernière mise à jour : 2026-09-20 (parité visuelle iOS/Android de l'écran de liste).
+> Dernière mise à jour : 2026-09-20 (correctifs de régression : état de swipe Android après « Annuler », marges de la carte stats iOS).
 
 ## 1. Architecture générale
 
@@ -95,11 +95,23 @@ lues dans les tokens `ColorLightTokens`/`ColorDarkTokens` de material3 1.12.0-al
 | onSurfaceVariant | `#49454F` | `#CAC4D0` | texte secondaire |
 | outlineVariant | `#CAC4D0` | `#49454F` | divider, contour du chip |
 
-Statuts (identiques clair/sombre, **non adaptatifs**, sur les deux plateformes) :
-PENDING `#79747E`, APPLIED `#0D6E68` (= Teal40), INTERVIEW `#E8734A` (= Coral40), REJECTED `#BA1A1A`, ACCEPTED `#2E7D32`.
+Statuts — **adaptatifs clair/sombre**, identiques sur les deux plateformes. Utilisés comme couleur de **texte** (chip de la carte, badges de la carte stats) ;
+chaque valeur atteint **WCAG AA (≥ 4.5:1)** sur la carte (`surfaceContainerHighest`) ET sur un badge de la carte stats (couleur teintée sur `primaryContainer`) :
 
-Où c'est défini : Android → `ui/theme/Color.kt`, `Theme.kt`, `StatusColors.kt` ;
-iOS → `iosApp/Core/Theme/Color+Theme.swift` (couleurs adaptatives clair/sombre via `Color(light:dark:)`),
+| Statut | Clair | Sombre |
+|---|---|---|
+| PENDING | `#57535A` | `#CAC4D0` |
+| APPLIED | `#0B5E58` | `#78DDD1` |
+| INTERVIEW | `#913312` | `#FFB59D` |
+| REJECTED | `#9F1616` | `#FFB4AB` |
+| ACCEPTED | `#235F26` | `#9BD99F` |
+
+Opacité de la teinte de fond des badges de statut : **0,16 en clair, 0,08 en sombre** (une teinte plus forte éclaircit le fond du badge et fait passer le texte sous 4.5:1).
+Les anciennes valeurs de marque (Coral40 `#E8734A`, Teal40 `#0D6E68`… utilisées comme texte) échouaient AA même en clair (ex. corail 2.3:1) : ne pas les réutiliser pour du texte.
+**Règle pour toute nouvelle couleur de texte/statut** : vérifier ≥ 4.5:1 (≥ 3:1 seulement pour texte ≥ 24 px ou icône/contour informatif) sur chaque fond où elle s'affiche, dans les deux modes.
+
+Où c'est défini : Android → `ui/theme/Color.kt` (constantes `Status*Light/Dark`, `StatusBadgeTint*`), `StatusColors.kt` (`StatusPalette` + `LocalStatusPalette`, lue par `ApplicationStatus.color()`),
+fourni par `JobTrackerTheme` dans `Theme.kt` ; iOS → `iosApp/Core/Theme/Color+Theme.swift` (`Color(light:dark:)`, `statusBadgeTintAlpha(for:)`),
 mapping statut→couleur/libellé dans `Core/Extensions/JobOffer+Display.swift`.
 
 ### Typographie
@@ -125,10 +137,18 @@ Police : **Plus Jakarta Sans**, poids Regular/Medium/SemiBold/Bold.
 
 - Carte candidature : fond surfaceContainerHighest, coin 12, padding 16 ; titre en title case (titleMedium, letterSpacing 0.15),
   entreprise en sentence case (bodyMedium, onSurfaceVariant) ; crayon d'édition en haut à droite ; localisation (icône 14 + labelLarge) si renseignée ;
-  chip de statut cliquable (hauteur 32, coin 8, contour outlineVariant 1, label coloré par statut, flèche « dropdown » 18) ; divider ; dates
-  Postulé / Entretien / Résultat (label MAJUSCULES 11 medium, tracking 0.5, onSurfaceVariant ; valeur labelLarge SemiBold, format `d MMM` en **anglais**) ; salaire `💰 …`.
-- Carte stats : fond primaryContainer, coin 12, padding 20 ; total 34 Bold (interligne 30) ; « candidature(s) suivie(s) » à 80 % ; badges par statut fond `couleur @ 16 %`, coin 10, padding 10×6.
+  chip de statut cliquable (hauteur visuelle 32, coin 8, contour outlineVariant 1, label coloré par statut, flèche « dropdown ») ; divider ; dates
+  Postulé / Entretien / Résultat (label MAJUSCULES 11 medium, tracking 0.5, onSurfaceVariant ; valeur labelLarge SemiBold, format `j mmm` **en français** : « 5 sept. », « 12 févr. ») ; salaire `💰 …`.
+  Zones tactiles : crayon ≥ 48, chip ≥ 44 pt sur iOS (32 visuels ; Android : 48 dp automatiques via M3).
+- Carte stats : fond primaryContainer, coin 12, padding 20 ; total 34 Bold (interligne 30) ; « candidature(s) suivie(s) » à 80 % ; badges par statut (coin 10, padding 10×6, fond teinté : voir opacité ci-dessus)
+  **qui passent à la ligne** (Android `FlowRow`, iOS `Core/Layout/FlowLayout.swift`).
+- Marges de la carte stats : 16 sur les côtés et 12 avec l'élément suivant, sur les deux plateformes (Android : `Column.padding(16.dp)` + `spacedBy(12.dp)` ; iOS : `listRowInsets(top: 8, leading: 16, bottom: 8, trailing: 16)` sur la `Section`, plus les 4 de marge haute des cartes suivantes).
+- Écran de liste : marge basse de 88 (dp/pt) pour que le FAB ne masque pas la dernière carte ; FAB = icône « + » (label d'accessibilité « Ajouter une candidature »).
+- Accessibilité : libellé + valeur d'une date lus d'un bloc ; total + « candidatures suivies » lus d'un bloc ; chip « Statut : X » ; crayon « Modifier la candidature <titre> » ;
+  icônes iOS qui suivent Dynamic Type (`@ScaledMetric`), chip iOS en `minHeight` (grandit avec la police).
 - Logique de casse : Android `ui/util/TextCase.kt` ↔ iOS `Core/Extensions/String+Case.swift`.
+  `toTitleCase` : première lettre de chaque mot en majuscule **sauf** si le mot porte déjà une majuscule après sa 1re lettre (sigles `SQL`, `QA`, marques en casse mixte `iOS`, `iPhone`, `eBay`), laissé tel quel ;
+  `capitalizedFirst` applique la même exception au premier mot. Limite connue : « ios developer » saisi tout en minuscules devient « Ios Developer » (aucun dictionnaire de sigles).
 
 ## 5. État des lieux fonctionnel
 
@@ -137,13 +157,13 @@ Fait :
 - Recherche (titre/entreprise, insensible à la casse, faite côté UI, les stats portent sur **toutes** les offres).
 - Tri : plus récent / plus ancien / A→Z / Z→A.
 - Carte de statistiques (total + compteurs par statut).
-- Suppression : swipe (Android : `SwipeToDismissBox` + snackbar ; iOS : `swipeActions`).
+- Suppression : swipe. Android : `SwipeToDismissBox` + snackbar **avec « Annuler »** (ré-ajoute l'offre via `onAddOffer`, même id ; la carte revient à l'état normal et la liste défile jusqu'à elle). iOS : `swipeActions` + **`confirmationDialog`** avant suppression.
 - Persistance Room avec migration 1→2.
 
 Constats / reste à faire (observés dans le code, pas de roadmap officielle) :
 - `JobOfferListEvent` est une classe vide ; `sharedUI` est un template non utilisé.
 - Aucun test dans le dépôt (les dépendances `kotlin-test` sont déclarées).
-- Pas d'annulation de suppression sur iOS (Android affiche seulement un snackbar informatif).
+- Le libellé salaire garde l'emoji `💰` (rendu différent Apple/Noto, annoncé « sac d'argent » par les lecteurs d'écran) : à remplacer par une icône + libellé « Salaire » si souhaité.
 
 ## 6. Décisions d'architecture à ne pas refaire par erreur
 
@@ -159,6 +179,15 @@ Constats / reste à faire (observés dans le code, pas de roadmap officielle) :
 - **iOS — polices** : `.ttf` statiques (et non la police variable) car `.weight()` sur une police variable est peu fiable sur iOS ; enregistrement runtime pour ne
   pas modifier `Info.plist`/`project.pbxproj`.
 - **iOS — couleurs adaptatives** via `UIColor` dynamique : suit le mode système comme `isSystemInDarkTheme()` côté Android.
+- **Android — état de swipe non sauvegardable** (`SwipeableJobOfferItem.kt`) : l'état est créé avec `remember { SwipeToDismissBoxState(...) }` et **non** `rememberSwipeToDismissBoxState`, qui est un `rememberSaveable`.
+  Dans un `LazyColumn` à clés (`key = { it.id }`), l'état sauvegardé d'un item retiré est restauré quand un item de même clé réapparaît : après « Annuler », la carte revenait à l'état `EndToStart` (décalée hors écran, fond `errorContainer` visible). Ne pas revenir à `rememberSwipeToDismissBoxState` dans une liste à clés où une offre peut réapparaître avec le même id.
+- **Android — « Annuler » fait défiler jusqu'à la carte restaurée** (`JobOfferListScreen.kt`, `restoredOfferId`) : `LazyColumn` garde en place le 1er élément visible quand on insère au-dessus, donc une carte restaurée en tête de liste réapparaissait hors écran (ou à moitié visible). Après le ré-ajout, si la carte n'est pas entièrement visible, `animateScrollToItem`.
+  `restoredOfferId` est une clé du `LaunchedEffect` : le remettre à `null` **à la fin** seulement (plus tôt, cela annule le scroll).
+- **iOS — `listRowInsets` de la carte stats** : ne pas remettre `EdgeInsets()` (zéro) sur la `Section` de `JobOfferStatsCard` : la carte serait collée aux bords de l'écran et à la 1re candidature. Vérifier l'écran **réel** (base peuplée), pas seulement un `ScrollView` de test qui a sa propre marge.
+- **Confirmation vs annulation de suppression** : Android = snackbar « Annuler » (guideline Material : pas de dialogue pour une suppression réversible) ; iOS = `confirmationDialog` (HIG : confirmer une action destructive, pas de toast standard). Différence volontaire.
+- **Statuts = variantes clair/sombre validées par calcul de contraste** (cf. §4) ; l'opacité de teinte des badges dépend du mode. Ne pas revenir à une couleur unique.
+- **Dates** : format `j mmm` français des deux côtés. kotlinx-datetime 0.6.1 n'a **pas** de `MonthNames` français intégrés (seulement `ENGLISH_*`) : `JobOfferCard.kt` définit ses 12 abréviations (`janv.`, `févr.`, `mars`, `avr.`, `mai`, `juin`, `juil.`, `août`, `sept.`, `oct.`, `nov.`, `déc.`),
+  identiques à `DateFormatter` `fr_FR` sur iOS. `dayOfMonth(Padding.NONE)` : sans zéro initial (le défaut `Padding.ZERO` donnait « 05 »).
 - `LocalDate` Kotlin ↔ `Date` Swift : conversions dans `Core/Extensions/LocalDate+Bridge.swift`.
 
 ## 7. Écarts connus entre Android et iOS
@@ -173,6 +202,7 @@ Constats / reste à faire (observés dans le code, pas de roadmap officielle) :
 | Feuilles de menu de statut : `DropdownMenu` Material vs `Menu` iOS | Composant système imposé par la plateforme. |
 | Swipe de suppression : fond `errorContainer` (Android) vs action rouge système (iOS) | `swipeActions` impose son rendu. |
 | Chip : pas d'état pressed/ripple identique | Comportement de feedback propre à chaque plateforme. |
-| Format de date `d MMM` en **anglais** (« 20 Sep ») sur les deux | Reproduit tel quel depuis Android (`MonthNames.ENGLISH_ABBREVIATED`) ; à passer en français des deux côtés si voulu. |
-| Couleurs de statut non adaptatives : faible contraste en dark mode (Applied teal / Rejected rouge sur fond sombre) | Fidèle à Android (`Color.kt`) ; à corriger des deux côtés simultanément. |
-| Title case : « iOS engineer » → « IOS Engineer » | Logique `TextCase.kt` reproduite fidèlement (ne touche que la 1re lettre si minuscule). |
+| Suppression : snackbar « Annuler » (Android) vs boîte de confirmation (iOS) | Convention de chaque plateforme (voir §6). |
+| Zone tactile du chip : 48 dp automatiques (M3) vs 44 pt explicites (iOS, chip visuel 32) | Minimums de chaque guideline (Material 48 dp / HIG 44 pt). |
+| Icônes : taille fixe en dp sur Android, elles suivent Dynamic Type sur iOS | Sur Android l'échelle de police ne touche que le texte (comportement Material standard). |
+| Police Android sur émulateur sans Google Play Services : repli sur Roboto | La police Plus Jakarta Sans passe par Google Fonts téléchargeable (`font_certs.xml`) : à vérifier sur appareil réel. |

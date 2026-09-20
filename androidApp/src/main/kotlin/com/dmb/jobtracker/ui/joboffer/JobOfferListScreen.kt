@@ -3,7 +3,9 @@ package com.dmb.jobtracker.ui.joboffer
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
@@ -32,6 +34,10 @@ fun JobOfferListScreen(
     var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val listState = rememberLazyListState()
+    // Offre qu'on vient de restaurer via « Annuler » : le LazyColumn garde en place le 1er élément visible quand
+    // un élément est inséré au-dessus, donc une carte restaurée en tête de liste réapparaîtrait hors écran.
+    var restoredOfferId by remember { mutableStateOf<Long?>(null) }
     val scope = rememberCoroutineScope()
 
     val visibleOffers = remember(state.offers, searchQuery, sortOption) {
@@ -49,6 +55,22 @@ fun JobOfferListScreen(
                     SortOption.ALPHA_DESC -> list.sortedByDescending { it.title.lowercase() }
                 }
             }
+    }
+
+    LaunchedEffect(restoredOfferId, state.offers, visibleOffers) {
+        val id = restoredOfferId ?: return@LaunchedEffect
+        if (state.offers.none { it.id == id }) return@LaunchedEffect   // ré-ajout pas encore reflété par le flow
+        val index = visibleOffers.indexOfFirst { it.id == id }
+        if (index >= 0) {                       // sinon : filtrée par la recherche, rien à montrer
+            withFrameNanos { }                  // laisse le LazyColumn mesurer avec l'offre ré-insérée
+            val info = listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == id }
+            val fullyVisible = info != null &&
+                info.offset >= 0 &&
+                info.offset + info.size <= listState.layoutInfo.viewportEndOffset
+            if (!fullyVisible) listState.animateScrollToItem(index)
+        }
+        // En dernier : restoredOfferId est une clé de cet effet, le remettre à null plus tôt l'annulerait
+        restoredOfferId = null
     }
 
     Scaffold(
@@ -86,7 +108,8 @@ fun JobOfferListScreen(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
             ) {
-                Text("+", style = MaterialTheme.typography.headlineSmall)
+                // Icône (et non un « + » textuel) : TalkBack annonce « Ajouter une candidature » au lieu de « plus »
+                Icon(Icons.Default.Add, contentDescription = "Ajouter une candidature")
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -121,8 +144,10 @@ fun JobOfferListScreen(
                     state.offers.isEmpty() -> EmptyOffersMessage()
                     else -> {
                         LazyColumn(
+                            state = listState,
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            // Marge basse : le FAB (56 dp + 16 dp de marge) ne doit pas masquer la dernière carte
+                            contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 88.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(visibleOffers, key = { it.id }) { offer ->
@@ -131,9 +156,17 @@ fun JobOfferListScreen(
                                     onDelete = {
                                         viewModel.onDeleteOffer(offer)
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                "«${offer.title}» supprimée"
+                                            // Suppression sans confirmation : on offre une annulation (guidelines M3)
+                                            snackbarHostState.currentSnackbarData?.dismiss()
+                                            val result = snackbarHostState.showSnackbar(
+                                                message = "«${offer.title}» supprimée",
+                                                actionLabel = "Annuler",
+                                                duration = SnackbarDuration.Long
                                             )
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                viewModel.onAddOffer(offer)   // même id : la candidature retrouve sa place
+                                                restoredOfferId = offer.id
+                                            }
                                         }
                                     },
                                     onStatusChanged = { newStatus ->

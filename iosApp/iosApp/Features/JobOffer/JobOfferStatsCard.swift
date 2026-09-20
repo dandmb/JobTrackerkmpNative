@@ -12,6 +12,7 @@ import SharedLogic
 // Miroir de androidApp/.../ui/joboffer/JobOfferStatsCard.kt.
 struct JobOfferStatsCard: View {
     let offers: [JobOffer]
+    @Environment(\.colorScheme) private var colorScheme
 
     private var counts: [(ApplicationStatus, Int)] {
         ApplicationStatus.entries.compactMap { status in
@@ -22,23 +23,28 @@ struct JobOfferStatsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // headlineSmall.copy(fontSize = 34.sp, Bold) — le lineHeight reste celui de headlineSmall (30sp)
-            Text("\(offers.count)")
-                .appTextStyle(.headlineSmall.copy(weight: .bold, size: 34), fixedLineHeight: true)
-                .foregroundStyle(Color.tealOnContainer)
-            Text(offers.count > 1 ? "candidatures suivies" : "candidature suivie")
-                .appTextStyle(.bodyMedium)
-                .foregroundStyle(Color.tealOnContainer.opacity(0.8))
+            // Total + libellé lus ensemble par VoiceOver (« 3 candidatures suivies »)
+            VStack(alignment: .leading, spacing: 0) {
+                // headlineSmall.copy(fontSize = 34.sp, Bold) — le lineHeight reste celui de headlineSmall (30sp)
+                Text("\(offers.count)")
+                    .appTextStyle(.headlineSmall.copy(weight: .bold, size: 34), fixedLineHeight: true)
+                    .foregroundStyle(Color.tealOnContainer)
+                Text(offers.count > 1 ? "candidatures suivies" : "candidature suivie")
+                    .appTextStyle(.bodyMedium)
+                    .foregroundStyle(Color.tealOnContainer.opacity(0.8))
+            }
+            .accessibilityElement(children: .combine)
 
             if !counts.isEmpty {
-                HStack(spacing: 8) {
+                // FlowLayout (équivalent FlowRow) : 4-5 badges ne tiennent pas sur une ligne d'iPhone / à grande taille de texte
+                FlowLayout(spacing: 8) {
                     ForEach(counts, id: \.0) { status, count in
                         Text("\(count) \(status.shortLabel)")
                             .appTextStyle(.labelLarge.copy(weight: .semiBold))
                             .foregroundStyle(status.color)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .background(status.color.opacity(0.16))
+                            .background(status.color.opacity(Color.statusBadgeTintAlpha(for: colorScheme)))
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }

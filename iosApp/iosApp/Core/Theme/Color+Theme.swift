@@ -54,12 +54,20 @@ extension Color {
     static let onSurfaceVariant = Color(light: 0x49454F, dark: 0xCAC4D0)     // onSurfaceVariant (texte secondaire)
     static let outlineVariant = Color(light: 0xCAC4D0, dark: 0x49454F)       // outlineVariant (Divider, contour du chip)
 
-    // MARK: Statuts — identiques dans les deux modes, comme côté Android
-    static let statusPending = Color(hex: 0x79747E)
-    static let statusApplied = Color(hex: 0x0D6E68)     // = Teal40 (ne s'éclaircit pas en dark, comme Android)
-    static let statusInterview = Color(hex: 0xE8734A)   // = Coral40
-    static let statusRejected = Color(hex: 0xBA1A1A)
-    static let statusAccepted = Color(hex: 0x2E7D32)
+    // MARK: Statuts — variantes clair/sombre, identiques à Color.kt (StatusPalette)
+    // Utilisées comme couleur de TEXTE : chaque variante atteint WCAG AA (>= 4.5:1) sur la carte
+    // (surfaceContainerHighest) et sur un badge de la carte stats. Teintes de marque conservées.
+    static let statusPending = Color(light: 0x57535A, dark: 0xCAC4D0)
+    static let statusApplied = Color(light: 0x0B5E58, dark: 0x78DDD1)
+    static let statusInterview = Color(light: 0x913312, dark: 0xFFB59D)   // clair : Coral40 #E8734A ne donnait que 2.3:1
+    static let statusRejected = Color(light: 0x9F1616, dark: 0xFFB4AB)
+    static let statusAccepted = Color(light: 0x235F26, dark: 0x9BD99F)
+
+    /// Opacité de la teinte de fond des badges de statut (StatusBadgeTintLight/Dark côté Android).
+    /// Plus faible en sombre : une teinte plus forte éclaircit le fond et fait passer le texte sous 4.5:1.
+    static func statusBadgeTintAlpha(for scheme: ColorScheme) -> Double {
+        scheme == .dark ? 0.08 : 0.16
+    }
 }
 
 private extension UIColor {

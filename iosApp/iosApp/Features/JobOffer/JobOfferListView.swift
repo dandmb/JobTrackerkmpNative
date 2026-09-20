@@ -50,6 +50,7 @@ struct JobOfferListView: View {
     @StateObject private var observable: JobOfferListObservable
     @State private var showingAddSheet = false
     @State private var offerBeingEdited: JobOffer?
+    @State private var offerPendingDeletion: JobOffer?
     @State private var searchQuery = ""
     @State private var sortOption: SortOption = .dateDesc
 
@@ -94,7 +95,10 @@ struct JobOfferListView: View {
                                 Section {
                                     JobOfferStatsCard(offers: observable.state.offers)
                                 }
-                                .listRowInsets(EdgeInsets())
+                                // Marge extérieure de la carte stats : 16 sur les côtés (comme Android : Column.padding(16.dp))
+                                // et 8 + 4 (marge haute des cartes suivantes) = 12 d'écart (Android : spacedBy(12.dp)).
+                                // Avant : EdgeInsets() à zéro → carte collée aux bords de l'écran et à la 1re candidature.
+                                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
 
@@ -118,7 +122,7 @@ struct JobOfferListView: View {
                                         .listRowBackground(Color.clear)
                                         .swipeActions(edge: .trailing) {
                                             Button(role: .destructive) {
-                                                observable.viewModelRef.onDeleteOffer(offer: offer)
+                                                offerPendingDeletion = offer   // confirmation avant suppression (voir confirmationDialog)
                                             } label: {
                                                 Label("Supprimer", systemImage: "trash")
                                             }
@@ -128,6 +132,8 @@ struct JobOfferListView: View {
                             }
                             .listStyle(.plain)
                             .scrollContentBackground(.hidden)   // laisse voir le fond appBackground (Scaffold Android)
+                            // Marge basse : le FAB (56 pt + 20 pt de marge) ne doit pas masquer la dernière carte
+                            .contentMargins(.bottom, 88, for: .scrollContent)
                             // Force la recherche SOUS le titre, comportement classique et prévisible
                             .searchable(
                                 text: $searchQuery,
@@ -139,9 +145,9 @@ struct JobOfferListView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)   // l'état vide doit remplir l'écran (le FAB reste en bas à droite)
 
                     Button(action: { showingAddSheet = true }) {
-                        // FAB Android : Text("+", headlineSmall), secondary / onSecondary
-                        Text("+")
-                            .appTextStyle(.headlineSmall)
+                        // FAB : secondary / onSecondary (Android : Icon Add)
+                        Image(systemName: "plus")
+                            .font(.system(size: 20, weight: .semibold))
                             .foregroundStyle(Color.onCoralSecondary)
                             .frame(width: 56, height: 56)
                             .background(Color.coralSecondary)
@@ -149,6 +155,7 @@ struct JobOfferListView: View {
                             .shadow(radius: 4)
                     }
                     .padding(20)
+                    .accessibilityLabel("Ajouter une candidature")
                 }
                 .background(Color.appBackground.ignoresSafeArea())   // Scaffold : colorScheme.background
                 .navigationTitle("Candidatures")
@@ -170,6 +177,22 @@ struct JobOfferListView: View {
                 JobOfferFormSheet(existingOffer: nil, viewModel: observable.viewModelRef) {
                     showingAddSheet = false
                 }
+            }
+            .confirmationDialog(
+                "Supprimer cette candidature ?",
+                isPresented: Binding(
+                    get: { offerPendingDeletion != nil },
+                    set: { if !$0 { offerPendingDeletion = nil } }
+                ),
+                titleVisibility: .visible,
+                presenting: offerPendingDeletion
+            ) { offer in
+                Button("Supprimer", role: .destructive) {
+                    observable.viewModelRef.onDeleteOffer(offer: offer)
+                }
+                Button("Annuler", role: .cancel) {}
+            } message: { offer in
+                Text("« \(offer.title) » sera supprimée définitivement.")
             }
             .sheet(item: $offerBeingEdited) { offer in
                 JobOfferFormSheet(existingOffer: offer, viewModel: observable.viewModelRef) {
