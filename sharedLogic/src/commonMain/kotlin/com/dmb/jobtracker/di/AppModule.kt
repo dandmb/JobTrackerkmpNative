@@ -4,5 +4,6 @@ fun sharedModules() = listOf(
     databaseModule,
     repositoryModule,
     useCaseModule,
-    viewModelModule
+    viewModelModule,
+    onboardingModule
 )

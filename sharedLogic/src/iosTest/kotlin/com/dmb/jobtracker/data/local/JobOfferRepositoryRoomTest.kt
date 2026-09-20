@@ -4,7 +4,10 @@ import app.cash.turbine.test
 import com.dmb.jobtracker.data.repository.JobOfferRepositoryImpl
 import com.dmb.jobtracker.domain.model.ApplicationStatus
 import com.dmb.jobtracker.testutil.jobOffer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -114,8 +117,9 @@ internal class JobOfferRepositoryRoomTest {
     @Test
     fun getAll_offersAddedLater_appearFirst() = runTest {
         repository.add(jobOffer(title = "première"))
-        // createdAt = horloge système en millisecondes : on laisse passer au moins 2 ms
-        kotlinx.coroutines.delay(5)
+        // createdAt = horloge système en millisecondes : il faut une VRAIE attente (dans runTest, `delay` est virtuel et
+        // n'attend pas), sinon les deux ajouts peuvent partager la même milliseconde et l'ordre devient aléatoire.
+        withContext(Dispatchers.Default) { delay(5) }
         repository.add(jobOffer(title = "seconde"))
 
         repository.getAll().test {

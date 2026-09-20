@@ -9,7 +9,7 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             //ContentView()
-            JobOfferListView(viewModel: KoinHelper().jobOfferListViewModel())
+            AppRootView()   // splash + onboarding + liste ; crée le ViewModel de la liste une seule fois
         }
     }
 }

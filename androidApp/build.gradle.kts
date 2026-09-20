@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.kotlin.testJunit)   // kotlin.test + annotation @Test JUnit 4
     testImplementation(libs.junit)

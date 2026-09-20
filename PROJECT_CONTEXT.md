@@ -2,7 +2,7 @@
 
 > Ce fichier reflète l'état **actuel** du projet (pas son historique). À mettre à jour à chaque
 > intervention : ajouter ce qui change, retirer ce qui n'est plus vrai.
-> Dernière mise à jour : 2026-09-20 (salaire « max sans min » : validation bloquante avec message, en remplacement du format « jusqu'à Xk »).
+> Dernière mise à jour : 2026-09-20 (splash screen + onboarding 3 écrans sur Android et iOS, persistance partagée via multiplatform-settings).
 
 ## 1. Architecture générale
 
@@ -13,13 +13,13 @@ ViewModel partagé.
 | Module | Rôle |
 |---|---|
 | `sharedLogic` | Logique partagée (KMP : `androidMain`, `commonMain`, `iosMain`). Domaine, use cases, repository, Room, Koin, `JobOfferListViewModel`. Compilé en framework iOS statique `SharedLogic` (`iosArm64` + `iosSimulatorArm64`). |
-| `androidApp` | App Android : Compose + Material3, thème, écrans (`ui/joboffer`, `ui/theme`, `ui/util`). |
-| `iosApp` | App iOS : SwiftUI (`iosApp/iosApp/Core`, `Features/JobOffer`, `Resources/Fonts`) + tests XCTest (`iosApp/iosAppTests`). Xcode lance `./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode` avant de compiler. Groupes Xcode « synchronisés » : tout fichier ajouté dans `iosApp/iosApp/` est inclus automatiquement dans la cible. |
+| `androidApp` | App Android : Compose + Material3, thème, écrans (`ui/joboffer`, `ui/onboarding`, `ui/AppRoot.kt`, `ui/theme`, `ui/util`). |
+| `iosApp` | App iOS : SwiftUI (`iosApp/iosApp/Core`, `Features/App`, `Features/Splash`, `Features/Onboarding`, `Features/JobOffer`, `Resources/Fonts`) + tests XCTest (`iosApp/iosAppTests`). Xcode lance `./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode` avant de compiler. Groupes Xcode « synchronisés » : tout fichier ajouté dans `iosApp/iosApp/` est inclus automatiquement dans la cible. |
 | `sharedUI` | Module Compose Multiplatform **quasi vide** (`App.kt` du template). Non utilisé par les écrans réels : l'UI Android vit dans `androidApp`. |
 
 Couches dans `sharedLogic` (`com.dmb.jobtracker`) : `domain` (model, repository, usecase) →
 `data` (Room : entity/dao/converter/migrations, mapper, `JobOfferRepositoryImpl`) → `presentation`
-(`JobOfferListViewModel`, `JobOfferListState`) → `di` (modules Koin).
+(`JobOfferListViewModel`, `JobOfferListState`, `onboarding/`, `splash/`) → `di` (modules Koin : repository, use case, viewModel, database, **onboarding**).
 `JobOfferListViewModel` est du Kotlin pur (pas d'`androidx.lifecycle.ViewModel`) avec son propre
 `CoroutineScope` ; il expose `state: StateFlow<JobOfferListState>` (`@NativeCoroutinesState`).
 Côté iOS : `KoinInitKt.doInitKoin()` dans `iOSApp.init`, puis `KoinHelper().jobOfferListViewModel()`.
@@ -38,6 +38,8 @@ Côté iOS : `KoinInitKt.doInitKoin()` dans `iOSApp.init`, puis `KoinHelper().jo
 | Koin (core / android / compose) | 4.2.2 |
 | KMP-NativeCoroutines | 1.0.6 (Android : plugin Gradle ; iOS : package SPM `KMPNativeCoroutines`, branche `master`, + RxSwift 6.10.2 résolu) |
 | kotlinx-coroutines (core et test, alignés) | 1.10.1 |
+| multiplatform-settings (`-no-arg`, et `-test` pour `MapSettings`) | 1.3.0 (vérifiée le 2026-09-20 sur les métadonnées Maven Central) |
+| androidx.core:core-splashscreen | 1.2.0 (vérifiée le 2026-09-20 sur Google Maven) |
 | Turbine (test de Flow) | 1.2.1 |
 | Kover (couverture) | 0.9.9 |
 | JUnit 4 (tests app Android) | 4.13.2 |
@@ -162,6 +164,7 @@ Fait :
 - Carte de statistiques (total + compteurs par statut).
 - Suppression : swipe. Android : `SwipeToDismissBox` + snackbar **avec « Annuler »** (ré-ajoute l'offre via `onAddOffer`, même id ; la carte revient à l'état normal et la liste défile jusqu'à elle). iOS : `swipeActions` + **`confirmationDialog`** avant suppression.
 - Persistance Room avec migration 1→2.
+- **Splash + onboarding (3 écrans)**, Android et iOS. Au premier lancement : splash → onboarding → écran principal (sans redémarrage) ; ensuite : splash → écran principal direct. Le drapeau « onboarding vu » est stocké par multiplatform-settings (clé `onboarding_completed` ; Android = SharedPreferences par défaut, iOS = NSUserDefaults). Voir §6 « Splash et onboarding ».
 
 Constats / reste à faire (observés dans le code, pas de roadmap officielle) :
 - `JobOfferListEvent` est une classe vide ; `sharedUI` est un template non utilisé.
@@ -198,11 +201,12 @@ Résultats JUnit XML : `sharedLogic/build/test-results/{testAndroidHostTest,iosS
 - `sharedLogic/src/iosTest/kotlin/com/dmb/jobtracker/data/local/` (**natif iOS uniquement**, SQLite réel via `BundledSQLiteDriver`) : `JobOfferDaoTest` (DAO sur base en mémoire : insert/update/delete, `@Query` de tri et de filtre par statut, Flow réémis), `JobOfferRepositoryRoomTest` (repository de production sur DAO réel), `MigrationTest` (migration 1 → 2 avec `MigrationTestHelper` de **room-testing 2.8.5**, base fichier créée depuis `schemas/…/1.json` puis validée contre `2.json`, données préservées, colonnes ajoutées à `NULL`, et ouverture par le vrai `getRoomDatabase`). Support : `RoomTestSupport.kt`.
 - `androidApp/src/test/kotlin/` (JUnit 4 + `kotlin-test-junit`) : `TextCase`, `DateFormatting`, `OfferListLogic` (recherche + tri), `RestoredOfferScrollTest` (décision de défilement après « Annuler »), `DatePickerConversionsTest` (conversions du DatePicker Material, propres à Android), `FormSheetUsesSharedLogicTest` (garde-fou : l'écran Android appelle la logique partagée — dont `validate`, `validation.isValid`, `validation.errorMessage` — et ne réimplémente rien), `StatusLabels`, `SortOption`, contraste WCAG des couleurs de statut (`StatusColorsTest`).
 - `iosApp/iosAppTests/` (XCTest, cible **hébergée par l'app**, schéma partagé `iosAppTests`) : `String+Case`, `FlowLayout.arrange`, `LocalDate+Bridge`, `JobOfferListLogic`, `JobOfferFormBridgeTests` (l'écran iOS appelle la logique partagée : conversion des dates, délégation, garde-fou sur le source), libellés / couleurs de statut (WCAG), format de date de la carte, `FontRegistrationTests` (les 4 polices Plus Jakarta Sans sont présentes et enregistrées), `KoinBridgeTests` (`KoinHelper` + `JobOfferListObservable`).
+- **Splash / onboarding** : `OnboardingRepositoryImplTest` (10, `MapSettings` en mémoire), `OnboardingViewModelTest` (8, `FakeOnboardingRepository`), `OnboardingContentTest` (15), `SplashGatingTest` (9) dans `commonTest` ; 4 tests Koin dans `DiModulesTest` (Settings remplacé par `MapSettings`) ; `SplashAndOnboardingWiringTest` (7 gardes qui lisent le source Android) ; `OnboardingBridgeTests` (14, Swift : pont Koin, contenu, `SplashGating`, gardes de câblage sur le source iOS).
 - Convention de nommage : `fonction_condition_résultatAttendu` (Kotlin) / `test_fonction_condition_résultatAttendu` (Swift). Les cas sont volontairement identiques Android/iOS (mêmes tableaux d'attendus) pour qu'une divergence de logique soit détectée.
 
 ### Périmètre de la couverture (Kover)
 
-Le chiffre principal mesure la **logique** : sont exclus le code généré Room (`*_Impl`, `AppDatabaseConstructor`), les fonctions `@Composable`, `MainActivity` et `MonApplication` (le rendu n'est pas testé unitairement). Les exclusions du rapport agrégé sont définies dans le `build.gradle.kts` **racine** (celles des modules ne concernent que leur rapport propre). Instantané au 2026-09-20 : **82,5 % des lignes (292/354)**, 96,9 % des branches sur ce périmètre. Tout ce qui est logique métier (`domain`, `data.mapper`, `data.repository`, `presentation`, `di`, `ui.util`, `ui.joboffer` non Compose) est à 100 % ; le reste est l'amorçage Room (testé en natif, non mesuré par Kover), `Theme.kt`/`Type.kt` et `JobOfferListEvent` (classe vide).
+Le chiffre principal mesure la **logique** : sont exclus le code généré Room (`*_Impl`, `AppDatabaseConstructor`), les fonctions `@Composable`, `MainActivity` et `MonApplication` (le rendu n'est pas testé unitairement). Les exclusions du rapport agrégé sont définies dans le `build.gradle.kts` **racine** (celles des modules ne concernent que leur rapport propre). Instantané au 2026-09-20 (après splash/onboarding) : **83,6 % des lignes (321/384)**, 97,0 % des branches (130/134) sur ce périmètre (avant : 82,5 % — 292/354 — et 96,9 %). Tout ce qui est logique métier (`domain`, `data.mapper`, `data.repository`, `presentation`, `di`, `ui.util`, `ui.joboffer` non Compose, `presentation.onboarding`, `presentation.splash`) est à 100 % ; le reste est l'amorçage Room (testé en natif, non mesuré par Kover), `Theme.kt`/`Type.kt` et `JobOfferListEvent` (classe vide).
 
 ### Décisions à ne pas refaire par erreur
 
@@ -252,6 +256,17 @@ Le chiffre principal mesure la **logique** : sont exclus le code généré Room 
   identiques à `DateFormatter` `fr_FR` sur iOS. `dayOfMonth(Padding.NONE)` : sans zéro initial (le défaut `Padding.ZERO` donnait « 05 »).
 - `LocalDate` Kotlin ↔ `Date` Swift : conversions dans `Core/Extensions/LocalDate+Bridge.swift`.
 
+### Splash et onboarding
+
+- **Persistance** : `OnboardingRepository` (interface publique : `hasCompletedOnboarding()`, `setOnboardingCompleted()`) ; `OnboardingRepositoryImpl` **internal**, sur `com.russhwolf.settings.Settings` (clé `ONBOARDING_COMPLETED_KEY = "onboarding_completed"`, défaut `false`). `onboardingModule` (`di/OnboardingModule.kt`, dans `sharedModules()`) déclare `Settings()` (variante no-arg), le repository (single) et `OnboardingViewModel` (factory, **constructeur internal**). iOS : `KoinHelper().onboardingViewModel()`. Les tests remplacent `Settings` par `MapSettings`.
+- **Règles pures partagées (ajout par rapport au cahier des charges, à connaître)** : `SplashGating` (`MIN_DURATION_MILLIS = 800`, `shouldKeepSplash(elapsedMillis, isLoading) = elapsed < 800 || isLoading`) et `OnboardingContent` (3 pages « Suis tes candidatures » / « Garde un œil sur les statuts » / « Vois où tu en es », libellés « Passer » / « Suivant » / « Commencer », `showsSkip`, `primaryButtonLabel`, `nextPageIndex`) vivent dans `sharedLogic` et sont appelées par les deux UI : le gating et le texte sont **identiques par construction**. Côté Swift, `OnboardingPage.description` s'appelle `description_` et les `Int` Kotlin sont des `Int32`.
+- **Gating du splash** : le splash reste tant que la durée minimale n'est pas écoulée OU que `JobOfferListViewModel.state.isLoading` est vrai. **Le ViewModel de la liste est obtenu UNE SEULE FOIS à la racine** (Android : `MainActivity` puis `AppRoot(...)` ; iOS : `AppRootModel` puis `JobOfferListView(viewModel:)`) — ne pas le ré-instancier dans un écran (iOS : `JobOfferListView` crée son `JobOfferListObservable` mais sur le même ViewModel Kotlin). Des gardes (`SplashAndOnboardingWiringTest`, `OnboardingBridgeTests`) lisent le source pour le vérifier ; ils échouent avec un message explicite si un fichier est renommé.
+- **Android** : `androidx.core.splashscreen`, `installSplashScreen()` **avant** `super.onCreate()` puis `setKeepOnScreenCondition { SplashGating… }`. Thèmes : `Theme.App` (application) et `Theme.App.Starting` (parent `Theme.SplashScreen`, fond `splash_background` = teal `#0D6E68`, icône `drawable/ic_splash_logo.xml`, `postSplashScreenTheme = Theme.App`). **L'icône du splash est un PLACEHOLDER** (pictogramme « work » Material blanc) : les icônes de lanceur sont encore celles du template Android ; à remplacer par le vrai logo. Onboarding : `HorizontalPager` + indicateurs animés + « Passer » (masqué à la dernière page, place réservée) + bouton « Suivant » / « Commencer ». `AppRoot` mémorise `showOnboarding` en `rememberSaveable` (rotation) et bascule en `Crossfade` après `completeOnboarding()`.
+- **iOS** : le storyboard LaunchScreen est **inchangé** (fond système) ; `SplashView` (SwiftUI, teal `0x0D6E68`, SF Symbol `briefcase.fill` en placeholder) prend le relais dans `AppRootView`, d'où une brève séquence blanc/système → teal → onboarding. `AppRootModel` (ObservableObject) crée les deux ViewModels une seule fois et publie `keepSplash`. Onboarding : `TabView` + `.tabViewStyle(.page(indexDisplayMode: .never))` avec indicateurs dessinés à la main (mêmes capsules qu'Android).
+- **Police iOS** : l'onboarding utilise Plus Jakarta Sans (`.appTextStyle`), comme le reste de l'app iOS — et non la police système : la consigne « police système » ne correspondait pas à l'état réel du projet (polices embarquées sur iOS).
+- **Tests XCTest** : ne **jamais** appeler `completeOnboarding()` dans un test iOS (cible hébergée : cela écrirait dans les vrais `UserDefaults` du simulateur et supprimerait l'onboarding au lancement suivant).
+- **Test flaky corrigé au passage** : `JobOfferRepositoryRoomTest` (natif) utilisait un `delay` virtuel de `runTest` ; remplacé par un vrai `delay(5)` sur `Dispatchers.Default`.
+
 ## 7. Écarts connus entre Android et iOS
 
 | Écart | Raison |
@@ -267,4 +282,5 @@ Le chiffre principal mesure la **logique** : sont exclus le code généré Room 
 | Suppression : snackbar « Annuler » (Android) vs boîte de confirmation (iOS) | Convention de chaque plateforme (voir §6). |
 | Zone tactile du chip : 48 dp automatiques (M3) vs 44 pt explicites (iOS, chip visuel 32) | Minimums de chaque guideline (Material 48 dp / HIG 44 pt). |
 | Icônes : taille fixe en dp sur Android, elles suivent Dynamic Type sur iOS | Sur Android l'échelle de police ne touche que le texte (comportement Material standard). |
+| Splash : Android = SplashScreen système (teal dès le lancement) ; iOS = LaunchScreen système puis `SplashView` teal | LaunchScreen laissé tel quel sur demande ; un flash blanc/système précède donc le splash teal sur iOS. |
 | Police Android sur émulateur sans Google Play Services : repli sur Roboto | La police Plus Jakarta Sans passe par Google Fonts téléchargeable (`font_certs.xml`) : à vérifier sur appareil réel. |

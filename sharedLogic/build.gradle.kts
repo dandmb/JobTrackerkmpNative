@@ -44,11 +44,13 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.multiplatform.settings.no.arg)   // persistance « onboarding déjà vu » (variante no-arg : aucun Context à câbler)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
+            implementation(libs.multiplatform.settings.test)      // MapSettings : Settings en mémoire pour les tests
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
