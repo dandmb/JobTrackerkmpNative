@@ -18,6 +18,8 @@ internal class FakeJobOfferDao : JobOfferDao {
     val inserted = mutableListOf<JobOfferEntity>()
     val updated = mutableListOf<JobOfferEntity>()
     val deleted = mutableListOf<JobOfferEntity>()
+    var deleteAllCalls = 0
+        private set
     val getByIdCalls = mutableListOf<Long>()
     val getByStatusCalls = mutableListOf<String>()
 
@@ -38,6 +40,11 @@ internal class FakeJobOfferDao : JobOfferDao {
     override suspend fun delete(offer: JobOfferEntity) {
         deleted += offer
         entities.value = entities.value.filterNot { it.id == offer.id }
+    }
+
+    override suspend fun deleteAll() {
+        deleteAllCalls++
+        entities.value = emptyList()
     }
 
     override fun getAll(): Flow<List<JobOfferEntity>> =

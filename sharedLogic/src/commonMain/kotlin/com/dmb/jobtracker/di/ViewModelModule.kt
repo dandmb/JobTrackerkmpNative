@@ -1,6 +1,7 @@
 package com.dmb.jobtracker.di
 
 
+import com.dmb.jobtracker.presentation.about.AboutViewModel
 import com.dmb.jobtracker.presentation.joboffer.JobOfferListViewModel
 import org.koin.dsl.module
 
@@ -13,4 +14,5 @@ val viewModelModule = module {
             deleteJobOffer = get()
         )
     }
+    factory { AboutViewModel(deleteAllJobOffers = get()) }
 }

@@ -45,7 +45,7 @@ class SplashAndOnboardingWiringTest {
         // Une seule injection du ViewModel de la liste, au niveau de l'activité (pas de koinInject dans l'écran).
         assertEquals(1, Regex("""JobOfferListViewModel by inject\(\)""").findAll(mainActivity).count())
         assertTrue(mainActivity.contains("AppRoot(jobOfferListViewModel, onboardingViewModel)"))
-        assertTrue(appRoot.contains("JobOfferListScreen(viewModel = jobOfferListViewModel)"), "l'écran de liste doit recevoir l'instance déjà chargée")
+        assertTrue(appRoot.contains("JobOfferListScreen(viewModel = jobOfferListViewModel,"), "l'écran de liste doit recevoir l'instance déjà chargée")
     }
 
     @Test

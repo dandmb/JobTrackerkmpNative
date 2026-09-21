@@ -51,4 +51,71 @@ class DeleteJobOfferUseCaseTest {
         assertEquals(failure, error)
         assertEquals(listOf(first, second), repository.offers.value)
     }
+
+    // ---------- « Annuler » : restauration fidèle ----------
+
+    @Test
+    fun invoke_returnsTheDeletedOfferWithItsOriginalCreationTimestamp() = runTest {
+        val expected = repository.createdAtById.getValue(first.id)
+
+        val deleted = deleteJobOffer(first)
+
+        assertEquals(first, deleted.offer)
+        assertEquals(expected, deleted.createdAtEpochMillis)
+    }
+
+    @Test
+    fun invoke_unknownOffer_returnsANullTimestamp() = runTest {
+        val deleted = deleteJobOffer(jobOffer(id = 99))
+
+        assertEquals(null, deleted.createdAtEpochMillis)
+    }
+
+    @Test
+    fun restore_passesTheOriginalTimestampAndTheUntouchedOfferToTheRepository() = runTest {
+        val original = first.copy(url = "https://x.fr", location = "Lyon", source = "LinkedIn", salaryRange = "50k+",
+            interviewDate = kotlinx.datetime.LocalDate(2026, 9, 10), notes = "n", status = com.dmb.jobtracker.domain.model.ApplicationStatus.INTERVIEW)
+        repository.offers.value = listOf(original, second)
+        val originalCreatedAt = repository.createdAtById.getValue(original.id)
+
+        val deleted = deleteJobOffer(original)
+        deleteJobOffer.restore(deleted)
+
+        assertEquals(listOf(original to originalCreatedAt), repository.restoreCalls)
+        assertTrue(repository.offers.value.contains(original), "tous les champs sont restaurés à l'identique")
+        assertEquals(originalCreatedAt, repository.createdAtById[original.id])
+    }
+
+    @Test
+    fun restore_withoutAKnownTimestamp_fallsBackToASimpleAdd() = runTest {
+        deleteJobOffer.restore(com.dmb.jobtracker.domain.model.DeletedJobOffer(jobOffer(id = 42, title = "Orpheline"), null))
+
+        assertTrue(repository.restoreCalls.isEmpty())
+        assertEquals(1, repository.addCalls.size)
+        assertEquals("Orpheline", repository.addCalls.single().title)
+    }
+
+    @Test
+    fun restore_doesNotValidateTheOffer_soALegacyInvalidOneIsRestoredAsIs() = runTest {
+        val legacy = jobOffer(id = 7, title = "", company = "")
+        repository.offers.value = listOf(legacy)
+
+        deleteJobOffer.restore(deleteJobOffer(legacy))
+
+        assertTrue(repository.offers.value.contains(legacy))
+    }
+
+    @Test
+    fun addIfMissing_addsAnAbsentOffer() = runTest {
+        deleteJobOffer.addIfMissing(jobOffer(id = 50, title = "Nouvelle"))
+
+        assertEquals(listOf("Nouvelle"), repository.addCalls.map { it.title })
+    }
+
+    @Test
+    fun addIfMissing_doesNothingForAnOfferAlreadyInTheRepository() = runTest {
+        deleteJobOffer.addIfMissing(first)
+
+        assertTrue(repository.addCalls.isEmpty(), "réinsérer une offre présente la réhorodaterait")
+    }
 }

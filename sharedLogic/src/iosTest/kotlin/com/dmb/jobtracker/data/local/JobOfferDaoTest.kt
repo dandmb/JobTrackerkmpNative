@@ -192,6 +192,50 @@ internal class JobOfferDaoTest {
         }
     }
 
+    // ---------- deleteAll ----------
+
+    @Test
+    fun deleteAll_severalRowsOfEveryStatus_leavesTheTableEmpty() = runTest {
+        ApplicationStatus.entries.forEach { dao.insert(jobOfferEntity(title = it.name, status = it)) }
+
+        dao.deleteAll()
+
+        assertEquals(emptyList(), dao.getAll().first())
+        ApplicationStatus.entries.forEach { assertEquals(emptyList(), dao.getByStatus(it.name).first()) }
+    }
+
+    @Test
+    fun deleteAll_emptyTable_doesNotFail() = runTest {
+        dao.deleteAll()
+
+        assertEquals(emptyList(), dao.getAll().first())
+    }
+
+    @Test
+    fun deleteAll_thenInsert_worksAsOnAFreshTable() = runTest {
+        val oldId = dao.insert(jobOfferEntity(title = "ancienne"))
+        dao.deleteAll()
+
+        val newId = dao.insert(jobOfferEntity(title = "nouvelle"))
+
+        assertNull(dao.getById(oldId).takeIf { it?.title == "ancienne" })
+        assertEquals("nouvelle", assertNotNull(dao.getById(newId)).title)
+        assertEquals(1, dao.getAll().first().size)
+    }
+
+    @Test
+    fun deleteAll_reEmitsAnEmptyListToAnActiveCollector() = runTest {
+        dao.insert(jobOfferEntity(title = "A"))
+        dao.insert(jobOfferEntity(title = "B"))
+
+        dao.getAll().test {
+            assertEquals(2, awaitItem().size)
+            dao.deleteAll()
+            assertEquals(emptyList(), awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
     // ---------- update ----------
 
     @Test

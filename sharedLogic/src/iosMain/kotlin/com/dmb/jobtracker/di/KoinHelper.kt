@@ -1,5 +1,6 @@
 package com.dmb.jobtracker.di
 
+import com.dmb.jobtracker.presentation.about.AboutViewModel
 import com.dmb.jobtracker.presentation.joboffer.JobOfferListViewModel
 import com.dmb.jobtracker.presentation.onboarding.OnboardingViewModel
 import org.koin.mp.KoinPlatform
@@ -9,5 +10,8 @@ class KoinHelper {
         KoinPlatform.getKoin().get()
 
     fun onboardingViewModel(): OnboardingViewModel =
+        KoinPlatform.getKoin().get()
+
+    fun aboutViewModel(): AboutViewModel =
         KoinPlatform.getKoin().get()
 }

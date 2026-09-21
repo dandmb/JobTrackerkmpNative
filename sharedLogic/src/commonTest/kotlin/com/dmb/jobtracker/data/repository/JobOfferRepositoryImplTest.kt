@@ -239,6 +239,46 @@ class JobOfferRepositoryImplTest {
         assertEquals(listOf(1L), dao.entities.value.map { it.id })
     }
 
+    // ---------- deleteAll ----------
+
+    @Test
+    fun deleteAll_severalRows_delegatesToTheDaoAndEmptiesTheTable() = runTest {
+        dao.entities.value = listOf(jobOfferEntity(id = 1), jobOfferEntity(id = 2), jobOfferEntity(id = 3))
+
+        repository.deleteAll()
+
+        assertEquals(1, dao.deleteAllCalls)
+        assertTrue(dao.entities.value.isEmpty())
+    }
+
+    @Test
+    fun deleteAll_emptyTable_doesNotFail() = runTest {
+        repository.deleteAll()
+
+        assertTrue(dao.entities.value.isEmpty())
+    }
+
+    @Test
+    fun deleteAll_thenGetAll_emitsAnEmptyList() = runTest {
+        dao.entities.value = listOf(jobOfferEntity(id = 1))
+
+        repository.deleteAll()
+
+        repository.getAll().test {
+            assertEquals(emptyList(), awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun deleteAll_doesNotUseTheOneByOneDelete() = runTest {
+        dao.entities.value = listOf(jobOfferEntity(id = 1), jobOfferEntity(id = 2))
+
+        repository.deleteAll()
+
+        assertTrue(dao.deleted.isEmpty(), "une requête unique doit vider la table, pas une suppression ligne à ligne")
+    }
+
     // ---------- scénario complet ----------
 
     @Test

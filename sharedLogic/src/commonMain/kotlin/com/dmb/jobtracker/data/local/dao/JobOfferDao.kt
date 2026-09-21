@@ -16,6 +16,9 @@ internal interface JobOfferDao {
     @Delete
     suspend fun delete(offer: JobOfferEntity)
 
+    @Query("DELETE FROM job_offers")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM job_offers ORDER BY createdAtEpochMillis DESC")
     fun getAll(): Flow<List<JobOfferEntity>>
 

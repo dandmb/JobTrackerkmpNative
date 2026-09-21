@@ -69,17 +69,25 @@ struct JobOfferListView: View {
                         if observable.state.isLoading {
                             ProgressView()
                         } else if observable.state.offers.isEmpty {
-                            // Miroir de EmptyOffersMessage (JobOfferListScreen.kt)
-                            VStack(spacing: 8) {
-                                Text("Aucune candidature")
-                                    .appTextStyle(.titleMedium)
-                                    .foregroundStyle(Color.onAppBackground)
+                            // Liste RÉELLEMENT vide (aucune candidature). Ne jamais réutiliser pour « aucun résultat de recherche » :
+                            // ce cas reste un simple texte (voir « Aucun résultat pour… » plus bas). Miroir de EmptyOffersMessage
+                            // (JobOfferListScreen.kt : icône Inbox) ; SF Symbol « tray » (plateau vide) : icône conventionnelle de l'état vide
+                            // (l'exemple « No Mail » d'Apple utilise `tray.fill`).
+                            ContentUnavailableView {
+                                Label {
+                                    Text("Aucune candidature")
+                                        .appTextStyle(.titleMedium)
+                                        .foregroundStyle(Color.onAppBackground)
+                                } icon: {
+                                    Image(systemName: "tray")
+                                        .foregroundStyle(Color.onSurfaceVariant)
+                                }
+                            } description: {
                                 Text("Ajoute ta première candidature avec le bouton +")
                                     .appTextStyle(.bodyMedium)
                                     .foregroundStyle(Color.onSurfaceVariant)
                                     .multilineTextAlignment(.center)
                             }
-                            .padding(24)
                         } else {
                             List {
                                 Section {
@@ -152,12 +160,25 @@ struct JobOfferListView: View {
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
-                        Menu {
-                            ForEach(SortOption.allCases) { option in
-                                Button(option.rawValue) { sortOption = option }
-                            }
+                        NavigationLink {
+                            AboutView()
                         } label: {
-                            Image(systemName: "arrow.up.arrow.down")
+                            Image(systemName: "info.circle")
+                        }
+                        .accessibilityLabel(AboutContent.shared.ENTRY_POINT_LABEL)
+                    }
+                    // Trier n'a de sens que s'il existe au moins une candidature (`state.offers` = TOUTES les offres).
+                    // On teste donc `state.offers`, PAS `visibleOffers` : une recherche sans résultat alors que des
+                    // candidatures existent laisse l'action de tri visible.
+                    if !observable.state.offers.isEmpty {
+                        ToolbarItem(placement: .primaryAction) {
+                            Menu {
+                                ForEach(SortOption.allCases) { option in
+                                    Button(option.rawValue) { sortOption = option }
+                                }
+                            } label: {
+                                Image(systemName: "arrow.up.arrow.down")
+                            }
                         }
                     }
                 }

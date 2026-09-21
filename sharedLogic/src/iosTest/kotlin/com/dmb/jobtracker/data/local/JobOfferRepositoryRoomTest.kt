@@ -3,6 +3,9 @@ package com.dmb.jobtracker.data.local
 import app.cash.turbine.test
 import com.dmb.jobtracker.data.repository.JobOfferRepositoryImpl
 import com.dmb.jobtracker.domain.model.ApplicationStatus
+import com.dmb.jobtracker.domain.usecase.DeleteJobOfferUseCase
+import com.dmb.jobtracker.testutil.jobOfferEntity
+import kotlinx.coroutines.flow.first
 import com.dmb.jobtracker.testutil.jobOffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -89,6 +92,26 @@ internal class JobOfferRepositoryRoomTest {
     }
 
     @Test
+    fun deleteAll_afterSeveralAdds_emptiesGetAllInTheRealDatabase() = runTest {
+        repository.add(jobOffer(title = "A", status = ApplicationStatus.APPLIED))
+        repository.add(jobOffer(title = "B", status = ApplicationStatus.REJECTED, notes = "n", salaryRange = "50k+"))
+        repository.add(jobOffer(title = "C", status = ApplicationStatus.INTERVIEW))
+
+        repository.deleteAll()
+
+        repository.getAll().test {
+            assertEquals(emptyList(), awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+        ApplicationStatus.entries.forEach {
+            repository.getByStatus(it).test {
+                assertEquals(emptyList(), awaitItem())
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
     fun deleteThenAddAgainWithSameId_restoresTheOffer() = runTest {
         // Scénario « Annuler » : la carte supprimée est ré-ajoutée avec son id d'origine.
         val id = repository.add(jobOffer(title = "À restaurer"))
@@ -138,5 +161,58 @@ internal class JobOfferRepositoryRoomTest {
             assertEquals(listOf("Nouvelle"), awaitItem().map { it.title })
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    // ---------- « Annuler » une suppression : position et valeurs d'origine (SQLite réel) ----------
+
+    /** 5 offres A..E, de la plus récente (A) à la plus ancienne (E), createdAt explicites. */
+    private suspend fun seedFive() {
+        val dao = database.jobOfferDao()
+        listOf("A", "B", "C", "D", "E").forEachIndexed { i, t ->
+            dao.insert(jobOfferEntity(id = (i + 1).toLong(), title = t, company = "Société $t", notes = "Notes $t",
+                salaryRange = "${40 + i}k+", createdAtEpochMillis = (5 - i) * 1_000L))
+        }
+    }
+
+    private suspend fun titles() = repository.getAll().first().map { it.title }
+
+    @Test
+    fun undoDelete_ofAMiddleOffer_restoresItsPositionAndEveryValueInTheRealDatabase() = runTest {
+        seedFive()
+        val dao = database.jobOfferDao()
+        val before = assertNotNull(dao.getById(3))
+        val delete = DeleteJobOfferUseCase(repository)
+
+        val deleted = delete(repository.getAll().first().first { it.id == 3L })
+        assertEquals(listOf("A", "B", "D", "E"), titles())
+        delete.restore(deleted)
+
+        assertEquals(listOf("A", "B", "C", "D", "E"), titles())
+        assertEquals(before, dao.getById(3), "entité identique à l'originale, createdAt compris")
+    }
+
+    @Test
+    fun undoDelete_ofSeveralOffersInADifferentOrder_endsWithTheOriginalOrder() = runTest {
+        seedFive()
+        val delete = DeleteJobOfferUseCase(repository)
+        val all = repository.getAll().first()
+        val b = delete(all.first { it.title == "B" })
+        val d = delete(all.first { it.title == "D" })
+        val a = delete(all.first { it.title == "A" })
+
+        delete.restore(d); delete.restore(a); delete.restore(b)
+
+        assertEquals(listOf("A", "B", "C", "D", "E"), titles())
+    }
+
+    @Test
+    fun getCreatedAt_andRestore_roundTripTheStoredTimestamp() = runTest {
+        seedFive()
+
+        assertEquals(3_000L, repository.getCreatedAt(3))
+        assertNull(repository.getCreatedAt(99))
+        repository.delete(jobOffer(id = 3))
+        repository.restore(jobOffer(id = 3, title = "C", company = "Société C"), 3_000L)
+        assertEquals(3_000L, repository.getCreatedAt(3))
     }
 }

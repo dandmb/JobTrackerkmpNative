@@ -9,7 +9,9 @@ import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.Settings
 import com.dmb.jobtracker.domain.repository.JobOfferRepository
 import com.dmb.jobtracker.domain.usecase.AddJobOfferUseCase
+import com.dmb.jobtracker.domain.usecase.DeleteAllJobOffersUseCase
 import com.dmb.jobtracker.domain.usecase.DeleteJobOfferUseCase
+import com.dmb.jobtracker.presentation.about.AboutViewModel
 import com.dmb.jobtracker.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.jobtracker.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.jobtracker.presentation.joboffer.JobOfferListViewModel
@@ -88,6 +90,7 @@ class DiModulesTest {
         koin.get<AddJobOfferUseCase>()
         koin.get<UpdateJobOfferUseCase>()
         koin.get<DeleteJobOfferUseCase>()
+        koin.get<DeleteAllJobOffersUseCase>()
     }
 
     @Test
@@ -120,6 +123,51 @@ class DiModulesTest {
 
         assertEquals(listOf("Via Koin"), viewModel.state.value.offers.map { it.title })
         viewModel.onCleared()
+    }
+
+    // ---------- à propos ----------
+
+    @Test
+    fun viewModelModule_aboutViewModelIsAFactory_eachResolutionCreatesANewInstance() {
+        val koin = koin()
+
+        val first = koin.get<AboutViewModel>()
+        val second = koin.get<AboutViewModel>()
+
+        assertNotSame(first, second)
+        first.onCleared()
+        second.onCleared()
+    }
+
+    @Test
+    fun aboutViewModelFromKoin_deletesEverythingThroughTheRealRepositoryAndDao() = runTest {
+        // Instances NEUVES propres à ce test (DAO fake + repository réel) : en natif, les `single` des modules top-level
+        // (`repositoryModule`) et de la classe de test survivent d'un test à l'autre et garderaient les données des autres tests.
+        val koin = koinApplication {
+            modules(
+                module {
+                    single<JobOfferDao> { FakeJobOfferDao() }
+                    single<JobOfferRepository> { JobOfferRepositoryImpl(dao = get()) }
+                },
+                useCaseModule,
+                viewModelModule,
+            )
+        }.koin
+        val list = koin.get<JobOfferListViewModel>()
+        val about = koin.get<AboutViewModel>()
+        list.onAddOffer(jobOffer(title = "A supprimer", company = "Acme"))
+        advanceUntilIdle()
+        assertEquals(listOf("A supprimer"), list.state.value.offers.map { it.title })
+
+        about.onDeleteAllRequested()
+        about.onDeleteAllFirstConfirmed()
+        about.onDeleteAllFinalConfirmed()
+        advanceUntilIdle()
+
+        assertTrue(list.state.value.offers.isEmpty())
+        assertTrue(about.state.value.dataDeleted)
+        list.onCleared()
+        about.onCleared()
     }
 
     // ---------- onboarding ----------
