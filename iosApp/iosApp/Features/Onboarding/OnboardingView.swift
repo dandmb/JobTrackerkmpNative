@@ -15,7 +15,8 @@ struct OnboardingView: View {
 
     private let content = OnboardingContent.companion.of(language: AppLanguage.current)
     // Icône de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques.
-    private let icons = ["briefcase.fill", "flag.fill", "chart.bar.fill"]
+    // nil = logo de marque (JobLogMark) ; les pages 2 et 3 gardent une icône thématique.
+    private let icons: [String?] = [nil, "flag.fill", "chart.bar.fill"]
 
     private var pageCount: Int { Int(content.pageCount) }
     private var isLastPage: Bool { content.isLastPage(index: Int32(page)) }
@@ -75,7 +76,7 @@ struct OnboardingView: View {
 }
 
 private struct OnboardingPageView: View {
-    let systemImage: String
+    let systemImage: String?
     let title: String
     let description: String
 
@@ -84,10 +85,16 @@ private struct OnboardingPageView: View {
             Spacer()
             ZStack {
                 Circle().fill(Color.tealContainer).frame(width: 160, height: 160)
-                Image(systemName: systemImage)
-                    .font(.system(size: 64))
-                    .foregroundStyle(Color.tealOnContainer)
-                    .accessibilityHidden(true)      // décorative : le titre porte le sens
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 64))
+                        .foregroundStyle(Color.tealOnContainer)
+                        .accessibilityHidden(true)      // décorative : le titre porte le sens
+                } else {
+                    // Logo posé sur tealContainer : couverture teinte « sur conteneur », reliure = couleur du fond du cercle
+                    JobLogMark(bodyColor: .tealOnContainer, spineColor: .tealContainer)
+                        .frame(height: 64)              // même hauteur que la police 64 pt des autres pages
+                }
             }
             Text(title)
                 .appTextStyle(.headlineSmall)
