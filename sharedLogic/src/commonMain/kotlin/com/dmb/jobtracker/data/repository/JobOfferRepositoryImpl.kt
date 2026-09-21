@@ -30,4 +30,14 @@ internal class JobOfferRepositoryImpl(
 
     override suspend fun delete(offer: JobOffer) =
         dao.delete(offer.toEntity())
+
+    override suspend fun getCreatedAt(id: Long): Long? =
+        dao.getById(id)?.createdAtEpochMillis
+
+    override suspend fun restore(offer: JobOffer, createdAtEpochMillis: Long) {
+        dao.insert(offer.toEntity(existingCreatedAt = createdAtEpochMillis))
+    }
+
+    override suspend fun deleteAll() =
+        dao.deleteAll()
 }

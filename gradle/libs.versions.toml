@@ -29,6 +29,10 @@ kover = "0.9.9"   # supporte AGP 9 et le plugin com.android.kotlin.multiplatform
 
 kotlinx-datetime = "0.6.1"
 
+# Onboarding / splash (versions vérifiées en ligne le 2026-09-20 : Maven Central pour multiplatform-settings, Google Maven pour core-splashscreen)
+multiplatform-settings = "1.3.0"
+core-splashscreen = "1.2.0"
+
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -71,6 +75,10 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 # Dates
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 kotlinx-datetime-j = { module = "org.jetbrains.kotlinx:kotlinx-datetime-jvm", version.ref = "kotlinx-datetime" }
+
+multiplatform-settings-no-arg = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
+multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatform-settings" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "core-splashscreen" }
 
 androidx-compose-material-icons = { module = "androidx.compose.material:material-icons-extended", version = "1.7.8" }
 

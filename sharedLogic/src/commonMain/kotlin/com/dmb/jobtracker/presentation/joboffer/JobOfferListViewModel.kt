@@ -1,6 +1,7 @@
 package com.dmb.jobtracker.presentation.joboffer
 
 import com.dmb.jobtracker.domain.model.ApplicationStatus
+import com.dmb.jobtracker.domain.model.DeletedJobOffer
 import com.dmb.jobtracker.domain.model.JobOffer
 import com.dmb.jobtracker.domain.usecase.AddJobOfferUseCase
 import com.dmb.jobtracker.domain.usecase.DeleteJobOfferUseCase
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
@@ -37,6 +40,13 @@ class JobOfferListViewModel internal constructor(
     // Pas d'androidx.lifecycle.ViewModel ici : on reste 100% Kotlin pur
     // pour que ce soit consommable nativement depuis Swift sans dépendance Android.
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    // Suppressions récentes, gardées EN MÉMOIRE le temps que l'utilisateur puisse les annuler (snackbar « Annuler »).
+    // Elles portent l'horodatage de création d'origine, absent du modèle de domaine. Durée de vie = celle de ce ViewModel,
+    // comme celle du snackbar qui déclenche l'annulation. Le Mutex ordonne suppression et restauration (FIFO) : une
+    // annulation ne peut pas passer avant la fin de la suppression qu'elle annule.
+    private val recentlyDeleted = LinkedHashMap<Long, DeletedJobOffer>()
+    private val undoMutex = Mutex()
 
     private val _state = MutableStateFlow(JobOfferListState())
 
@@ -88,10 +98,46 @@ class JobOfferListViewModel internal constructor(
     }
 
     fun onDeleteOffer(offer: JobOffer) {
-        launchReportingErrors { deleteJobOffer(offer) }
+        launchReportingErrors {
+            undoMutex.withLock {
+                val deleted = deleteJobOffer(offer)
+                // IDEMPOTENT : le geste « glisser pour supprimer » rappelle `onDeleteOffer` plusieurs fois pour une seule
+                // suppression (constaté sur émulateur : 4 appels, `confirmValueChange` de Compose est rappelé). Dès le 2e appel
+                // la ligne n'existe plus (horodatage lu = null) : ce résultat NE DOIT PAS écraser l'horodatage d'origine déjà
+                // mémorisé, sinon « Annuler » restaurerait sans horodatage et l'offre remonterait en tête.
+                val known = recentlyDeleted[offer.id]
+                if (deleted.createdAtEpochMillis != null || known == null) {
+                    recentlyDeleted.remove(offer.id)
+                    recentlyDeleted[offer.id] = deleted
+                }
+                while (recentlyDeleted.size > MAX_UNDOABLE_DELETIONS) recentlyDeleted.remove(recentlyDeleted.keys.first())
+            }
+        }
+    }
+
+    /**
+     * « Annuler » après une suppression : restaure l'offre avec ses valeurs d'origine, `createdAt` compris, donc à sa
+     * position d'origine dans la liste (et non en tête). Peut s'appliquer à n'importe laquelle des suppressions récentes,
+     * dans n'importe quel ordre. Sans suppression connue de ce ViewModel (cas qui ne se présente pas via l'interface :
+     * le snackbar et ce ViewModel partagent la même durée de vie), retombe sur un ajout simple si l'offre est absente,
+     * et ne fait rien si elle est déjà présente (double « Annuler »).
+     */
+    fun onRestoreOffer(offer: JobOffer) {
+        launchReportingErrors {
+            undoMutex.withLock {
+                val deleted = recentlyDeleted.remove(offer.id)
+                if (deleted != null) deleteJobOffer.restore(deleted)
+                // Sans suppression connue : ajout simple SAUF si l'offre est déjà en base (double « Annuler ») :
+                // ré-insérer la réhorodaterait et la ferait remonter en tête.
+                else deleteJobOffer.addIfMissing(offer)
+            }
+        }
     }
 
     fun onCleared() {
         viewModelScope.cancel()
     }
 }
+
+/** Nombre de suppressions récentes pouvant encore être annulées (les plus anciennes sont oubliées). */
+internal const val MAX_UNDOABLE_DELETIONS = 20

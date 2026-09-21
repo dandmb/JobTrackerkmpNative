@@ -1,10 +1,17 @@
 package com.dmb.jobtracker.di
 
 import com.dmb.jobtracker.data.local.dao.JobOfferDao
+import com.dmb.jobtracker.data.local.OnboardingRepositoryImpl
 import com.dmb.jobtracker.data.repository.JobOfferRepositoryImpl
+import com.dmb.jobtracker.domain.repository.OnboardingRepository
+import com.dmb.jobtracker.presentation.onboarding.OnboardingViewModel
+import com.russhwolf.settings.MapSettings
+import com.russhwolf.settings.Settings
 import com.dmb.jobtracker.domain.repository.JobOfferRepository
 import com.dmb.jobtracker.domain.usecase.AddJobOfferUseCase
+import com.dmb.jobtracker.domain.usecase.DeleteAllJobOffersUseCase
 import com.dmb.jobtracker.domain.usecase.DeleteJobOfferUseCase
+import com.dmb.jobtracker.presentation.about.AboutViewModel
 import com.dmb.jobtracker.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.jobtracker.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.jobtracker.presentation.joboffer.JobOfferListViewModel
@@ -27,6 +34,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 /**
  * Vérifie le graphe d'injection SANS base de données réelle : `databaseModule` (Room) est remplacé par un DAO fake,
@@ -47,15 +56,20 @@ class DiModulesTest {
 
     private val fakeDatabaseModule = module { single<JobOfferDao> { FakeJobOfferDao() } }
 
+    /** Remplace le vrai `Settings()` (SharedPreferences / NSUserDefaults) par un Settings en mémoire. Doit venir APRÈS onboardingModule. */
+    private val fakeSettingsModule = module { single<Settings> { MapSettings() } }
+
+    private fun onboardingKoin(): Koin = koinApplication { modules(onboardingModule, fakeSettingsModule) }.koin
+
     private fun koin(): Koin =
         koinApplication { modules(fakeDatabaseModule, repositoryModule, useCaseModule, viewModelModule) }.koin
 
     @Test
-    fun sharedModules_lists_databaseRepositoryUseCaseAndViewModelModules() {
+    fun sharedModules_lists_databaseRepositoryUseCaseViewModelAndOnboardingModules() {
         val modules = sharedModules()
 
-        assertEquals(4, modules.size)
-        assertEquals(listOf(databaseModule, repositoryModule, useCaseModule, viewModelModule), modules)
+        assertEquals(5, modules.size)
+        assertEquals(listOf(databaseModule, repositoryModule, useCaseModule, viewModelModule, onboardingModule), modules)
     }
 
     @Test
@@ -76,6 +90,7 @@ class DiModulesTest {
         koin.get<AddJobOfferUseCase>()
         koin.get<UpdateJobOfferUseCase>()
         koin.get<DeleteJobOfferUseCase>()
+        koin.get<DeleteAllJobOffersUseCase>()
     }
 
     @Test
@@ -108,5 +123,88 @@ class DiModulesTest {
 
         assertEquals(listOf("Via Koin"), viewModel.state.value.offers.map { it.title })
         viewModel.onCleared()
+    }
+
+    // ---------- à propos ----------
+
+    @Test
+    fun viewModelModule_aboutViewModelIsAFactory_eachResolutionCreatesANewInstance() {
+        val koin = koin()
+
+        val first = koin.get<AboutViewModel>()
+        val second = koin.get<AboutViewModel>()
+
+        assertNotSame(first, second)
+        first.onCleared()
+        second.onCleared()
+    }
+
+    @Test
+    fun aboutViewModelFromKoin_deletesEverythingThroughTheRealRepositoryAndDao() = runTest {
+        // Instances NEUVES propres à ce test (DAO fake + repository réel) : en natif, les `single` des modules top-level
+        // (`repositoryModule`) et de la classe de test survivent d'un test à l'autre et garderaient les données des autres tests.
+        val koin = koinApplication {
+            modules(
+                module {
+                    single<JobOfferDao> { FakeJobOfferDao() }
+                    single<JobOfferRepository> { JobOfferRepositoryImpl(dao = get()) }
+                },
+                useCaseModule,
+                viewModelModule,
+            )
+        }.koin
+        val list = koin.get<JobOfferListViewModel>()
+        val about = koin.get<AboutViewModel>()
+        list.onAddOffer(jobOffer(title = "A supprimer", company = "Acme"))
+        advanceUntilIdle()
+        assertEquals(listOf("A supprimer"), list.state.value.offers.map { it.title })
+
+        about.onDeleteAllRequested()
+        about.onDeleteAllFirstConfirmed()
+        about.onDeleteAllFinalConfirmed()
+        advanceUntilIdle()
+
+        assertTrue(list.state.value.offers.isEmpty())
+        assertTrue(about.state.value.dataDeleted)
+        list.onCleared()
+        about.onCleared()
+    }
+
+    // ---------- onboarding ----------
+
+    @Test
+    fun onboardingModule_resolvesTheRealRepositoryAsSingleton() {
+        val koin = onboardingKoin()
+
+        val repository = koin.get<OnboardingRepository>()
+
+        assertIs<OnboardingRepositoryImpl>(repository)
+        assertSame(repository, koin.get<OnboardingRepository>())
+    }
+
+    @Test
+    fun onboardingModule_viewModelIsAFactory_eachResolutionCreatesANewInstance() {
+        val koin = onboardingKoin()
+
+        assertNotSame(koin.get<OnboardingViewModel>(), koin.get<OnboardingViewModel>())
+    }
+
+    @Test
+    fun onboardingViewModelFromKoin_persistsCompletionThroughTheSharedSettings() {
+        val koin = onboardingKoin()
+        val first = koin.get<OnboardingViewModel>()
+        assertFalse(first.hasCompletedOnboarding())
+
+        first.completeOnboarding()
+
+        // Une AUTRE instance (relancement) voit la valeur : le Settings est un singleton partagé.
+        assertTrue(koin.get<OnboardingViewModel>().hasCompletedOnboarding())
+    }
+
+    @Test
+    fun onboardingModule_settingsIsASingleton() {
+        val koin = onboardingKoin()
+
+        assertSame(koin.get<Settings>(), koin.get<Settings>())
     }
 }

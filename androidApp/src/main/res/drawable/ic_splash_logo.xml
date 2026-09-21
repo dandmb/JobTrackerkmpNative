@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PLACEHOLDER : aucun logo de marque n'existe dans le projet (ic_launcher_* est le robot Android du template).
+  Mallette Material « work » en blanc, réduite de moitié pour tenir dans le cercle de 192dp du splash Android 12+
+  (icône sans fond : 288dp, contenu visible dans un cercle de 192dp). À REMPLACER par le vrai logo (drawable vectoriel).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:pivotX="12"
+        android:pivotY="12"
+        android:scaleX="0.5"
+        android:scaleY="0.5">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M20,6h-4L16,4c0,-1.11 -0.89,-2 -2,-2h-4c-1.11,0 -2,0.89 -2,2v2L4,6c-1.11,0 -1.99,0.89 -1.99,2L2,19c0,1.11 0.89,2 2,2h16c1.11,0 2,-0.89 2,-2L22,8c0,-1.11 -0.89,-2 -2,-2zM14,6h-4L10,4h4v2z" />
+    </group>
+</vector>

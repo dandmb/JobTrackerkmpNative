@@ -1,6 +1,7 @@
 package com.dmb.jobtracker.ui.joboffer
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -203,12 +204,21 @@ private fun DatePickerField(
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
+    // Ouverture du sélecteur au TAP SUR LE CHAMP lui-même (et non via une couche transparente superposée) : une couche
+    // décalée par `offset` gardait sa place dans la mise en page (56 dp d'espace en trop sous chaque champ de date) et
+    // interceptait aussi les taps du bouton « Effacer », qui ouvrait le sélecteur au lieu d'effacer la date.
+    val interactionSource = remember { MutableInteractionSource() }
+    LaunchedEffect(interactionSource) {
+        interactionSource.interactions.collect { if (it is PressInteraction.Release) showPicker = true }
+    }
+
     OutlinedTextField(
         value = date?.toString() ?: "",
         onValueChange = {},
         readOnly = true,
         label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
+        interactionSource = interactionSource,
         trailingIcon = {
             if (date != null && onClear != null) {
                 TextButton(onClick = onClear) { Text("Effacer") }
@@ -217,14 +227,6 @@ private fun DatePickerField(
         colors = OutlinedTextFieldDefaults.colors(
             disabledTextColor = MaterialTheme.colorScheme.onSurface
         )
-    )
-    // Overlay invisible cliquable pour ouvrir le picker (readOnly bloque la saisie clavier mais pas le clic)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .offset(y = (-56).dp)
-            .clickable { showPicker = true }
     )
 
     if (showPicker) {

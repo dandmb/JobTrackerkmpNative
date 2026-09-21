@@ -16,4 +16,16 @@ interface JobOfferRepository {
     suspend fun update(offer: JobOffer)
     @NativeCoroutines
     suspend fun delete(offer: JobOffer)
+    /** Horodatage de création STOCKÉ de l'offre (null si elle n'existe pas) : sert à restaurer fidèlement une offre supprimée. */
+    @NativeCoroutines
+    suspend fun getCreatedAt(id: Long): Long?
+    /**
+     * Ré-insère une offre supprimée en CONSERVANT son horodatage de création d'origine : elle retrouve exactement sa
+     * position dans la liste triée par date de création (contrairement à [add], qui horodate à l'instant présent).
+     */
+    @NativeCoroutines
+    suspend fun restore(offer: JobOffer, createdAtEpochMillis: Long)
+    /** Efface TOUTES les candidatures (droit à l'effacement : « Supprimer toutes mes données »). */
+    @NativeCoroutines
+    suspend fun deleteAll()
 }
