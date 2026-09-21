@@ -22,7 +22,12 @@ koin = "4.2.2"
 kotlinx-coroutines = "1.10.1"
 kmp-nativecoroutines = "1.0.6"
 
-kotlinx-datetime = "0.7.1"
+# Tests / couverture (versions vérifiées sur Maven Central le 2026-09-20)
+# coroutines-test reste aligné sur kotlinx-coroutines-core (même version.ref) ; Turbine 1.2.1 dépend de coroutines 1.10.2 (test uniquement)
+turbine = "1.2.1"
+kover = "0.9.9"   # supporte AGP 9 et le plugin com.android.kotlin.multiplatform.library (changelog 0.9.2 → 0.9.9)
+
+kotlinx-datetime = "0.6.1"
 
 
 [libraries]
@@ -46,17 +51,28 @@ compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-previ
 
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }   # MigrationTestHelper multiplatform (variantes JVM/Android/natives, vérifié sur dl.google.com pour 2.8.5)
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+
+androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 
 
 # Coroutines
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+
+# Test de Flow
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 # Dates
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-datetime-j = { module = "org.jetbrains.kotlinx:kotlinx-datetime-jvm", version.ref = "kotlinx-datetime" }
+
+androidx-compose-material-icons = { module = "androidx.compose.material:material-icons-extended", version = "1.7.8" }
 
 
 [plugins]
@@ -68,4 +84,5 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
 kmp-nativecoroutines = { id = "com.rickclephas.kmp.nativecoroutines", version.ref = "kmp-nativecoroutines" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 

@@ -10,7 +10,7 @@ import com.dmb.jobtracker.data.local.dao.JobOfferDao
 import com.dmb.jobtracker.data.local.entity.JobOfferEntity
 
 
-@Database(entities = [JobOfferEntity::class], version = 1, exportSchema = true)
+@Database(entities = [JobOfferEntity::class], version = 2, exportSchema = true)
 @TypeConverters(Converters::class)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

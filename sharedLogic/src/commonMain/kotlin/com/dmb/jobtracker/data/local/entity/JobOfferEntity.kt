@@ -11,7 +11,12 @@ data class JobOfferEntity(
     val title: String,
     val company: String,
     val url: String? = null,
+    val location: String? = null,
+    val source: String? = null,
+    val salaryRange: String? = null,
     val appliedDateEpochDays: Long,
+    val interviewDateEpochDays: Long? = null,
+    val resultDateEpochDays: Long? = null,
     val status: ApplicationStatus,
     val notes: String? = null,
     val createdAtEpochMillis: Long
