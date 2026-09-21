@@ -32,7 +32,7 @@ class JobOfferListObservable: ObservableObject {
                     self.state = newState
                 }
             } catch {
-                print("Erreur d'observation du state: \(error)")
+                print("State observation error: \(error)")
             }
         }
     }
@@ -75,7 +75,7 @@ struct JobOfferListView: View {
                             // (l'exemple « No Mail » d'Apple utilise `tray.fill`).
                             ContentUnavailableView {
                                 Label {
-                                    Text("Aucune candidature")
+                                    Text("list_empty_title")
                                         .appTextStyle(.titleMedium)
                                         .foregroundStyle(Color.onAppBackground)
                                 } icon: {
@@ -83,7 +83,7 @@ struct JobOfferListView: View {
                                         .foregroundStyle(Color.onSurfaceVariant)
                                 }
                             } description: {
-                                Text("Ajoute ta première candidature avec le bouton +")
+                                Text("list_empty_subtitle")
                                     .appTextStyle(.bodyMedium)
                                     .foregroundStyle(Color.onSurfaceVariant)
                                     .multilineTextAlignment(.center)
@@ -101,7 +101,7 @@ struct JobOfferListView: View {
                                 .listRowBackground(Color.clear)
 
                                 if visibleOffers.isEmpty {
-                                    Text("Aucun résultat pour « \(searchQuery) »")
+                                    Text(L("list_no_results", searchQuery))
                                         .appTextStyle(.bodyLarge)
                                         .foregroundStyle(Color.onSurfaceVariant)
                                         .listRowSeparator(.hidden)
@@ -122,7 +122,7 @@ struct JobOfferListView: View {
                                             Button(role: .destructive) {
                                                 offerPendingDeletion = offer   // confirmation avant suppression (voir confirmationDialog)
                                             } label: {
-                                                Label("Supprimer", systemImage: "trash")
+                                                Label("delete_action", systemImage: "trash")
                                             }
                                         }
                                     }
@@ -136,7 +136,7 @@ struct JobOfferListView: View {
                             .searchable(
                                 text: $searchQuery,
                                 placement: .navigationBarDrawer(displayMode: .always),
-                                prompt: "Rechercher un poste ou une entreprise"
+                                prompt: "list_search_placeholder"
                             )
                         }
                     }
@@ -153,10 +153,10 @@ struct JobOfferListView: View {
                             .shadow(radius: 4)
                     }
                     .padding(20)
-                    .accessibilityLabel("Ajouter une candidature")
+                    .accessibilityLabel("list_add")
                 }
                 .background(Color.appBackground.ignoresSafeArea())   // Scaffold : colorScheme.background
-                .navigationTitle("Candidatures")
+                .navigationTitle("list_title")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
@@ -165,7 +165,7 @@ struct JobOfferListView: View {
                         } label: {
                             Image(systemName: "info.circle")
                         }
-                        .accessibilityLabel(AboutContent.shared.ENTRY_POINT_LABEL)
+                        .accessibilityLabel(AboutContent.companion.of(language: AppLanguage.current).entryPointLabel)
                     }
                     // Trier n'a de sens que s'il existe au moins une candidature (`state.offers` = TOUTES les offres).
                     // On teste donc `state.offers`, PAS `visibleOffers` : une recherche sans résultat alors que des
@@ -174,11 +174,12 @@ struct JobOfferListView: View {
                         ToolbarItem(placement: .primaryAction) {
                             Menu {
                                 ForEach(SortOption.allCases) { option in
-                                    Button(option.rawValue) { sortOption = option }
+                                    Button(option.titleKey) { sortOption = option }
                                 }
                             } label: {
                                 Image(systemName: "arrow.up.arrow.down")
                             }
+                            .accessibilityLabel("list_sort")
                         }
                     }
                 }
@@ -190,7 +191,7 @@ struct JobOfferListView: View {
                 }
             }
             .confirmationDialog(
-                "Supprimer cette candidature ?",
+                "list_delete_confirm_title",
                 isPresented: Binding(
                     get: { offerPendingDeletion != nil },
                     set: { if !$0 { offerPendingDeletion = nil } }
@@ -198,12 +199,12 @@ struct JobOfferListView: View {
                 titleVisibility: .visible,
                 presenting: offerPendingDeletion
             ) { offer in
-                Button("Supprimer", role: .destructive) {
+                Button("delete_action", role: .destructive) {
                     observable.viewModelRef.onDeleteOffer(offer: offer)
                 }
-                Button("Annuler", role: .cancel) {}
+                Button("cancel", role: .cancel) {}
             } message: { offer in
-                Text("« \(offer.title) » sera supprimée définitivement.")
+                Text(L("list_delete_confirm_message", offer.title))
             }
             .sheet(item: $offerBeingEdited) { offer in
                 JobOfferFormSheet(existingOffer: offer, viewModel: observable.viewModelRef) {

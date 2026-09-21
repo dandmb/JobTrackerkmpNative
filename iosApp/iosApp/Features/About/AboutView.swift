@@ -23,7 +23,7 @@ final class AboutObservable: ObservableObject {
                     self?.state = newState
                 }
             } catch {
-                print("Erreur d'observation du state (À propos): \(error)")
+                print("State observation error (About): \(error)")
             }
         }
     }
@@ -44,7 +44,7 @@ struct AboutView: View {
     @State private var noMailApp = false
     @Environment(\.openURL) private var openURL
 
-    private let content = AboutContent.shared
+    private let content = AboutContent.companion.of(language: AppLanguage.current)
 
     private var step: DeleteAllStep { observable.state.deleteStep }
 
@@ -63,7 +63,7 @@ struct AboutView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(Color.appBackground.ignoresSafeArea())
-        .navigationTitle(content.SCREEN_TITLE)
+        .navigationTitle(content.screenTitle)
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog(
             content.firstConfirmation.title,
@@ -108,16 +108,19 @@ struct AboutView: View {
     // MARK: - Blocs
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(content.APP_NAME)
-                .appTextStyle(.headlineSmall)
-                .foregroundStyle(Color.onAppBackground)
-            Text(content.TAGLINE)
-                .appTextStyle(.bodyLarge)
-                .foregroundStyle(Color.onSurfaceVariant)
-            Text(AppVersion.label())
-                .appTextStyle(.labelLarge)
-                .foregroundStyle(Color.onSurfaceVariant)
+        HStack(spacing: 16) {
+            JobLogBrandTile(size: 72)   // logo de marque (parité avec la pastille de l'écran Android)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(AboutContent.companion.APP_NAME)
+                    .appTextStyle(.headlineSmall)
+                    .foregroundStyle(Color.onAppBackground)
+                Text(content.tagline)
+                    .appTextStyle(.bodyLarge)
+                    .foregroundStyle(Color.onSurfaceVariant)
+                Text(AppVersion.label())
+                    .appTextStyle(.labelLarge)
+                    .foregroundStyle(Color.onSurfaceVariant)
+            }
         }
     }
 
@@ -147,9 +150,9 @@ struct AboutView: View {
     /// Zone d'alerte : fond teinté d'erreur, bouton destructif — clairement distincte du reste de l'écran.
     private var deleteAllBlock: some View {
         let state = observable.state
-        let message = state.errorMessage ?? (state.dataDeleted ? content.DELETE_ALL_SUCCESS_MESSAGE : nil)
+        let message = state.deletionFailed ? content.deleteAllFailedMessage : (state.dataDeleted ? content.deleteAllSuccessMessage : nil)
         return VStack(alignment: .leading, spacing: 12) {
-            Text(content.DELETE_ALL_EXPLANATION)
+            Text(content.deleteAllExplanation)
                 .appTextStyle(.bodyMedium)
                 .foregroundStyle(Color.onAppBackground)
             Button(role: .destructive) {
@@ -157,7 +160,7 @@ struct AboutView: View {
             } label: {
                 HStack(spacing: 8) {
                     if state.isDeleting { ProgressView() }
-                    Text(state.isDeleting ? content.DELETE_ALL_IN_PROGRESS_LABEL : content.DELETE_ALL_LABEL)
+                    Text(state.isDeleting ? content.deleteAllInProgressLabel : content.deleteAllLabel)
                         .appTextStyle(.labelLarge.copy(weight: .semiBold, size: 16))
                 }
                 .frame(maxWidth: .infinity)
@@ -182,16 +185,16 @@ struct AboutView: View {
     /// Si aucune application ne peut l'ouvrir, l'adresse s'affiche en clair.
     private var contactBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(content.CONTACT_TITLE)
+            Text(content.contactTitle)
                 .appTextStyle(.titleMedium)
                 .foregroundStyle(Color.onAppBackground)
                 .accessibilityAddTraits(.isHeader)
-            Text(content.CONTACT_INTRO).appTextStyle(.bodyMedium).foregroundStyle(Color.onAppBackground)
+            Text(content.contactIntro).appTextStyle(.bodyMedium).foregroundStyle(Color.onAppBackground)
             Button(action: openMail) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(content.CONTACT_LABEL)
+                    Text(content.contactLabel)
                         .appTextStyle(.titleMedium)
-                    Text(content.CONTACT_EMAIL)
+                    Text(AboutContent.companion.CONTACT_EMAIL)
                         .appTextStyle(.bodyMedium)
                         .underline()
                 }
@@ -200,10 +203,10 @@ struct AboutView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityHint(content.CONTACT_NOTE)
-            Text(content.CONTACT_NOTE).appTextStyle(.bodyMedium).foregroundStyle(Color.onSurfaceVariant)
+            .accessibilityHint(content.contactNote)
+            Text(content.contactNote).appTextStyle(.bodyMedium).foregroundStyle(Color.onSurfaceVariant)
             if noMailApp {
-                Text(content.CONTACT_NO_MAIL_APP_MESSAGE)
+                Text(content.contactNoMailAppMessage)
                     .appTextStyle(.bodyMedium)
                     .foregroundStyle(Color.errorBase)
                     .accessibilityAddTraits(.updatesFrequently)
@@ -212,7 +215,7 @@ struct AboutView: View {
     }
 
     private func openMail() {
-        guard let url = URL(string: content.contactMailtoUri()) else {
+        guard let url = URL(string: AboutContent.companion.contactMailtoUri()) else {
             noMailApp = true
             return
         }

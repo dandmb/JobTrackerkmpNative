@@ -1,5 +1,5 @@
 import XCTest
-@testable import JobTracker
+@testable import JobLog
 
 /// Garde-fous (lecture du source) : l'état « aucune candidature » a son icône « plateau vide » (tray) ; « aucun résultat de recherche » reste du texte seul.
 final class EmptyStateWiringTests: XCTestCase {
@@ -14,8 +14,8 @@ final class EmptyStateWiringTests: XCTestCase {
         XCTAssertFalse(source.isEmpty, "source introuvable (chemin #filePath)")
         XCTAssertEqual(source.components(separatedBy: "ContentUnavailableView {").count - 1, 1, "un seul état vide avec icône")
         XCTAssertTrue(source.contains("Image(systemName: \"tray\")"))
-        XCTAssertTrue(source.contains("Text(\"Aucune candidature\")"))
-        XCTAssertTrue(source.contains("Text(\"Ajoute ta première candidature avec le bouton +\")"), "le sous-titre doit être conservé")
+        XCTAssertTrue(source.contains("Text(\"list_empty_title\")"))
+        XCTAssertTrue(source.contains("Text(\"list_empty_subtitle\")"), "le sous-titre doit être conservé")
     }
 
     func test_emptyStateIcon_isInTheEmptyBranchBeforeTheList() throws {
@@ -28,7 +28,7 @@ final class EmptyStateWiringTests: XCTestCase {
     }
 
     func test_searchWithNoResult_staysTextOnly() throws {
-        let start = try XCTUnwrap(source.range(of: "Text(\"Aucun résultat pour"))
+        let start = try XCTUnwrap(source.range(of: "Text(L(\"list_no_results\""))
         // Le bloc « aucun résultat » : de son texte jusqu'au ForEach des cartes qui suit.
         let end = try XCTUnwrap(source.range(of: "ForEach(visibleOffers)", range: start.upperBound..<source.endIndex))
         let block = String(source[start.lowerBound..<end.lowerBound])

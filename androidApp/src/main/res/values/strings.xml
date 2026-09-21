@@ -1,3 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Textes de l'interface Android — ANGLAIS (langue par défaut). Traduction française : values-fr/strings.xml (mêmes clés).
+  Les MÊMES clés existent côté iOS (iosApp/iosApp/{en,fr}.lproj/Localizable.strings) : le test de parité
+  (LocalizationParityTest) vérifie que les textes partagés sont identiques sur les deux plateformes.
+  Le contenu partagé (onboarding, « À propos », message de validation du salaire, dates courtes) est dans sharedLogic (AppLanguage).
+-->
 <resources>
-    <string name="app_name">JobTracker</string>
+    <string name="app_name">JobLog</string>
+
+    <!-- Liste -->
+    <string name="list_title">Applications</string>
+    <string name="list_search_placeholder">Search for a job or a company</string>
+    <string name="list_sort">Sort</string>
+    <string name="list_add">Add an application</string>
+    <string name="list_empty_title">No applications</string>
+    <string name="list_empty_subtitle">Add your first application with the + button</string>
+    <string name="list_no_results">No results for “%1$s”</string>
+    <string name="list_deleted_snackbar">“%1$s” deleted</string>
+    <string name="delete_action">Delete</string>
+    <string name="undo">Undo</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+
+    <!-- Tri -->
+    <string name="sort_newest">Newest first</string>
+    <string name="sort_oldest">Oldest first</string>
+    <string name="sort_az">A → Z</string>
+    <string name="sort_za">Z → A</string>
+
+    <!-- Statuts -->
+    <string name="status_pending">Pending</string>
+    <string name="status_applied">Applied</string>
+    <string name="status_interview">Interview</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="status_accepted">Accepted</string>
+
+    <!-- Carte de statistiques (pluriel : > 1 → _other) -->
+    <string name="stats_tracked_one">application tracked</string>
+    <string name="stats_tracked_other">applications tracked</string>
+    <string name="stats_pending_one">%1$d pending</string>
+    <string name="stats_pending_other">%1$d pending</string>
+    <string name="stats_applied_one">%1$d applied</string>
+    <string name="stats_applied_other">%1$d applied</string>
+    <string name="stats_interview_one">%1$d interview</string>
+    <string name="stats_interview_other">%1$d interviews</string>
+    <string name="stats_rejected_one">%1$d rejected</string>
+    <string name="stats_rejected_other">%1$d rejected</string>
+    <string name="stats_accepted_one">%1$d accepted</string>
+    <string name="stats_accepted_other">%1$d accepted</string>
+
+    <!-- Carte de candidature -->
+    <string name="card_edit_a11y">Edit application %1$s</string>
+    <string name="card_status_a11y">Status: %1$s</string>
+    <string name="date_row_applied">Applied</string>
+    <string name="date_row_interview">Interview</string>
+    <string name="date_row_result">Result</string>
+
+    <!-- Formulaire -->
+    <string name="form_title_new">New application</string>
+    <string name="form_title_edit">Edit application</string>
+    <string name="form_field_title">Job title</string>
+    <string name="form_field_company">Company</string>
+    <string name="form_field_location">Location (city, remote...)</string>
+    <string name="form_field_source">Source (LinkedIn, referral...)</string>
+    <string name="form_field_salary_min">Min salary (k€)</string>
+    <string name="form_field_salary_max">Max salary (k€)</string>
+    <string name="form_field_url">Job posting link</string>
+    <string name="form_section_dates">Dates</string>
+    <string name="form_date_applied">Application date</string>
+    <string name="form_date_interview">Interview date (optional)</string>
+    <string name="form_date_result">Result date (optional)</string>
+    <string name="form_field_notes">Notes</string>
+    <string name="form_save">Save</string>
+    <string name="form_add">Add</string>
+    <string name="form_clear">Clear</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_page_indicator">Page %1$d of %2$d</string>
 </resources>

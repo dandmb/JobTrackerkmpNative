@@ -13,7 +13,7 @@ struct OnboardingView: View {
 
     @State private var page = 0
 
-    private let content = OnboardingContent.shared
+    private let content = OnboardingContent.companion.of(language: AppLanguage.current)
     // Icône de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques.
     private let icons = ["briefcase.fill", "flag.fill", "chart.bar.fill"]
 
@@ -26,7 +26,7 @@ struct OnboardingView: View {
             HStack {
                 Spacer()
                 if content.showsSkip(index: Int32(page)) {
-                    Button(OnboardingContent.shared.SKIP_LABEL, action: onFinished)
+                    Button(content.skipLabel, action: onFinished)
                         .appTextStyle(.labelLarge)
                         .foregroundStyle(Color.tealPrimary)
                         .padding(.trailing, 20)
@@ -121,6 +121,6 @@ private struct PageIndicators: View {
         }
         .animation(.easeInOut(duration: 0.2), value: current)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Page \(current + 1) sur \(count)")
+        .accessibilityLabel(L("onboarding_page_indicator", current + 1, count))
     }
 }

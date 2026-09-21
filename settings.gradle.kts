@@ -1,4 +1,4 @@
-rootProject.name = "JobTracker"
+rootProject.name = "JobLog"
 
 pluginManagement {
     repositories {

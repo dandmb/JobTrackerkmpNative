@@ -1,6 +1,6 @@
 import XCTest
 import SharedLogic
-@testable import JobTracker
+@testable import JobLog
 
 /// Miroir de `OfferListLogicTest.kt` (Android). Les écarts volontairement documentés sont marqués « currently ».
 final class JobOfferListLogicTests: XCTestCase {

@@ -1,6 +1,6 @@
 import XCTest
 import SharedLogic
-@testable import JobTracker
+@testable import JobLog
 
 /// Pont Swift ↔ Kotlin du splash et de l'onboarding. La logique (persistance, contenu, gating) est testée dans sharedLogic
 /// (JVM + natif) ; ici on vérifie que Swift l'appelle correctement et que l'app la câble comme prévu.
@@ -28,25 +28,29 @@ final class OnboardingBridgeTests: XCTestCase {
 
     // MARK: OnboardingContent vu depuis Swift
 
-    func test_onboardingContent_hasThreePagesWithTheSharedTexts() {
-        let content = OnboardingContent.shared
+    func test_onboardingContent_hasThreePagesWithTheSharedTexts_inEachLanguage() {
+        let fr = OnboardingContent.companion.of(language: AppLanguage.fr)
+        let en = OnboardingContent.companion.of(language: AppLanguage.en)
 
-        XCTAssertEqual(content.pageCount, 3)
-        XCTAssertEqual(content.pages.map { $0.title }, ["Suis tes candidatures", "Garde un œil sur les statuts", "Vois où tu en es"])
-        XCTAssertTrue(content.pages.allSatisfy { !$0.description_.isEmpty })
+        XCTAssertEqual(fr.pageCount, 3)
+        XCTAssertEqual(fr.pages.map { $0.title }, ["Suis tes candidatures", "Garde un œil sur les statuts", "Vois où tu en es"])
+        XCTAssertEqual(en.pages.map { $0.title }, ["Track your applications", "Keep an eye on statuses", "See where you stand"])
+        XCTAssertTrue(fr.pages.allSatisfy { !$0.description_.isEmpty } && en.pages.allSatisfy { !$0.description_.isEmpty })
     }
 
     func test_onboardingContent_navigationRules_matchTheSharedContract() {
-        let content = OnboardingContent.shared
+        let fr = OnboardingContent.companion.of(language: AppLanguage.fr)
+        let en = OnboardingContent.companion.of(language: AppLanguage.en)
 
-        XCTAssertTrue(content.showsSkip(index: 0))
-        XCTAssertTrue(content.showsSkip(index: 1))
-        XCTAssertFalse(content.showsSkip(index: 2))
-        XCTAssertEqual(content.primaryButtonLabel(index: 0), "Suivant")
-        XCTAssertEqual(content.primaryButtonLabel(index: 2), "Commencer")
-        XCTAssertEqual(content.nextPageIndex(index: 1), 2)
-        XCTAssertEqual(content.nextPageIndex(index: 2), 2)
-        XCTAssertEqual(OnboardingContent.shared.SKIP_LABEL, "Passer")
+        for content in [fr, en] {
+            XCTAssertTrue(content.showsSkip(index: 0))
+            XCTAssertTrue(content.showsSkip(index: 1))
+            XCTAssertFalse(content.showsSkip(index: 2))
+            XCTAssertEqual(content.nextPageIndex(index: 1), 2)
+            XCTAssertEqual(content.nextPageIndex(index: 2), 2)
+        }
+        XCTAssertEqual([fr.primaryButtonLabel(index: 0), fr.primaryButtonLabel(index: 2), fr.skipLabel], ["Suivant", "Commencer", "Passer"])
+        XCTAssertEqual([en.primaryButtonLabel(index: 0), en.primaryButtonLabel(index: 2), en.skipLabel], ["Next", "Get started", "Skip"])
     }
 
     // MARK: SplashGating vu depuis Swift

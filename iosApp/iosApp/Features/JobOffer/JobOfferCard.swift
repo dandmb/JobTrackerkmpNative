@@ -21,13 +21,10 @@ struct JobOfferCard: View {
     @ScaledMetric(relativeTo: .body) private var chipArrowSize: CGFloat = 8
     @ScaledMetric(relativeTo: .body) private var chipArrowBox: CGFloat = 18
 
-    // « 5 sept. » — Android reproduit les mêmes abréviations (MonthNames français explicites, jour sans zéro).
-    static let dateFormatter: DateFormatter = {
-        let df = DateFormatter()
-        df.dateFormat = "d MMM"
-        df.locale = Locale(identifier: "fr_FR")
-        return df
-    }()
+    /// « 5 sept. » (fr) / « Sep 5 » (en) : format court IDENTIQUE à Android (une seule implémentation : `ShortDate`, sharedLogic).
+    static func shortDate(_ date: Kotlinx_datetimeLocalDate, language: AppLanguage = .current) -> String {
+        ShortDate.shared.format(date: date, language: language)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -47,12 +44,12 @@ struct JobOfferCard: View {
                 .padding(.top, 6)                         // 12 - 6 (idem)
                 .padding(.bottom, 8)
 
-            dateRow(label: "Postulé", date: offer.appliedDate)
+            dateRow(label: L("date_row_applied"), date: offer.appliedDate)
             if let interview = offer.interviewDate {
-                dateRow(label: "Entretien", date: interview)
+                dateRow(label: L("date_row_interview"), date: interview)
             }
             if let result = offer.resultDate {
-                dateRow(label: "Résultat", date: result)
+                dateRow(label: L("date_row_result"), date: result)
             }
 
             if let salary = offer.salaryRange {
@@ -88,7 +85,7 @@ struct JobOfferCard: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Modifier la candidature \(offer.title)")
+            .accessibilityLabel(L("card_edit_a11y", offer.title))
         }
     }
 
@@ -137,8 +134,8 @@ struct JobOfferCard: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Statut : \(offer.status.displayLabel)")
-        .accessibilityHint("Ouvre le menu pour changer le statut")
+        .accessibilityLabel(L("card_status_a11y", offer.status.displayLabel))
+        .accessibilityHint(L("card_status_hint"))
     }
 
     // MARK: Timeline des dates
@@ -150,7 +147,7 @@ struct JobOfferCard: View {
                 .appTextStyle(.labelLarge.copy(weight: .medium, size: 11, letterSpacing: 0.5))
                 .foregroundStyle(Color.onSurfaceVariant)
             Spacer()
-            Text(Self.dateFormatter.string(from: date.toDate()))
+            Text(Self.shortDate(date))
                 .appTextStyle(.labelLarge.copy(weight: .semiBold))
         }
         .accessibilityElement(children: .combine)         // VoiceOver : « Postulé, 5 sept. » d'un bloc

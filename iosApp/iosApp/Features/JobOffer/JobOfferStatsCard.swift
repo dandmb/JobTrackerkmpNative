@@ -23,13 +23,13 @@ struct JobOfferStatsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Total + libellé lus ensemble par VoiceOver (« 3 candidatures suivies »)
+            // Total + libellé lus ensemble par VoiceOver (« 3 applications tracked » / « 3 candidatures suivies »)
             VStack(alignment: .leading, spacing: 0) {
                 // headlineSmall.copy(fontSize = 34.sp, Bold) — le lineHeight reste celui de headlineSmall (30sp)
                 Text("\(offers.count)")
                     .appTextStyle(.headlineSmall.copy(weight: .bold, size: 34), fixedLineHeight: true)
                     .foregroundStyle(Color.tealOnContainer)
-                Text(offers.count > 1 ? "candidatures suivies" : "candidature suivie")
+                Text(L(offers.count > 1 ? "stats_tracked_other" : "stats_tracked_one"))
                     .appTextStyle(.bodyMedium)
                     .foregroundStyle(Color.tealOnContainer.opacity(0.8))
             }
@@ -39,7 +39,7 @@ struct JobOfferStatsCard: View {
                 // FlowLayout (équivalent FlowRow) : 4-5 badges ne tiennent pas sur une ligne d'iPhone / à grande taille de texte
                 FlowLayout(spacing: 8) {
                     ForEach(counts, id: \.0) { status, count in
-                        Text("\(count) \(status.shortLabel)")
+                        Text(status.shortLabel(count: count))
                             .appTextStyle(.labelLarge.copy(weight: .semiBold))
                             .foregroundStyle(status.color)
                             .padding(.horizontal, 10)

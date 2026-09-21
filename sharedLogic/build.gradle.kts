@@ -21,7 +21,7 @@ kotlin {
     }
     
     android {
-       namespace = "com.dmb.jobtracker.sharedLogic"
+       namespace = "com.dmb.joblog.sharedLogic"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
     

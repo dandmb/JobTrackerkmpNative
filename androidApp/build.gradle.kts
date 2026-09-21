@@ -33,11 +33,11 @@ dependencies {
 }
 
 android {
-    namespace = "com.dmb.jobtracker"
+    namespace = "com.dmb.joblog"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.dmb.jobtracker"
+        applicationId = "com.dmb.joblog"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -64,6 +64,12 @@ android {
     buildFeatures {
         compose = true
     }
+    // Seules l'anglais (par défaut) et le français sont gérés : les ressources des bibliothèques (Material, AndroidX…) dans
+    // d'autres langues sont retirées de l'APK, donc une langue système « autre » retombe partout sur l'anglais (y compris
+    // pour les textes fournis par les bibliothèques, ex. le sélecteur de date).
+    androidResources {
+        localeFilters += listOf("en", "fr")
+    }
 }
 // Couverture (Kover) : par défaut on mesure la LOGIQUE de l'app (le rendu des Composables n'est pas testé unitairement).
 // `./gradlew koverHtmlReport -PkoverFull` inclut aussi les Composables pour voir le chiffre brut.
@@ -76,8 +82,8 @@ kover {
                     annotatedBy("androidx.compose.runtime.Composable")
                     classes(
                         "*ComposableSingletons*",
-                        "com.dmb.jobtracker.MainActivity*",
-                        "com.dmb.jobtracker.MonApplication*",
+                        "com.dmb.joblog.MainActivity*",
+                        "com.dmb.joblog.MonApplication*",
                     )
                 }
             }

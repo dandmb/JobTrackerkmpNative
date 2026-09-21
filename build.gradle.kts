@@ -40,8 +40,8 @@ kover {
                     annotatedBy("androidx.compose.runtime.Composable")
                     classes(
                         "*ComposableSingletons*",
-                        "com.dmb.jobtracker.MainActivity*",
-                        "com.dmb.jobtracker.MonApplication*",
+                        "com.dmb.joblog.MainActivity*",
+                        "com.dmb.joblog.MonApplication*",
                     )
                 }
             }

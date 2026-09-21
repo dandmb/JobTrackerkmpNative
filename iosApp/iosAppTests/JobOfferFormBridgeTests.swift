@@ -1,6 +1,6 @@
 import XCTest
 import SharedLogic
-@testable import JobTracker
+@testable import JobLog
 
 /// La logique de formulaire est testée UNE fois dans sharedLogic (`JobOfferFormLogicTest`, JVM + natif).
 /// Ici on vérifie seulement le pont côté iOS : que Swift appelle bien la fonction partagée (types, nil, Date → LocalDate)
@@ -47,24 +47,26 @@ final class JobOfferFormBridgeTests: XCTestCase {
     }
 
     func test_sharedLogic_validate_refusesANewlineOnlyTitleLikeAndroid() {
-        XCTAssertFalse(JobOfferFormLogic.shared.validate(title: "\n", company: "Acme", salaryMin: "", salaryMax: "").isValid)
-        XCTAssertTrue(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "").isValid)
+        XCTAssertFalse(JobOfferFormLogic.shared.validate(title: "\n", company: "Acme", salaryMin: "", salaryMax: "", language: AppLanguage.fr).isValid)
+        XCTAssertTrue(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "", language: AppLanguage.fr).isValid)
     }
 
     func test_sharedLogic_validate_blocksMaxWithoutMinAndExposesTheMessageToSwift() {
-        let result = JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "70")
+        let result = JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "70", language: AppLanguage.fr)
 
         XCTAssertFalse(result.isValid)
         XCTAssertEqual(result.errorMessage, "Renseigne aussi le salaire minimum, ou laisse les deux champs vides.")
+        XCTAssertEqual(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "70", language: AppLanguage.en).errorMessage,
+                       "Please also enter the minimum salary, or leave both fields empty.")
     }
 
     func test_sharedLogic_validate_isUnblockedWhenTheMinIsFilledOrTheMaxCleared() {
-        XCTAssertTrue(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "55", salaryMax: "70").isValid)
-        XCTAssertTrue(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "").isValid)
+        XCTAssertTrue(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "55", salaryMax: "70", language: AppLanguage.fr).isValid)
+        XCTAssertTrue(JobOfferFormLogic.shared.validate(title: "Dev", company: "Acme", salaryMin: "", salaryMax: "", language: AppLanguage.fr).isValid)
     }
 
     func test_sharedLogic_validate_missingRequiredFieldHasNoMessage() {
-        let result = JobOfferFormLogic.shared.validate(title: "", company: "Acme", salaryMin: "", salaryMax: "")
+        let result = JobOfferFormLogic.shared.validate(title: "", company: "Acme", salaryMin: "", salaryMax: "", language: AppLanguage.fr)
 
         XCTAssertFalse(result.isValid)
         XCTAssertNil(result.errorMessage)
