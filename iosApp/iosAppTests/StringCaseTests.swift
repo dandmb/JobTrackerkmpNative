@@ -1,5 +1,5 @@
 import XCTest
-@testable import JobTracker
+@testable import JobLog
 
 /// Miroir des cas de `TextCaseTest.kt` (Android) : la logique doit rester identique sur les deux plateformes.
 final class StringCaseTests: XCTestCase {

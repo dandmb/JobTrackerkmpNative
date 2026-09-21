@@ -47,18 +47,18 @@ struct JobOfferFormSheet: View {
 
     // Validation partagée (sharedLogic) : Enregistrer n'est actif que si `isValid` ; `errorMessage` (salaire max sans min) est affiché
     private var validation: FormValidation {
-        JobOfferFormLogic.shared.validate(title: title, company: company, salaryMin: salaryMin, salaryMax: salaryMax)
+        JobOfferFormLogic.shared.validate(title: title, company: company, salaryMin: salaryMin, salaryMax: salaryMax, language: AppLanguage.current)
     }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section("Poste") {
-                    TextField("Titre du poste", text: $title)
-                    TextField("Entreprise", text: $company)
-                    TextField("Localisation (ville, remote...)", text: $location)
-                    TextField("Source (LinkedIn, cooptation...)", text: $source)
-                    TextField("Lien de l'annonce", text: $url)
+                Section("form_section_job") {
+                    TextField("form_field_title", text: $title)
+                    TextField("form_field_company", text: $company)
+                    TextField("form_field_location", text: $location)
+                    TextField("form_field_source", text: $source)
+                    TextField("form_field_url", text: $url)
                         .keyboardType(.URL)
                         .autocapitalization(.none)
                 }
@@ -66,19 +66,19 @@ struct JobOfferFormSheet: View {
                 Section {
                     HStack {
                         // Même filtre de saisie que sur Android (4 chiffres, non-chiffres retirés) : règle partagée
-                        TextField("Min (k€)", text: $salaryMin)
+                        TextField("form_salary_min_short", text: $salaryMin)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMin) { old, new in
                                 salaryMin = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
                             }
-                        TextField("Max (k€)", text: $salaryMax)
+                        TextField("form_salary_max_short", text: $salaryMax)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMax) { old, new in
                                 salaryMax = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
                             }
                     }
                 } header: {
-                    Text("Salaire")
+                    Text("form_section_salary")
                 } footer: {
                     // Message de validation en pied de section (convention SwiftUI/HIG), lu par VoiceOver avec la section
                     if let message = validation.errorMessage {
@@ -86,41 +86,41 @@ struct JobOfferFormSheet: View {
                     }
                 }
 
-                Section("Dates") {
-                    DatePicker("Date de candidature", selection: $appliedDate, displayedComponents: .date)
+                Section("form_section_dates") {
+                    DatePicker("form_date_applied", selection: $appliedDate, displayedComponents: .date)
 
-                    Toggle("Entretien programmé", isOn: Binding(
+                    Toggle("form_interview_toggle", isOn: Binding(
                         get: { interviewDate != nil },
                         set: { interviewDate = $0 ? Date() : nil }
                     ))
                     if let date = interviewDate {
-                        DatePicker("Date d'entretien",
+                        DatePicker("form_date_interview_short",
                                    selection: Binding(get: { date }, set: { interviewDate = $0 }),
                                    displayedComponents: .date)
                     }
 
-                    Toggle("Résultat reçu", isOn: Binding(
+                    Toggle("form_result_toggle", isOn: Binding(
                         get: { resultDate != nil },
                         set: { resultDate = $0 ? Date() : nil }
                     ))
                     if let date = resultDate {
-                        DatePicker("Date de résultat",
+                        DatePicker("form_date_result_short",
                                    selection: Binding(get: { date }, set: { resultDate = $0 }),
                                    displayedComponents: .date)
                     }
                 }
 
-                Section("Notes") {
+                Section("form_field_notes") {
                     TextEditor(text: $notes).frame(minHeight: 80)
                 }
             }
-            .navigationTitle(isEditing ? "Modifier" : "Nouvelle candidature")
+            .navigationTitle(isEditing ? "form_title_edit" : "form_title_new")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Annuler") { onDone() }
+                    Button("cancel") { onDone() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Enregistrer") { save() }
+                    Button("form_save") { save() }
                         .disabled(!validation.isValid)
                 }
             }

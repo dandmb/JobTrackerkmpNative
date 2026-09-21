@@ -1,6 +1,6 @@
 import XCTest
 import SharedLogic
-@testable import JobTracker
+@testable import JobLog
 
 /// Pont Swift ↔ Kotlin : `KoinHelper` et `JobOfferListObservable` (observation du `StateFlow` du ViewModel partagé).
 ///
@@ -133,7 +133,7 @@ final class KoinBridgeTests: XCTestCase {
         let reported = await waitUntil { observable.state.errorMessage != nil }
 
         XCTAssertTrue(reported)
-        XCTAssertEqual(observable.state.errorMessage, "Le titre du poste ne peut pas être vide")
+        XCTAssertEqual(observable.state.errorMessage, "The job title must not be blank")
     }
 
     func test_observable_twoObservablesOnTheSameViewModel_seeTheSameChange() async {

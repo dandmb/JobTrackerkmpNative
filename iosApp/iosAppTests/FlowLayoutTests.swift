@@ -1,5 +1,5 @@
 import XCTest
-@testable import JobTracker
+@testable import JobLog
 
 /// `FlowLayout.arrange` est un calcul pur (tailles → positions) : testable sans rendu SwiftUI.
 final class FlowLayoutTests: XCTestCase {

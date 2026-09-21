@@ -23,22 +23,25 @@ extension ApplicationStatus {
 
     var displayLabel: String {
         switch self {
-        case .pending: return "En attente"
-        case .applied: return "Postulé"
-        case .interview: return "Entretien"
-        case .rejected: return "Refusé"
-        case .accepted: return "Accepté"
+        case .pending: return L("status_pending")
+        case .applied: return L("status_applied")
+        case .interview: return L("status_interview")
+        case .rejected: return L("status_rejected")
+        case .accepted: return L("status_accepted")
         default: return "?"
         }
     }
 
-    var shortLabel: String {
+    /// Libellé court AVEC le nombre (badges de la carte de statistiques : « 2 applied » / « 2 postulé »).
+    /// Règle du pluriel : `count > 1` → `_other`, sinon `_one` (identique à Android).
+    func shortLabel(count: Int) -> String {
+        let suffix = count > 1 ? "_other" : "_one"
         switch self {
-        case .pending: return "attente"
-        case .applied: return "postulé"
-        case .interview: return "entretien"
-        case .rejected: return "refusé"
-        case .accepted: return "accepté"
+        case .pending: return L("stats_pending" + suffix, count)
+        case .applied: return L("stats_applied" + suffix, count)
+        case .interview: return L("stats_interview" + suffix, count)
+        case .rejected: return L("stats_rejected" + suffix, count)
+        case .accepted: return L("stats_accepted" + suffix, count)
         default: return "?"
         }
     }

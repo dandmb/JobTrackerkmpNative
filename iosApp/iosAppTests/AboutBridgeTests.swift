@@ -1,6 +1,6 @@
 import XCTest
 import SharedLogic
-@testable import JobTracker
+@testable import JobLog
 
 /// Pont Swift ↔ Kotlin de l'écran « À propos ». Le contenu et la machine à états sont testés dans sharedLogic (JVM + natif) ;
 /// ici on vérifie que Swift les appelle correctement, que la version vient de la vraie config de build, et que les FAITS sur
@@ -42,7 +42,7 @@ final class AboutBridgeTests: XCTestCase {
         XCTAssertEqual(state.deleteStep, .idle)
         XCTAssertFalse(state.isDeleting)
         XCTAssertFalse(state.dataDeleted)
-        XCTAssertNil(state.errorMessage)
+        XCTAssertFalse(state.deletionFailed)
     }
 
     func test_aboutViewModel_doubleConfirmation_walksThroughBothStepsAndCancelReturnsToIdle() {
@@ -73,18 +73,23 @@ final class AboutBridgeTests: XCTestCase {
 
     // MARK: AboutContent vu depuis Swift
 
-    func test_aboutContent_hasTheFourSections() {
-        let content = AboutContent.shared
+    func test_aboutContent_hasTheFourSections_inEachLanguage() {
+        let fr = AboutContent.companion.of(language: AppLanguage.fr)
+        let en = AboutContent.companion.of(language: AppLanguage.en)
 
-        XCTAssertEqual(content.sections.map { $0.title },
+        XCTAssertEqual(fr.sections.map { $0.title },
                        ["Ce que l'app enregistre", "Où vivent tes données", "Ce que l'app ne fait pas", "Tes droits sur tes données"])
-        XCTAssertTrue(content.sections.allSatisfy { !$0.bullets.isEmpty || $0.intro != nil })
-        XCTAssertEqual(content.DELETE_ALL_LABEL, "Supprimer toutes mes données")
-        XCTAssertEqual(content.finalConfirmation.confirmLabel, "Tout supprimer")
+        XCTAssertEqual(en.sections.map { $0.title },
+                       ["What the app stores", "Where your data lives", "What the app does not do", "Your rights over your data"])
+        XCTAssertTrue(fr.sections.allSatisfy { !$0.bullets.isEmpty || $0.intro != nil })
+        XCTAssertEqual(fr.deleteAllLabel, "Supprimer toutes mes données")
+        XCTAssertEqual(en.deleteAllLabel, "Delete all my data")
+        XCTAssertEqual(fr.finalConfirmation.confirmLabel, "Tout supprimer")
+        XCTAssertEqual(en.finalConfirmation.confirmLabel, "Delete everything")
     }
 
     func test_aboutContent_versionLabel_isFormattedBySharedLogic() {
-        XCTAssertEqual(AboutContent.shared.versionLabel(versionName: "2.0", buildNumber: "7"), "Version 2.0 (7)")
+        XCTAssertEqual(AboutContent.companion.of(language: AppLanguage.en).versionLabel(versionName: "2.0", buildNumber: "7"), "Version 2.0 (7)")
     }
 
     // MARK: version lue dans la vraie configuration de build
@@ -113,28 +118,31 @@ final class AboutBridgeTests: XCTestCase {
 
         let bundle = try XCTUnwrap(Bundle(url: dir))
 
-        XCTAssertEqual(AppVersion.label(bundle: bundle), AboutContent.shared.versionLabel(versionName: "", buildNumber: ""))
+        XCTAssertEqual(AppVersion.label(bundle: bundle), AboutContent.companion.of(language: AppLanguage.en).versionLabel(versionName: "", buildNumber: ""))
     }
 
     // MARK: contact
 
     func test_contact_mailtoUri_isBuiltBySharedLogicAndIsAValidUrl() throws {
-        let uri = AboutContent.shared.contactMailtoUri()
+        let uri = AboutContent.companion.contactMailtoUri()
 
-        XCTAssertEqual(uri, "mailto:bizwadan@gmail.com?subject=JobTracker%20-%20Contact")
+        XCTAssertEqual(uri, "mailto:bizwadan@gmail.com?subject=JobLog%20-%20Contact")
         let url = try XCTUnwrap(URL(string: uri), "URL invalide : openURL ne pourrait pas l'ouvrir")
         XCTAssertEqual(url.scheme, "mailto")
         let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
-        XCTAssertEqual(components.path, AboutContent.shared.CONTACT_EMAIL)
-        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "subject" })?.value, AboutContent.shared.CONTACT_SUBJECT)
+        XCTAssertEqual(components.path, AboutContent.companion.CONTACT_EMAIL)
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "subject" })?.value, AboutContent.companion.CONTACT_SUBJECT)
     }
 
     func test_contact_labelsAndFallbackMessage_areReadableFromSwift() {
-        let content = AboutContent.shared
+        let fr = AboutContent.companion.of(language: AppLanguage.fr)
+        let en = AboutContent.companion.of(language: AppLanguage.en)
 
-        XCTAssertEqual(content.CONTACT_LABEL, "Nous contacter")
-        XCTAssertEqual(content.CONTACT_EMAIL, "bizwadan@gmail.com")
-        XCTAssertTrue(content.CONTACT_NO_MAIL_APP_MESSAGE.contains(content.CONTACT_EMAIL))
+        XCTAssertEqual(fr.contactLabel, "Nous contacter")
+        XCTAssertEqual(en.contactLabel, "Contact us")
+        XCTAssertEqual(AboutContent.companion.CONTACT_EMAIL, "bizwadan@gmail.com")
+        XCTAssertTrue(fr.contactNoMailAppMessage.contains(AboutContent.companion.CONTACT_EMAIL))
+        XCTAssertTrue(en.contactNoMailAppMessage.contains(AboutContent.companion.CONTACT_EMAIL))
     }
 
     // MARK: garde-fous de câblage
@@ -145,14 +153,14 @@ final class AboutBridgeTests: XCTestCase {
         XCTAssertFalse(list.isEmpty, "source introuvable (chemin #filePath)")
         XCTAssertTrue(list.contains("AboutView()"))
         XCTAssertTrue(list.contains("info.circle"))
-        XCTAssertTrue(list.contains("AboutContent.shared.ENTRY_POINT_LABEL"))
+        XCTAssertTrue(list.contains("entryPointLabel"))
     }
 
     func test_aboutView_takesItsTextFromTheSharedContentAndDoesNotHardCodeIt() {
         let about = source("iosApp/Features/About/AboutView.swift")
 
         XCTAssertTrue(about.contains("content.sections"))
-        XCTAssertTrue(about.contains("content.CONTACT_EMAIL") && about.contains("content.CONTACT_LABEL"))
+        XCTAssertTrue(about.contains("AboutContent.companion.CONTACT_EMAIL") && about.contains("content.contactLabel"))
         XCTAssertTrue(about.contains("content.firstConfirmation") && about.contains("content.finalConfirmation"))
         XCTAssertFalse(about.contains("Supprimer toutes"))
         XCTAssertTrue(about.contains("AppVersion.label()"))
@@ -170,9 +178,9 @@ final class AboutBridgeTests: XCTestCase {
         let about = source("iosApp/Features/About/AboutView.swift")
 
         XCTAssertTrue(about.contains("@Environment(\\.openURL)"))
-        XCTAssertTrue(about.contains("content.contactMailtoUri()"))
+        XCTAssertTrue(about.contains("AboutContent.companion.contactMailtoUri()"))
         XCTAssertTrue(about.contains("openURL(url) { accepted in noMailApp = !accepted }"))
-        XCTAssertTrue(about.contains("content.CONTACT_NO_MAIL_APP_MESSAGE"), "sans app de messagerie, l'adresse doit s'afficher")
+        XCTAssertTrue(about.contains("content.contactNoMailAppMessage"), "sans app de messagerie, l'adresse doit s'afficher")
     }
 
     func test_contact_addressAndSubjectAreNotHardCodedInSwiftSources() {

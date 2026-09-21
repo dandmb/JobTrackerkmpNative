@@ -12,7 +12,7 @@ enum AppVersion {
     /// rien n'est codé en dur. Le format est celui d'Android (`AboutContent.versionLabel`, sharedLogic).
     static func label(bundle: Bundle = .main) -> String {
         let info = bundle.infoDictionary ?? [:]
-        return AboutContent.shared.versionLabel(
+        return AboutContent.companion.of(language: AppLanguage.current).versionLabel(
             versionName: info["CFBundleShortVersionString"] as? String ?? "",
             buildNumber: info["CFBundleVersion"] as? String ?? ""
         )

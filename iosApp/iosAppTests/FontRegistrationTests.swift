@@ -1,6 +1,6 @@
 import XCTest
 import UIKit
-@testable import JobTracker
+@testable import JobLog
 
 /// Détecte un fichier de police manquant, mal nommé ou non copié dans le bundle : sans lui, SwiftUI retombe
 /// silencieusement sur la police système et on ne s'en aperçoit qu'à l'œil.

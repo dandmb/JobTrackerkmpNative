@@ -2,26 +2,37 @@ import XCTest
 import SwiftUI
 import UIKit
 import SharedLogic
-@testable import JobTracker
+@testable import JobLog
 
 final class StatusDisplayTests: XCTestCase {
 
     // MARK: libellés (miroir de StatusLabelsTest.kt)
 
-    func test_displayLabel_everyStatus_returnsItsFrenchLabel() {
-        XCTAssertEqual(ApplicationStatus.pending.displayLabel, "En attente")
-        XCTAssertEqual(ApplicationStatus.applied.displayLabel, "Postulé")
-        XCTAssertEqual(ApplicationStatus.interview.displayLabel, "Entretien")
-        XCTAssertEqual(ApplicationStatus.rejected.displayLabel, "Refusé")
-        XCTAssertEqual(ApplicationStatus.accepted.displayLabel, "Accepté")
+    func test_displayLabel_everyStatus_followsTheAppLanguage_andIsTranslated() {
+        let keys: [(ApplicationStatus, String)] = [(.pending, "status_pending"), (.applied, "status_applied"), (.interview, "status_interview"),
+                                                    (.rejected, "status_rejected"), (.accepted, "status_accepted")]
+        let current = Bundle.main.preferredLocalizations.first == "fr" ? "fr" : "en"
+        for (status, key) in keys {
+            XCTAssertEqual(status.displayLabel, localized(key, in: current), "statut \(key)")
+            XCTAssertNotEqual(localized(key, in: "en"), localized(key, in: "fr"), "\(key) non traduit")
+        }
     }
 
-    func test_shortLabel_everyStatus_returnsItsLowercaseShortLabel() {
-        XCTAssertEqual(ApplicationStatus.pending.shortLabel, "attente")
-        XCTAssertEqual(ApplicationStatus.applied.shortLabel, "postulé")
-        XCTAssertEqual(ApplicationStatus.interview.shortLabel, "entretien")
-        XCTAssertEqual(ApplicationStatus.rejected.shortLabel, "refusé")
-        XCTAssertEqual(ApplicationStatus.accepted.shortLabel, "accepté")
+    func test_displayLabels_inEachLanguage_areTheDocumentedOnes() {
+        XCTAssertEqual(["status_pending", "status_applied", "status_interview", "status_rejected", "status_accepted"].map { localized($0, in: "fr") },
+                       ["En attente", "Postulé", "Entretien", "Refusé", "Accepté"])
+        XCTAssertEqual(["status_pending", "status_applied", "status_interview", "status_rejected", "status_accepted"].map { localized($0, in: "en") },
+                       ["Pending", "Applied", "Interview", "Rejected", "Accepted"])
+    }
+
+    func test_shortLabel_carriesTheCount_andOnlyEnglishInterviewChangesWithThePlural() {
+        XCTAssertEqual(localized("stats_interview_one", in: "en", 1), "1 interview")
+        XCTAssertEqual(localized("stats_interview_other", in: "en", 3), "3 interviews")
+        XCTAssertEqual(localized("stats_applied_other", in: "en", 2), "2 applied")
+        XCTAssertEqual(localized("stats_applied_other", in: "fr", 2), "2 postulé")
+        let current = Bundle.main.preferredLocalizations.first == "fr" ? "fr" : "en"
+        XCTAssertEqual(ApplicationStatus.interview.shortLabel(count: 1), localized("stats_interview_one", in: current, 1))
+        XCTAssertEqual(ApplicationStatus.interview.shortLabel(count: 5), localized("stats_interview_other", in: current, 5))
     }
 
     func test_displayLabels_coverEveryStatusAndAreDistinct() {
@@ -34,16 +45,19 @@ final class StatusDisplayTests: XCTestCase {
 
     // MARK: options de tri
 
-    func test_sortOption_rawValues_areTheMenuLabelsSameAsAndroid() {
-        XCTAssertEqual(SortOption.dateDesc.rawValue, "Plus récent")
-        XCTAssertEqual(SortOption.dateAsc.rawValue, "Plus ancien")
-        XCTAssertEqual(SortOption.alphaAsc.rawValue, "A → Z")
-        XCTAssertEqual(SortOption.alphaDesc.rawValue, "Z → A")
+    func test_sortOption_rawValues_areTheTranslationKeysSameAsAndroid() {
+        XCTAssertEqual(SortOption.allCases.map { $0.rawValue }, ["sort_newest", "sort_oldest", "sort_az", "sort_za"])
         XCTAssertEqual(SortOption.allCases.count, 4)
     }
 
+    func test_sortOption_labels_inEachLanguage_areTheDocumentedOnes() {
+        let keys = SortOption.allCases.map { $0.rawValue }
+        XCTAssertEqual(keys.map { localized($0, in: "en") }, ["Newest first", "Oldest first", "A → Z", "Z → A"])
+        XCTAssertEqual(keys.map { localized($0, in: "fr") }, ["Plus récent", "Plus ancien", "A → Z", "Z → A"])
+    }
+
     func test_sortOption_id_isItsRawValue() {
-        XCTAssertEqual(SortOption.dateDesc.id, "Plus récent")
+        XCTAssertEqual(SortOption.dateDesc.id, "sort_newest")
     }
 
     // MARK: couleurs de statut — garde-fou WCAG AA (miroir de StatusColorsTest.kt)

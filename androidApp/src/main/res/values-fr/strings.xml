@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Traduction FRANÇAISE (mêmes clés que values/strings.xml, qui est la langue par défaut : l'anglais). -->
+<resources>
+    <string name="app_name">JobLog</string>
+
+    <!-- Liste -->
+    <string name="list_title">Candidatures</string>
+    <string name="list_search_placeholder">Rechercher un poste ou une entreprise</string>
+    <string name="list_sort">Trier</string>
+    <string name="list_add">Ajouter une candidature</string>
+    <string name="list_empty_title">Aucune candidature</string>
+    <string name="list_empty_subtitle">Ajoute ta première candidature avec le bouton +</string>
+    <string name="list_no_results">Aucun résultat pour « %1$s »</string>
+    <string name="list_deleted_snackbar">« %1$s » supprimée</string>
+    <string name="delete_action">Supprimer</string>
+    <string name="undo">Annuler</string>
+    <string name="cancel">Annuler</string>
+    <string name="ok">OK</string>
+
+    <!-- Tri -->
+    <string name="sort_newest">Plus récent</string>
+    <string name="sort_oldest">Plus ancien</string>
+    <string name="sort_az">A → Z</string>
+    <string name="sort_za">Z → A</string>
+
+    <!-- Statuts -->
+    <string name="status_pending">En attente</string>
+    <string name="status_applied">Postulé</string>
+    <string name="status_interview">Entretien</string>
+    <string name="status_rejected">Refusé</string>
+    <string name="status_accepted">Accepté</string>
+
+    <!-- Carte de statistiques (pluriel : > 1 → _other) -->
+    <string name="stats_tracked_one">candidature suivie</string>
+    <string name="stats_tracked_other">candidatures suivies</string>
+    <string name="stats_pending_one">%1$d attente</string>
+    <string name="stats_pending_other">%1$d attente</string>
+    <string name="stats_applied_one">%1$d postulé</string>
+    <string name="stats_applied_other">%1$d postulé</string>
+    <string name="stats_interview_one">%1$d entretien</string>
+    <string name="stats_interview_other">%1$d entretien</string>
+    <string name="stats_rejected_one">%1$d refusé</string>
+    <string name="stats_rejected_other">%1$d refusé</string>
+    <string name="stats_accepted_one">%1$d accepté</string>
+    <string name="stats_accepted_other">%1$d accepté</string>
+
+    <!-- Carte de candidature -->
+    <string name="card_edit_a11y">Modifier la candidature %1$s</string>
+    <string name="card_status_a11y">Statut : %1$s</string>
+    <string name="date_row_applied">Postulé</string>
+    <string name="date_row_interview">Entretien</string>
+    <string name="date_row_result">Résultat</string>
+
+    <!-- Formulaire -->
+    <string name="form_title_new">Nouvelle candidature</string>
+    <string name="form_title_edit">Modifier la candidature</string>
+    <string name="form_field_title">Titre du poste</string>
+    <string name="form_field_company">Entreprise</string>
+    <string name="form_field_location">Localisation (ville, remote...)</string>
+    <string name="form_field_source">Source (LinkedIn, cooptation...)</string>
+    <string name="form_field_salary_min">Salaire min (k€)</string>
+    <string name="form_field_salary_max">Salaire max (k€)</string>
+    <string name="form_field_url">Lien de l\'annonce</string>
+    <string name="form_section_dates">Dates</string>
+    <string name="form_date_applied">Date de candidature</string>
+    <string name="form_date_interview">Date d\'entretien (optionnel)</string>
+    <string name="form_date_result">Date de résultat (optionnel)</string>
+    <string name="form_field_notes">Notes</string>
+    <string name="form_save">Enregistrer</string>
+    <string name="form_add">Ajouter</string>
+    <string name="form_clear">Effacer</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_page_indicator">Page %1$d sur %2$d</string>
+</resources>
