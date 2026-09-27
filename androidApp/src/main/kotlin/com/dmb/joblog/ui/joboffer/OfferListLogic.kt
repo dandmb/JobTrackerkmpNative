@@ -2,26 +2,8 @@ package com.dmb.joblog.ui.joboffer
 
 import com.dmb.joblog.domain.model.JobOffer
 
-/**
- * Recherche puis tri de la liste affichée (extrait tel quel de `JobOfferListScreen`, pour être testable sans Compose).
- *
- * - Une recherche vide OU composée uniquement d'espaces ne filtre rien.
- * - La recherche porte sur le titre et l'entreprise, sans tenir compte de la casse.
- * - Les tris sont stables : à critère égal, l'ordre d'origine (celui du repository) est conservé.
- */
-fun List<JobOffer>.searchedAndSorted(query: String, sortOption: SortOption): List<JobOffer> =
-    filter {
-        query.isBlank() ||
-            it.title.contains(query, ignoreCase = true) ||
-            it.company.contains(query, ignoreCase = true)
-    }.let { list ->
-        when (sortOption) {
-            SortOption.DATE_DESC -> list.sortedByDescending { it.appliedDate }
-            SortOption.DATE_ASC -> list.sortedBy { it.appliedDate }
-            SortOption.ALPHA_ASC -> list.sortedBy { it.title.lowercase() }
-            SortOption.ALPHA_DESC -> list.sortedByDescending { it.title.lowercase() }
-        }
-    }
+// Recherche + filtre de statut + tri : UNE SEULE implémentation, dans sharedLogic (`presentation.joboffer.OfferListFilter`,
+// extension `filteredForDisplay`), appelée par cet écran et par iOS. Elle n'est plus dupliquée ici (voir rapport-filtre-statut.md).
 
 // ---------------------------------------------------------------------------------------------
 // Scroll vers la carte restaurée après « Annuler » : la DÉCISION est pure (testable), l'EFFET (LazyListState,

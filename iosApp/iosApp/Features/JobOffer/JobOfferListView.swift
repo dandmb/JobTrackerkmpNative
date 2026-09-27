@@ -53,13 +53,15 @@ struct JobOfferListView: View {
     @State private var offerPendingDeletion: JobOffer?
     @State private var searchQuery = ""
     @State private var sortOption: SortOption = .dateDesc
+    // Filtre par statut : ensemble vide = « Tous » (aucun filtre actif, comportement inchangé).
+    @State private var selectedStatuses: Set<ApplicationStatus> = []
 
     init(viewModel: JobOfferListViewModel) {
         _observable = StateObject(wrappedValue: JobOfferListObservable(viewModel: viewModel))
     }
 
     private var visibleOffers: [JobOffer] {
-        observable.state.offers.searchedAndSorted(query: searchQuery, sortOption: sortOption)
+        observable.state.offers.filteredForDisplay(query: searchQuery, sortOption: sortOption, selectedStatuses: selectedStatuses)
     }
 
     var body: some View {
@@ -91,6 +93,13 @@ struct JobOfferListView: View {
                         } else {
                             List {
                                 Section {
+                                    StatusFilterRow(selectedStatuses: $selectedStatuses)
+                                }
+                                .listRowInsets(EdgeInsets())
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+
+                                Section {
                                     JobOfferStatsCard(offers: observable.state.offers)
                                 }
                                 // Marge extérieure de la carte stats : 16 sur les côtés (comme Android : Column.padding(16.dp))
@@ -101,7 +110,9 @@ struct JobOfferListView: View {
                                 .listRowBackground(Color.clear)
 
                                 if visibleOffers.isEmpty {
-                                    Text(L("list_no_results", searchQuery))
+                                    // Priorité au message de filtre dès qu'un statut est sélectionné (avec ou sans recherche en
+                                    // cours) : voir JobOfferListScreen.kt (Android) pour la justification du choix, identique ici.
+                                    Text(selectedStatuses.isEmpty ? L("list_no_results", searchQuery) : L("list_no_results_filter"))
                                         .appTextStyle(.bodyLarge)
                                         .foregroundStyle(Color.onSurfaceVariant)
                                         .listRowSeparator(.hidden)
@@ -173,7 +184,7 @@ struct JobOfferListView: View {
                     if !observable.state.offers.isEmpty {
                         ToolbarItem(placement: .primaryAction) {
                             Menu {
-                                ForEach(SortOption.allCases) { option in
+                                ForEach(SortOption.entries, id: \.self) { option in
                                     Button(option.titleKey) { sortOption = option }
                                 }
                             } label: {
@@ -185,6 +196,11 @@ struct JobOfferListView: View {
                 }
             }
             .tint(Color.tealPrimary)   // remplace toolbarBackground/toolbarColorScheme
+            // Sans candidature, la rangée de filtre disparaît avec la liste : on efface la sélection pour qu'elle ne masque
+            // pas en silence les futures candidatures (miroir de la remise à zéro de searchQuery, JobOfferListScreen.kt Android).
+            .onChange(of: observable.state.offers.isEmpty) { _, isEmpty in
+                if isEmpty { selectedStatuses = [] }
+            }
             .sheet(isPresented: $showingAddSheet) {
                 JobOfferFormSheet(existingOffer: nil, viewModel: observable.viewModelRef) {
                     showingAddSheet = false

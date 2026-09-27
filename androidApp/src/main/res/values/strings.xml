@@ -16,6 +16,10 @@
     <string name="list_empty_title">No applications</string>
     <string name="list_empty_subtitle">Add your first application with the + button</string>
     <string name="list_no_results">No results for “%1$s”</string>
+    <!-- Résultat vide À CAUSE DU FILTRE DE STATUT (prioritaire sur list_no_results dès qu'un filtre est actif, avec ou sans recherche en cours). -->
+    <string name="list_no_results_filter">No application matches the selected status filter</string>
+    <!-- Puce « Tous » de la rangée de filtre par statut : désélectionne tout le reste (aucun filtre actif). -->
+    <string name="filter_all">All</string>
     <string name="list_deleted_snackbar">“%1$s” deleted</string>
     <string name="delete_action">Delete</string>
     <string name="undo">Undo</string>

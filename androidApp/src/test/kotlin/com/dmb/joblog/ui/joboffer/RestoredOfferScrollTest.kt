@@ -2,6 +2,8 @@ package com.dmb.joblog.ui.joboffer
 
 import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
+import com.dmb.joblog.presentation.joboffer.SortOption
+import com.dmb.joblog.presentation.joboffer.filteredForDisplay
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -34,7 +36,7 @@ class RestoredOfferScrollTest {
     @Test
     fun locateRestoredOffer_offerInDataButFilteredOutBySearch_isHiddenBySearch() {
         val all = listOf(offer(1, "Android"), offer(2, "iOS"))
-        val visible = all.searchedAndSorted("android", SortOption.DATE_DESC)
+        val visible = all.filteredForDisplay("android", SortOption.DATE_DESC)
 
         assertEquals(RestoredOfferTarget.HiddenBySearch, locateRestoredOffer(all, visible, offerId = 2))
     }
@@ -58,7 +60,7 @@ class RestoredOfferScrollTest {
         val oldest = offer(1, applied = LocalDate(2026, 1, 1))
         val newest = offer(2, applied = LocalDate(2026, 9, 1))
         val all = listOf(oldest, newest)
-        val visible = all.searchedAndSorted("", SortOption.DATE_DESC)   // newest d'abord
+        val visible = all.filteredForDisplay("", SortOption.DATE_DESC)   // newest d'abord
 
         assertEquals(RestoredOfferTarget.InList(1), locateRestoredOffer(all, visible, offerId = 1))
     }

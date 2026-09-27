@@ -6,22 +6,12 @@
 import Foundation
 import SharedLogic
 
-// Recherche puis tri de la liste affichée (extrait tel quel de `JobOfferListView`, pour être testable sans SwiftUI).
-// Miroir de `searchedAndSorted` côté Android (ui/joboffer/OfferListLogic.kt).
+// Recherche + filtre de statut + tri de la liste affichée : UNE SEULE implémentation, dans sharedLogic
+// (`OfferListFilter.apply`, appelé ici) — avant : cette extension réimplémentait la recherche/tri en Swift, en miroir de
+// `OfferListLogic.searchedAndSorted` (Android), le même schéma de duplication qui avait fait diverger silencieusement la
+// validation des formulaires par le passé (voir PROJECT_CONTEXT.md §6).
 extension Array where Element == JobOffer {
-    func searchedAndSorted(query: String, sortOption: SortOption) -> [JobOffer] {
-        // Comme Android (`query.isBlank()`) : une recherche vide OU composée uniquement d'espaces / retours à la ligne ne filtre rien.
-        let isBlankQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        let filtered = filter {
-            isBlankQuery ||
-            $0.title.localizedCaseInsensitiveContains(query) ||
-            $0.company.localizedCaseInsensitiveContains(query)
-        }
-        switch sortOption {
-        case .dateDesc: return filtered.sorted { $0.appliedDate.toDate() > $1.appliedDate.toDate() }
-        case .dateAsc: return filtered.sorted { $0.appliedDate.toDate() < $1.appliedDate.toDate() }
-        case .alphaAsc: return filtered.sorted { $0.title.lowercased() < $1.title.lowercased() }
-        case .alphaDesc: return filtered.sorted { $0.title.lowercased() > $1.title.lowercased() }
-        }
+    func filteredForDisplay(query: String, sortOption: SortOption, selectedStatuses: Set<ApplicationStatus> = []) -> [JobOffer] {
+        OfferListFilter.shared.apply(offers: self, query: query, sortOption: sortOption, selectedStatuses: selectedStatuses)
     }
 }

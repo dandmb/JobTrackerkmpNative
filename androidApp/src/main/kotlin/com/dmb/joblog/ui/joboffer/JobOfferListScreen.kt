@@ -19,12 +19,15 @@ import androidx.compose.ui.unit.dp
 import com.dmb.joblog.presentation.about.AboutContent
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
+import com.dmb.joblog.presentation.joboffer.SortOption
+import com.dmb.joblog.presentation.joboffer.filteredForDisplay
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -46,6 +49,8 @@ fun JobOfferListScreen(
     var searchQuery by remember { mutableStateOf("") }
     var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
+    // Filtre par statut : ensemble vide = « Tous » (aucun filtre actif, comportement inchangé).
+    var selectedStatuses by remember { mutableStateOf<Set<ApplicationStatus>>(emptySet()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     // Offre qu'on vient de restaurer via « Annuler » : le LazyColumn garde en place le 1er élément visible quand
@@ -55,8 +60,8 @@ fun JobOfferListScreen(
     val context = LocalContext.current      // getString dans la coroutine du snackbar (hors composition)
     val language = rememberAppLanguage()
 
-    val visibleOffers = remember(state.offers, searchQuery, sortOption) {
-        state.offers.searchedAndSorted(searchQuery, sortOption)
+    val visibleOffers = remember(state.offers, searchQuery, sortOption, selectedStatuses) {
+        state.offers.filteredForDisplay(searchQuery, sortOption, selectedStatuses)
     }
 
     LaunchedEffect(restoredOfferId, state.offers, visibleOffers) {
@@ -76,9 +81,15 @@ fun JobOfferListScreen(
         restoredOfferId = null
     }
 
-    // Sans candidature, le champ de recherche est masqué : on efface la requête pour qu'elle ne filtre pas en silence les
-    // futures candidatures (et ne masque pas l'état « aucune candidature » derrière « Aucun résultat pour… »).
-    LaunchedEffect(state.offers.isEmpty()) { if (state.offers.isEmpty()) searchQuery = "" }
+    // Sans candidature, le champ de recherche et la rangée de filtre sont masqués : on efface requête et filtre pour
+    // qu'ils ne masquent pas en silence les futures candidatures (ni l'état « aucune candidature » derrière un message
+    // « aucun résultat »).
+    LaunchedEffect(state.offers.isEmpty()) {
+        if (state.offers.isEmpty()) {
+            searchQuery = ""
+            selectedStatuses = emptySet()
+        }
+    }
 
     // Le menu de tri disparaît avec la dernière candidature : on referme son état pour qu'il ne se rouvre pas tout seul
     // quand une candidature sera de nouveau ajoutée.
@@ -108,7 +119,7 @@ fun JobOfferListScreen(
                             ) {
                                 SortOption.entries.forEach { option ->
                                     DropdownMenuItem(
-                                        text = { Text(stringResource(option.labelRes)) },
+                                        text = { Text(stringResource(option.labelRes())) },
                                         onClick = { sortOption = option; sortMenuExpanded = false }
                                     )
                                 }
@@ -148,6 +159,10 @@ fun JobOfferListScreen(
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
                 )
+                StatusFilterRow(
+                    selectedStatuses = selectedStatuses,
+                    onSelectionChanged = { selectedStatuses = it },
+                )
             }
 
             // fillMaxWidth OBLIGATOIRE : dans une Column, un enfant à `weight(1f)` reçoit toute la hauteur restante mais sa
@@ -168,10 +183,14 @@ fun JobOfferListScreen(
                             // Item 0 : statistiques sur TOUTES les offres (pas filtrées), défile avec la liste
                             item(key = "stats") { JobOfferStatsCard(offers = state.offers) }
                             if (visibleOffers.isEmpty()) {
-                                // Recherche active sans résultat alors que des candidatures existent
+                                // Recherche et/ou filtre de statut actifs sans résultat, alors que des candidatures existent.
+                                // Priorité au message de filtre dès qu'un statut est sélectionné (avec ou sans recherche en
+                                // cours) : c'est le contrôle le plus récent et le moins visible en un coup d'œil, donc celui
+                                // que l'utilisateur risque le plus d'oublier avoir activé.
                                 item(key = "no-results") {
                                     Text(
-                                        stringResource(R.string.list_no_results, searchQuery),
+                                        if (selectedStatuses.isNotEmpty()) stringResource(R.string.list_no_results_filter)
+                                        else stringResource(R.string.list_no_results, searchQuery),
                                         modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
                                         textAlign = TextAlign.Center,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant

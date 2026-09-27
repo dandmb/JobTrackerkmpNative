@@ -54,7 +54,10 @@ class ListLayoutWiringTest {
 
     @Test
     fun searchQuery_isClearedWhenTheListBecomesEmpty() {
-        assertTrue(body.contains("LaunchedEffect(state.offers.isEmpty()) { if (state.offers.isEmpty()) searchQuery = \"\" }"))
+        // Depuis le filtre de statut (rapport-filtre-statut.md) : le même effet efface aussi `selectedStatuses`.
+        val effect = body.substringAfter("LaunchedEffect(state.offers.isEmpty()) {").substringBefore("StatusBarIconsForPrimaryTopBar")
+        assertTrue(effect.contains("searchQuery = \"\""))
+        assertTrue(effect.contains("selectedStatuses = emptySet()"))
     }
 
     @Test
