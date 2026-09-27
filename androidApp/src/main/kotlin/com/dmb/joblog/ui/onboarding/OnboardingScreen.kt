@@ -2,7 +2,9 @@ package com.dmb.joblog.ui.onboarding
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,15 +16,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Work
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,19 +31,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dmb.joblog.presentation.onboarding.OnboardingContent
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.dmb.joblog.R
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 
-// Icône de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques.
-private val PageIcons: List<ImageVector> = listOf(Icons.Default.Work, Icons.Default.Flag, Icons.Default.BarChart)
+// Capture d'écran de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques. Remplace les
+// icônes génériques par de vraies captures de l'app (rapport-reglages-confidentialite.md) : une carte détaillée
+// (titre/entreprise/lieu/salaire/dates), une carte avec son statut (couleur du statut), la carte de statistiques.
+// `drawable-nodpi` : bitmap unique, non redimensionné par densité (la taille affichée est fixée par le Modifier ci-dessous).
+// ⚠️ Ces images devront être régénérées si l'UI des écrans montrés (carte, statuts, carte de stats) change.
+private val PageImages: List<Int> = listOf(R.drawable.onboarding_1, R.drawable.onboarding_2, R.drawable.onboarding_3)
 
 /**
  * Onboarding en 3 pages (contenu et règles de navigation communs à iOS : sharedLogic `OnboardingContent`).
@@ -76,7 +81,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
 
         HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { index ->
             OnboardingPageContent(
-                icon = PageIcons[index],
+                imageRes = PageImages[index],
                 title = pages[index].title,
                 description = pages[index].description,
             )
@@ -104,26 +109,25 @@ fun OnboardingScreen(onFinished: () -> Unit) {
 }
 
 @Composable
-private fun OnboardingPageContent(icon: ImageVector, title: String, description: String) {
+private fun OnboardingPageContent(imageRes: Int, title: String, description: String) {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Box(
+        // Capture d'écran réelle de l'app, présentée comme une petite carte (coins arrondis + ombre légère), pas en
+        // plein cadre : elle garde son ratio d'origine (widthIn borne la largeur, la hauteur suit).
+        Image(
+            painterResource(imageRes),
+            contentDescription = null,   // décorative : le titre porte le sens
+            contentScale = ContentScale.FillWidth,
             modifier = Modifier
-                .size(160.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,   // décorative : le titre porte le sens
-                modifier = Modifier.size(72.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+                .widthIn(max = 280.dp)
+                .fillMaxWidth()
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(20.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp)),
+        )
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             title,

@@ -14,9 +14,10 @@ struct OnboardingView: View {
     @State private var page = 0
 
     private let content = OnboardingContent.companion.of(language: AppLanguage.current)
-    // Icône de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques.
-    // nil = logo de marque (JobLogMark) ; les pages 2 et 3 gardent une icône thématique.
-    private let icons: [String?] = [nil, "flag.fill", "chart.bar.fill"]
+    // Capture d'écran de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques. Remplace
+    // les icônes (SF Symbols / logo de marque en page 1) par de vraies captures de l'app — voir
+    // rapport-reglages-confidentialite.md. ⚠️ À régénérer si l'UI des écrans montrés change.
+    private let images = ["Onboarding1", "Onboarding2", "Onboarding3"]
 
     private var pageCount: Int { Int(content.pageCount) }
     private var isLastPage: Bool { content.isLastPage(index: Int32(page)) }
@@ -39,7 +40,7 @@ struct OnboardingView: View {
             TabView(selection: $page) {
                 ForEach(0..<pageCount, id: \.self) { index in
                     OnboardingPageView(
-                        systemImage: icons[index],
+                        imageName: images[index],
                         title: content.pages[index].title,
                         description: content.pages[index].description_
                     )
@@ -76,26 +77,23 @@ struct OnboardingView: View {
 }
 
 private struct OnboardingPageView: View {
-    let systemImage: String?
+    let imageName: String
     let title: String
     let description: String
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            ZStack {
-                Circle().fill(Color.tealContainer).frame(width: 160, height: 160)
-                if let systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 64))
-                        .foregroundStyle(Color.tealOnContainer)
-                        .accessibilityHidden(true)      // décorative : le titre porte le sens
-                } else {
-                    // Logo posé sur tealContainer : couverture teinte « sur conteneur », reliure = couleur du fond du cercle
-                    JobLogMark(bodyColor: .tealOnContainer, spineColor: .tealContainer)
-                        .frame(height: 64)              // même hauteur que la police 64 pt des autres pages
-                }
-            }
+            // Capture d'écran réelle de l'app, présentée comme une petite carte (coins arrondis + ombre légère), pas en
+            // plein cadre : elle garde son ratio d'origine (largeur bornée, la hauteur suit).
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: 280)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color.outlineVariant, lineWidth: 1))
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+                .accessibilityHidden(true)      // décorative : le titre porte le sens
             Text(title)
                 .appTextStyle(.headlineSmall)
                 .foregroundStyle(Color.onAppBackground)

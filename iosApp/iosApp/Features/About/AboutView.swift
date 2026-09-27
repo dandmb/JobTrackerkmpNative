@@ -57,6 +57,7 @@ struct AboutView: View {
                 }
                 deleteAllBlock
                 contactBlock
+                linkedinBlock
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 20)
@@ -220,5 +221,22 @@ struct AboutView: View {
             return
         }
         openURL(url) { accepted in noMailApp = !accepted }
+    }
+
+    /// Lien LinkedIn : ouvre le profil dans le navigateur (ou l'app LinkedIn si installée).
+    private var linkedinBlock: some View {
+        Button {
+            if let url = URL(string: AboutContent.companion.LINKEDIN_URL) { openURL(url) }
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: "link")
+                Text(content.linkedinLabel).appTextStyle(.titleMedium).underline()
+            }
+            .foregroundStyle(Color.tealPrimary)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(content.linkedinHint)
     }
 }

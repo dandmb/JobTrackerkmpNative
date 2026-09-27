@@ -335,4 +335,13 @@ class AboutContentTest {
         both.forEach { assertFalse("JobTracker" in it.allText()) }
         assertFalse("JobTracker" in AboutContent.CONTACT_SUBJECT)
     }
+
+    @Test
+    fun linkedin_urlAndLabels_areDefined() {
+        assertEquals("https://www.linkedin.com/in/dan-bizwa/", AboutContent.LINKEDIN_URL)
+        assertEquals("Profil LinkedIn", fr.linkedinLabel)
+        assertEquals("LinkedIn profile", en.linkedinLabel)
+        assertNotEquals(fr.linkedinHint, en.linkedinHint)
+        assertTrue(fr.linkedinHint.isNotBlank() && en.linkedinHint.isNotBlank())
+    }
 }

@@ -37,7 +37,6 @@ class AboutContent private constructor(private val lang: AppLanguage) {
     val screenTitle: String = lang.pick(en = "About", fr = "À propos")
     val tagline: String = lang.pick(en = "Track your applications, at your own pace.", fr = "Suis tes candidatures, à ton rythme.")
     val backLabel: String = lang.pick(en = "Back", fr = "Retour")
-    val entryPointLabel: String = screenTitle
 
     /** « Version 1.0 (1) » : `versionName` et numéro de build lus par chaque plateforme dans sa configuration de build. */
     fun versionLabel(versionName: String, buildNumber: String): String {
@@ -189,6 +188,14 @@ class AboutContent private constructor(private val lang: AppLanguage) {
         fr = "Aucune application de messagerie n'a pu s'ouvrir. Tu peux nous écrire à $CONTACT_EMAIL.",
     )
 
+    // ---- LinkedIn ----
+
+    val linkedinLabel: String = lang.pick(en = "LinkedIn profile", fr = "Profil LinkedIn")
+    val linkedinHint: String = lang.pick(
+        en = "Opens Dan Bizwa's LinkedIn profile in your browser.",
+        fr = "Ouvre le profil LinkedIn de Dan Bizwa dans ton navigateur.",
+    )
+
     companion object {
         /** Contenu dans la langue demandée. */
         fun of(language: AppLanguage): AboutContent = AboutContent(language)
@@ -197,6 +204,7 @@ class AboutContent private constructor(private val lang: AppLanguage) {
         const val APP_NAME = "JobLog"
         const val CONTACT_EMAIL = "bizwadan@gmail.com"
         const val CONTACT_SUBJECT = "JobLog - Contact"
+        const val LINKEDIN_URL = "https://www.linkedin.com/in/dan-bizwa/"
 
         /**
          * Adresse `mailto:` du lien de contact, identique sur les deux plateformes et dans les deux langues :

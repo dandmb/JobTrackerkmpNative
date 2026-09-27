@@ -147,13 +147,17 @@ final class AboutBridgeTests: XCTestCase {
 
     // MARK: garde-fous de câblage
 
-    func test_listView_hasAnAboutEntryPointInTheToolbar() {
+    func test_listView_hasASettingsEntryPointInTheToolbar() {
+        // Depuis rapport-reglages-confidentialite.md : l'icône `info.circle` (directe vers « À propos ») a été
+        // remplacée par une icône `gearshape` vers « Réglages », qui liste « À propos » et « Politique de confidentialité ».
         let list = source("iosApp/Features/JobOffer/JobOfferListView.swift")
 
         XCTAssertFalse(list.isEmpty, "source introuvable (chemin #filePath)")
-        XCTAssertTrue(list.contains("AboutView()"))
-        XCTAssertTrue(list.contains("info.circle"))
+        XCTAssertTrue(list.contains("SettingsView()"))
+        XCTAssertTrue(list.contains("gearshape"))
+        XCTAssertTrue(list.contains("SettingsContent"))
         XCTAssertTrue(list.contains("entryPointLabel"))
+        XCTAssertFalse(list.contains("AboutView()"), "l'écran principal ne doit plus ouvrir « À propos » directement")
     }
 
     func test_aboutView_takesItsTextFromTheSharedContentAndDoesNotHardCodeIt() {
@@ -164,6 +168,15 @@ final class AboutBridgeTests: XCTestCase {
         XCTAssertTrue(about.contains("content.firstConfirmation") && about.contains("content.finalConfirmation"))
         XCTAssertFalse(about.contains("Supprimer toutes"))
         XCTAssertTrue(about.contains("AppVersion.label()"))
+    }
+
+    func test_aboutView_hasALinkedInLink_usingTheSharedUrl() {
+        let about = source("iosApp/Features/About/AboutView.swift")
+
+        XCTAssertTrue(about.contains("AboutContent.companion.LINKEDIN_URL"))
+        XCTAssertTrue(about.contains("content.linkedinLabel"))
+        XCTAssertTrue(about.contains("content.linkedinHint"), "contentDescription/accessibilityHint approprié attendu")
+        XCTAssertFalse(about.contains("linkedin.com"), "l'URL doit venir de AboutContent.LINKEDIN_URL, pas être codée en dur dans l'écran")
     }
 
     func test_aboutView_mentionsNoLicenseNorThirdPartyElement() {

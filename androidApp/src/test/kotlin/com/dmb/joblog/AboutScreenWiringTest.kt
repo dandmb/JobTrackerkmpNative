@@ -75,12 +75,17 @@ class AboutScreenWiringTest {
     }
 
     @Test
-    fun listScreen_exposesAnAboutEntryPointInTheTopBar() {
-        assertTrue(listScreen.contains("onOpenAbout"))
-        assertTrue(listScreen.contains("entryPointLabel"))
-        assertTrue(appRoot.contains("onOpenAbout = { showAbout = true }"))
-        assertTrue(appRoot.contains("AboutScreen(onBack = { showAbout = false })"))
-        assertTrue(appRoot.contains("BackHandler"), "le bouton Retour système doit fermer l'écran")
+    fun listScreen_exposesASettingsEntryPointInTheTopBar() {
+        // Depuis rapport-reglages-confidentialite.md : l'icône ⓘ (directe vers « À propos ») a été remplacée par une
+        // icône ⚙️ vers « Réglages », qui liste « À propos » et « Politique de confidentialité ».
+        assertTrue(listScreen.contains("onOpenSettings"))
+        assertTrue(listScreen.contains("SettingsContent"))
+        assertFalse(listScreen.contains("onOpenAbout"), "l'écran principal ne doit plus ouvrir « À propos » directement")
+        assertTrue(appRoot.contains("onOpenSettings = { overlay = OverlayScreen.SETTINGS }"))
+        assertTrue(appRoot.contains("SettingsScreen("))
+        assertTrue(appRoot.contains("AboutScreen(onBack = { overlay = OverlayScreen.SETTINGS })"), "« À propos » doit revenir aux Réglages, pas à la liste")
+        assertTrue(appRoot.contains("PrivacyScreen(onBack = { overlay = OverlayScreen.SETTINGS })"))
+        assertTrue(appRoot.contains("BackHandler"), "le bouton Retour système doit fermer l'écran affiché")
     }
 
     @Test
@@ -118,6 +123,16 @@ class AboutScreenWiringTest {
     @Test
     fun contact_isCatchingActivityNotFoundInsteadOfCrashing() {
         assertTrue(contactIntentSource.contains("ActivityNotFoundException"))
+    }
+
+    // ---------- lien LinkedIn ----------
+
+    @Test
+    fun aboutScreen_hasALinkedInLink_usingTheSharedUrl() {
+        assertTrue(aboutScreen.contains("openUrl(context, AboutContent.LINKEDIN_URL)"))
+        assertTrue(aboutScreen.contains("content.linkedinLabel"))
+        assertTrue(aboutScreen.contains("content.linkedinHint"), "contentDescription approprié attendu")
+        assertFalse(aboutScreen.contains("linkedin.com"), "l'URL doit venir de AboutContent.LINKEDIN_URL, pas être codée en dur dans l'écran")
     }
 
     // ---------- Material 3 Expressive : limité à l'écran « À propos » ----------

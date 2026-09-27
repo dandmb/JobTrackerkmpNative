@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
@@ -69,6 +71,7 @@ import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.presentation.about.ConfirmationTexts
 import com.dmb.joblog.presentation.about.DeleteAllStep
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
+import com.dmb.joblog.ui.util.openUrl
 import org.koin.compose.koinInject
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 
@@ -143,6 +146,7 @@ fun AboutScreen(
                     onDeleteRequested = viewModel::onDeleteAllRequested,
                 )
                 ContactBlock(context, content)
+                LinkedInBlock(context, content)
             }
         }
 
@@ -317,6 +321,33 @@ private fun ContactBlock(context: Context, content: AboutContent) {
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
+        }
+    }
+}
+
+/** Lien LinkedIn : ouvre le profil dans le navigateur (ou l'app LinkedIn si installée). */
+@Composable
+private fun LinkedInBlock(context: Context, content: AboutContent) {
+    Surface(
+        onClick = { openUrl(context, AboutContent.LINKEDIN_URL) },
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 72.dp)
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = content.linkedinHint
+            },
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(Icons.Outlined.Link, contentDescription = null, modifier = Modifier.size(24.dp))
+            Text(content.linkedinLabel, style = MaterialTheme.typography.titleMedium, textDecoration = TextDecoration.Underline)
         }
     }
 }

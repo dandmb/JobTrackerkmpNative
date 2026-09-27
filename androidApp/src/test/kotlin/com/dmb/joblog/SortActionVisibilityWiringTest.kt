@@ -39,11 +39,12 @@ class SortActionVisibilityWiringTest {
     }
 
     @Test
-    fun aboutAction_staysAlwaysVisible() {
+    fun settingsAction_staysAlwaysVisible() {
+        // Icône ⚙️ (Réglages), qui a remplacé l'icône ⓘ directe vers « À propos » (rapport-reglages-confidentialite.md).
         val condition = actions.indexOf("if (state.offers.isNotEmpty())")
-        val about = actions.indexOf("onOpenAbout")
+        val settings = actions.indexOf("onOpenSettings")
 
-        assertTrue(about in 0 until condition, "l'icône ⓘ doit rester hors de la condition (visible même liste vide)")
+        assertTrue(settings in 0 until condition, "l'icône ⚙️ doit rester hors de la condition (visible même liste vide)")
     }
 
     @Test

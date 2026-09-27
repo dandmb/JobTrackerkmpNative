@@ -172,11 +172,11 @@ struct JobOfferListView: View {
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         NavigationLink {
-                            AboutView()
+                            SettingsView()
                         } label: {
-                            Image(systemName: "info.circle")
+                            Image(systemName: "gearshape")
                         }
-                        .accessibilityLabel(AboutContent.companion.of(language: AppLanguage.current).entryPointLabel)
+                        .accessibilityLabel(SettingsContent.companion.of(language: AppLanguage.current).entryPointLabel)
                     }
                     // Trier n'a de sens que s'il existe au moins une candidature (`state.offers` = TOUTES les offres).
                     // On teste donc `state.offers`, PAS `visibleOffers` : une recherche sans résultat alors que des

@@ -8,7 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.dmb.joblog.presentation.about.AboutContent
+import com.dmb.joblog.presentation.settings.SettingsContent
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
 import com.dmb.joblog.presentation.joboffer.SortOption
@@ -42,7 +42,7 @@ private const val STATS_ITEM_COUNT = 1
 @Composable
 fun JobOfferListScreen(
     viewModel: JobOfferListViewModel = koinInject(),
-    onOpenAbout: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsState()
     var showAddSheet by remember { mutableStateOf(false) }
@@ -103,8 +103,8 @@ fun JobOfferListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.list_title)) },
                 actions = {
-                    IconButton(onClick = onOpenAbout) {
-                        Icon(Icons.Outlined.Info, contentDescription = AboutContent.of(language).entryPointLabel)
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(Icons.Outlined.Settings, contentDescription = SettingsContent.of(language).entryPointLabel)
                     }
                     // Trier n'a de sens que s'il existe au moins une candidature (state.offers = TOUTES les offres).
                     // On teste donc `state.offers`, PAS `visibleOffers` : une recherche sans résultat alors que des

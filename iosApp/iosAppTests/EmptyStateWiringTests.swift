@@ -74,11 +74,12 @@ final class EmptyStateWiringTests: XCTestCase {
         XCTAssertFalse(block.contains("searchQuery"))
     }
 
-    func test_aboutButton_staysAlwaysVisibleOutsideTheSortCondition() throws {
+    func test_settingsButton_staysAlwaysVisibleOutsideTheSortCondition() throws {
+        // Icône `gearshape` (Réglages), qui a remplacé l'icône `info.circle` directe vers « À propos ».
         let toolbar = toolbarSource
-        let about = try XCTUnwrap(toolbar.range(of: "AboutView()"))
+        let settings = try XCTUnwrap(toolbar.range(of: "SettingsView()"))
         let condition = try XCTUnwrap(toolbar.range(of: "if !observable.state.offers.isEmpty {"))
 
-        XCTAssertTrue(about.lowerBound < condition.lowerBound, "l'icône ⓘ doit rester hors de la condition")
+        XCTAssertTrue(settings.lowerBound < condition.lowerBound, "l'icône ⚙️ doit rester hors de la condition")
     }
 }
