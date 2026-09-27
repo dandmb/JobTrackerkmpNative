@@ -60,6 +60,37 @@ class ListLayoutWiringTest {
         assertTrue(effect.contains("selectedStatuses = emptySet()"))
     }
 
+    // ---------- bouton d'effacement de la recherche ----------
+
+    private val searchFieldBlock: String
+        get() {
+            val start = body.indexOf("OutlinedTextField(")
+            val end = body.indexOf("StatusFilterRow(", start)
+            return body.substring(start, end)
+        }
+
+    @Test
+    fun searchClearButton_isShownOnlyWhenTheQueryIsNotEmpty() {
+        val block = searchFieldBlock
+        assertTrue(block.contains("if (searchQuery.isNotEmpty()) {"), "le bouton d'effacement doit être masqué à vide")
+        val guardStart = block.indexOf("if (searchQuery.isNotEmpty())")
+        val closeIcon = block.indexOf("Icons.Default.Close")
+        assertTrue(closeIcon > guardStart, "l'icône de fermeture doit être DANS la condition")
+    }
+
+    @Test
+    fun searchClearButton_onlyClearsTheQuery_neverTheStatusFilter() {
+        val clearBlock = searchFieldBlock.substringAfter("if (searchQuery.isNotEmpty()) {").substringBefore("},\n                    singleLine")
+
+        assertTrue(clearBlock.contains("searchQuery = \"\""))
+        assertFalse(clearBlock.contains("selectedStatuses"), "effacer la recherche ne doit pas toucher au filtre de statut (indépendants)")
+    }
+
+    @Test
+    fun searchClearButton_hasAContentDescription() {
+        assertTrue(searchFieldBlock.contains("contentDescription = stringResource(R.string.list_search_clear)"))
+    }
+
     @Test
     fun emptyState_multiLineTextsAreCentered() {
         val empty = body.substringAfter("private fun EmptyOffersMessage()")

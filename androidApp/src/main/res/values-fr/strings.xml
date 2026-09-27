@@ -6,6 +6,7 @@
     <!-- Liste -->
     <string name="list_title">Candidatures</string>
     <string name="list_search_placeholder">Rechercher un poste ou une entreprise</string>
+    <string name="list_search_clear">Effacer la recherche</string>
     <string name="list_sort">Trier</string>
     <string name="list_add">Ajouter une candidature</string>
     <string name="list_empty_title">Aucune candidature</string>

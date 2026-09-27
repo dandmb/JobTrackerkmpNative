@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Inbox
@@ -155,6 +156,15 @@ fun JobOfferListScreen(
                     onValueChange = { searchQuery = it },
                     placeholder = { Text(stringResource(R.string.list_search_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    // N'efface QUE la recherche : le filtre de statut (StatusFilterRow, selectedStatuses) est indépendant
+                    // et n'est jamais touché ici. Masqué à vide pour ne pas occuper de place inutilement.
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.list_search_clear))
+                            }
+                        }
+                    },
                     singleLine = true,
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
