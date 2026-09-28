@@ -1,7 +1,6 @@
 import XCTest
 @testable import JobLog
 
-/// Garde-fous (lecture du source) : l'état « aucune candidature » a son icône « plateau vide » (tray) ; « aucun résultat de recherche » reste du texte seul.
 final class EmptyStateWiringTests: XCTestCase {
 
     private let source: String = {
@@ -28,8 +27,7 @@ final class EmptyStateWiringTests: XCTestCase {
     }
 
     func test_searchWithNoResult_staysTextOnly() throws {
-        let start = try XCTUnwrap(source.range(of: "Text(L(\"list_no_results\""))
-        // Le bloc « aucun résultat » : de son texte jusqu'au ForEach des cartes qui suit.
+        let start = try XCTUnwrap(source.range(of: "Text(selectedStatuses.isEmpty ? L(\"list_no_results\""))
         let end = try XCTUnwrap(source.range(of: "ForEach(visibleOffers)", range: start.upperBound..<source.endIndex))
         let block = String(source[start.lowerBound..<end.lowerBound])
 
@@ -72,11 +70,11 @@ final class EmptyStateWiringTests: XCTestCase {
         XCTAssertFalse(block.contains("searchQuery"))
     }
 
-    func test_aboutButton_staysAlwaysVisibleOutsideTheSortCondition() throws {
+    func test_settingsButton_staysAlwaysVisibleOutsideTheSortCondition() throws {
         let toolbar = toolbarSource
-        let about = try XCTUnwrap(toolbar.range(of: "AboutView()"))
+        let settings = try XCTUnwrap(toolbar.range(of: "SettingsView()"))
         let condition = try XCTUnwrap(toolbar.range(of: "if !observable.state.offers.isEmpty {"))
 
-        XCTAssertTrue(about.lowerBound < condition.lowerBound, "l'icône ⓘ doit rester hors de la condition")
+        XCTAssertTrue(settings.lowerBound < condition.lowerBound, "l'icône ⚙️ doit rester hors de la condition")
     }
 }

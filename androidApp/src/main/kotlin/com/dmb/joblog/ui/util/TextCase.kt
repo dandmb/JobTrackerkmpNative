@@ -1,9 +1,6 @@
 package com.dmb.joblog.ui.util
 
-/**
- * Vrai si le mot porte une majuscule après sa première lettre : sigle (SQL, QA, UX) ou nom de marque
- * en casse mixte (iOS, iPhone, eBay). Ces mots sont saisis volontairement ainsi : on ne les retouche pas.
- */
+// Sigles (SQL, QA, UX) et marques en casse mixte (iOS, eBay) : casse volontaire, jamais retouchée.
 private fun String.hasInnerUppercase(): Boolean = drop(1).any { it.isUpperCase() }
 
 fun String.toTitleCase(): String =

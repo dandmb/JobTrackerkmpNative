@@ -7,7 +7,7 @@ import com.russhwolf.settings.Settings
 import org.koin.dsl.module
 
 val onboardingModule = module {
-    single<Settings> { Settings() }   // variante no-arg : SharedPreferences par défaut (Android) / NSUserDefaults (iOS)
+    single<Settings> { Settings() }
     single<OnboardingRepository> { OnboardingRepositoryImpl(get()) }
     factory { OnboardingViewModel(get()) }
 }

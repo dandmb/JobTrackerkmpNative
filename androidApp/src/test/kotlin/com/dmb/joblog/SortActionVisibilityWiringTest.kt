@@ -6,10 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fou (lecture du source) : l'action de tri de la barre du haut n'est composée que s'il existe au moins une candidature
- * (`state.offers`, toutes les offres), et NON en fonction du résultat filtré par la recherche (`visibleOffers`).
- */
 class SortActionVisibilityWiringTest {
 
     private val source = listOf(
@@ -17,7 +13,6 @@ class SortActionVisibilityWiringTest {
         "androidApp/src/main/kotlin/com/dmb/joblog/ui/joboffer/JobOfferListScreen.kt",
     ).map(::File).first { it.exists() }.readText()
 
-    /** Le contenu de `actions = { … }` du `TopAppBar`, jusqu'aux `colors = `. */
     private val actions = source.substringAfter("actions = {").substringBefore("colors = TopAppBarDefaults")
         .lines().filterNot { it.trim().startsWith("//") }.joinToString("\n")   // les commentaires peuvent citer les noms interdits
 
@@ -39,11 +34,11 @@ class SortActionVisibilityWiringTest {
     }
 
     @Test
-    fun aboutAction_staysAlwaysVisible() {
+    fun settingsAction_staysAlwaysVisible() {
         val condition = actions.indexOf("if (state.offers.isNotEmpty())")
-        val about = actions.indexOf("onOpenAbout")
+        val settings = actions.indexOf("onOpenSettings")
 
-        assertTrue(about in 0 until condition, "l'icône ⓘ doit rester hors de la condition (visible même liste vide)")
+        assertTrue(settings in 0 until condition, "l'icône ⚙️ doit rester hors de la condition (visible même liste vide)")
     }
 
     @Test

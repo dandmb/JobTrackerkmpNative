@@ -4,7 +4,6 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-/** Garde-fou (lecture du source) : l'état vide de la liste garde son icône décorative « boîte vide » (Inbox), au-dessus du titre, et plus l'ancienne mallette. */
 class EmptyStateIconWiringTest {
 
     private val source = listOf(

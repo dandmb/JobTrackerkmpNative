@@ -80,7 +80,6 @@ fun JobOfferCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Statut (cliquable)
             val statusA11y = stringResource(R.string.card_status_a11y, offer.status.displayLabel())
             Box {
                 AssistChip(
@@ -116,7 +115,6 @@ fun JobOfferCard(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Timeline des dates
             DateRow(label = stringResource(R.string.date_row_applied), date = offer.appliedDate)
             offer.interviewDate?.let { DateRow(label = stringResource(R.string.date_row_interview), date = it) }
             offer.resultDate?.let { DateRow(label = stringResource(R.string.date_row_result), date = it) }
@@ -135,7 +133,6 @@ fun JobOfferCard(
 @Composable
 private fun DateRow(label: String, date: LocalDate) {
     Row(
-        // Libellé + valeur lus d'un bloc par TalkBack (« Postulé, 5 sept. »)
         modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

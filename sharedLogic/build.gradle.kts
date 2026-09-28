@@ -38,24 +38,22 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.multiplatform.settings.no.arg)   // persistance « onboarding déjà vu » (variante no-arg : aucun Context à câbler)
+            implementation(libs.multiplatform.settings.no.arg)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
-            implementation(libs.multiplatform.settings.test)      // MapSettings : Settings en mémoire pour les tests
+            implementation(libs.multiplatform.settings.test)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
         }
-        // Tests Room réels (DAO + migration) : SQLite natif sur iOS Simulator, sans appareil ni émulateur
         iosTest.dependencies {
             implementation(libs.androidx.room.testing)
         }
@@ -77,7 +75,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimu
 
 nativeCoroutines {
     exposedSeverity = com.rickclephas.kmp.nativecoroutines.gradle.ExposedSeverity.ERROR
-    // force à annoter tout Flow/suspend exposé, pour ne rien oublier — pratique courante en pro
 }
 
 dependencies {
@@ -85,8 +82,7 @@ dependencies {
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
 }
-// Couverture (Kover) : on exclut le code généré (Room, KSP) qui n'est pas du code du projet ;
-// il est couvert indirectement, via le Repository testé avec un DAO fake.
+
 kover {
     reports {
         filters {

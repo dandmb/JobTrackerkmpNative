@@ -6,7 +6,6 @@ import com.dmb.joblog.i18n.StringResources
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** Les libellés de statut sont des ressources (anglais / français) ; ici : chaque statut pointe la bonne clé, et les textes sont ceux attendus. */
 class StatusLabelsTest {
 
     private fun nameOf(id: Int): String = R.string::class.java.fields.first { it.getInt(null) == id }.name

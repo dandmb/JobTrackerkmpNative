@@ -1,19 +1,27 @@
-//
-//  SortOption.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
 import SwiftUI
+import SharedLogic
 
-/// Options de tri. La valeur brute est la CLÉ de traduction (`sort_*` dans Localizable.strings), pas un texte.
-enum SortOption: String, CaseIterable, Identifiable {
-    case dateDesc = "sort_newest"
-    case dateAsc = "sort_oldest"
-    case alphaAsc = "sort_az"
-    case alphaDesc = "sort_za"
-    var id: String { rawValue }
+// Kotlin exporte l'enum comme une classe côté Swift : ne peut pas conformer à CaseIterable/Identifiable nativement —
+// on utilise `.entries` et `ForEach(id: \.self)` plutôt que `.allCases`.
+extension SortOption {
+    var titleKey: LocalizedStringKey {
+        switch self {
+        case .dateDesc: return "sort_newest"
+        case .dateAsc: return "sort_oldest"
+        case .alphaAsc: return "sort_az"
+        case .alphaDesc: return "sort_za"
+        default: return ""
+        }
+    }
 
-    var titleKey: LocalizedStringKey { LocalizedStringKey(rawValue) }
+    var translationKey: String {
+        switch self {
+        case .dateDesc: return "sort_newest"
+        case .dateAsc: return "sort_oldest"
+        case .alphaAsc: return "sort_az"
+        case .alphaDesc: return "sort_za"
+        default: return ""
+        }
+    }
 }

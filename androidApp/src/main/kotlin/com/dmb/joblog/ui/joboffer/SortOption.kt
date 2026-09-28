@@ -2,11 +2,12 @@ package com.dmb.joblog.ui.joboffer
 
 import androidx.annotation.StringRes
 import com.dmb.joblog.R
+import com.dmb.joblog.presentation.joboffer.SortOption
 
-/** Options de tri ; le libellé est une ressource (`sort_*` dans strings.xml), résolue dans la langue courante par l'écran. */
-enum class SortOption(@StringRes val labelRes: Int) {
-    DATE_DESC(R.string.sort_newest),
-    DATE_ASC(R.string.sort_oldest),
-    ALPHA_ASC(R.string.sort_az),
-    ALPHA_DESC(R.string.sort_za)
+@StringRes
+fun SortOption.labelRes(): Int = when (this) {
+    SortOption.DATE_DESC -> R.string.sort_newest
+    SortOption.DATE_ASC -> R.string.sort_oldest
+    SortOption.ALPHA_ASC -> R.string.sort_az
+    SortOption.ALPHA_DESC -> R.string.sort_za
 }

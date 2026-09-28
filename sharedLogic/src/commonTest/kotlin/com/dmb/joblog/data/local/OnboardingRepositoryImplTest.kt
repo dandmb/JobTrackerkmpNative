@@ -6,7 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Le dépôt d'onboarding contre un `Settings` en mémoire (MapSettings) : aucune dépendance à SharedPreferences / NSUserDefaults. */
 class OnboardingRepositoryImplTest {
 
     private val settings = MapSettings()
@@ -56,7 +55,6 @@ class OnboardingRepositoryImplTest {
 
     @Test
     fun setOnboardingCompleted_isVisibleToANewRepositoryOverTheSameSettings() {
-        // Simule un relancement de l'app : nouvelle instance, mêmes préférences persistées.
         repository.setOnboardingCompleted()
 
         assertTrue(OnboardingRepositoryImpl(settings).hasCompletedOnboarding())

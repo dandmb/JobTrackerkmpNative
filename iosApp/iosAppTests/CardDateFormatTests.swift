@@ -2,8 +2,6 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Le format de date de la carte vient de sharedLogic (`ShortDate`) : identique à Android (`DateFormattingTest.kt`),
-/// « 5 sept. » en français, « Sep 5 » en anglais, sans zéro initial.
 final class CardDateFormatTests: XCTestCase {
 
     private func format(_ year: Int32, _ month: Int32, _ day: Int32, _ language: AppLanguage) -> String {

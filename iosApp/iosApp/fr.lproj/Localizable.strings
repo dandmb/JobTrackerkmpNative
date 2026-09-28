@@ -8,6 +8,8 @@
 "list_empty_title" = "Aucune candidature";
 "list_empty_subtitle" = "Ajoute ta première candidature avec le bouton +";
 "list_no_results" = "Aucun résultat pour « %1$@ »";
+"list_no_results_filter" = "Aucune candidature ne correspond au filtre de statut sélectionné";
+"filter_all" = "Tous";
 "delete_action" = "Supprimer";
 "undo" = "Annuler";
 "cancel" = "Annuler";

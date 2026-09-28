@@ -1,9 +1,3 @@
-//
-//  LocalDate+Bridge.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
 import Foundation
 import SharedLogic

@@ -8,8 +8,7 @@ struct iOSApp: App {
     }
     var body: some Scene {
         WindowGroup {
-            //ContentView()
-            AppRootView()   // splash + onboarding + liste ; crée le ViewModel de la liste une seule fois
+            AppRootView()
         }
     }
 }

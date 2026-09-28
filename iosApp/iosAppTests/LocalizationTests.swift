@@ -2,15 +2,12 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Anglais (langue de développement) et français : chaque texte existe dans les deux langues, sans texte oublié dans la mauvaise
-/// langue ; la langue partagée (sharedLogic) se déduit de la langue que le système choisit parmi celles de l'app.
 final class LocalizationTests: XCTestCase {
 
     private let en = localizedStrings(for: "en")
     private let fr = localizedStrings(for: "fr")
     private let accents = try! NSRegularExpression(pattern: "[àâçéèêëîïôûùüÿœ«»]", options: [.caseInsensitive])
 
-    /// Textes identiques dans les deux langues par nature.
     private let sameInBothLanguages: Set<String> = ["sort_az", "sort_za", "form_section_dates", "form_field_notes",
                                                     "form_salary_min_short", "form_salary_max_short"]
 
@@ -85,7 +82,6 @@ final class LocalizationTests: XCTestCase {
     }
 
     func test_anUnsupportedSystemLanguage_resolvesToEnglish() {
-        // Ce que fait le système : parmi les localisations de l'app, la première préférée ; à défaut, la région de développement.
         let picked = Bundle.preferredLocalizations(from: Bundle.main.localizations, forPreferences: ["es-ES", "de"])
         XCTAssertEqual(picked.first, "en")
         XCTAssertEqual(Bundle.preferredLocalizations(from: Bundle.main.localizations, forPreferences: ["fr-CA", "en"]).first, "fr")

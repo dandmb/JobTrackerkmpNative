@@ -43,21 +43,21 @@ final class StatusDisplayTests: XCTestCase {
         XCTAssertFalse(labels.contains("?"), "un statut retombe sur le cas par défaut")
     }
 
-    // MARK: options de tri
+    // MARK: options de tri (SortOption vient de sharedLogic, comme ApplicationStatus : voir SortOptionTest.kt côté Android)
 
-    func test_sortOption_rawValues_areTheTranslationKeysSameAsAndroid() {
-        XCTAssertEqual(SortOption.allCases.map { $0.rawValue }, ["sort_newest", "sort_oldest", "sort_az", "sort_za"])
-        XCTAssertEqual(SortOption.allCases.count, 4)
+    func test_sortOption_translationKeys_areTheSameAsAndroid() {
+        XCTAssertEqual(SortOption.entries.map { $0.translationKey }, ["sort_newest", "sort_oldest", "sort_az", "sort_za"])
+        XCTAssertEqual(SortOption.entries.count, 4)
     }
 
     func test_sortOption_labels_inEachLanguage_areTheDocumentedOnes() {
-        let keys = SortOption.allCases.map { $0.rawValue }
+        let keys = SortOption.entries.map { $0.translationKey }
         XCTAssertEqual(keys.map { localized($0, in: "en") }, ["Newest first", "Oldest first", "A → Z", "Z → A"])
         XCTAssertEqual(keys.map { localized($0, in: "fr") }, ["Plus récent", "Plus ancien", "A → Z", "Z → A"])
     }
 
-    func test_sortOption_id_isItsRawValue() {
-        XCTAssertEqual(SortOption.dateDesc.id, "sort_newest")
+    func test_sortOption_entries_areInTheOrderShownInTheSortMenu() {
+        XCTAssertEqual(SortOption.entries, [.dateDesc, .dateAsc, .alphaAsc, .alphaDesc])
     }
 
     // MARK: couleurs de statut — garde-fou WCAG AA (miroir de StatusColorsTest.kt)
@@ -136,7 +136,6 @@ final class StatusDisplayTests: XCTestCase {
     }
 
     func test_contrastHelper_blackOnWhite_is21ToOne() {
-        // Vérifie l'outil de mesure lui-même (valeur de référence WCAG).
         XCTAssertEqual(contrast((0, 0, 0), (1, 1, 1)), 21.0, accuracy: 0.01)
     }
 }

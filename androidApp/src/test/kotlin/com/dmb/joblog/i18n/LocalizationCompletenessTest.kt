@@ -5,14 +5,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Chaque texte de l'interface Android existe en anglais (langue par défaut) ET en français, sans texte oublié dans la mauvaise langue. */
 class LocalizationCompletenessTest {
 
     private val en = StringResources.androidEn
     private val fr = StringResources.androidFr
     private val accents = Regex("[àâçéèêëîïôûùüÿœ«»]", RegexOption.IGNORE_CASE)
 
-    /** Textes identiques dans les deux langues par nature (nom propre, sigle, symboles). */
     private val sameInBothLanguages = setOf("app_name", "ok", "sort_az", "sort_za", "form_section_dates", "form_field_notes")
 
     @Test
@@ -47,7 +45,6 @@ class LocalizationCompletenessTest {
     fun everyText_isTranslated_exceptTheKnownInvariants() {
         en.filterKeys { it !in sameInBothLanguages }.forEach { (key, value) ->
             val french = fr.getValue(key)
-            // les libellés courts de statistiques peuvent coïncider (« %1$d attente » ≠ « %1$d pending » : non ; « Notes » : invariant listé)
             assertTrue(value != french, "« $key » identique en anglais et en français : $value")
         }
     }
@@ -61,7 +58,6 @@ class LocalizationCompletenessTest {
 
     @Test
     fun statusVocabulary_matchesTheSharedOnboardingText() {
-        // La 2e page de l'onboarding (sharedLogic) cite les statuts : mêmes mots que les libellés de statut des écrans.
         val onboardingEn = com.dmb.joblog.presentation.onboarding.OnboardingContent.of(AppLanguage.EN).pages[1].description
         val onboardingFr = com.dmb.joblog.presentation.onboarding.OnboardingContent.of(AppLanguage.FR).pages[1].description
         listOf("status_pending", "status_applied", "status_interview", "status_rejected", "status_accepted").forEach {

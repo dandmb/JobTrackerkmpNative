@@ -1,14 +1,8 @@
-//
-//  AppRootView.swift
-//  iosApp
-//
 
 import Combine
 import SwiftUI
 import SharedLogic
 
-/// Dépendances créées UNE seule fois (`@StateObject` n'évalue son initialiseur qu'une fois par identité de vue) :
-/// le ViewModel de la liste sert au gating du splash ET à l'écran principal (pas de double instanciation ni de rechargement).
 @MainActor
 final class AppRootModel: ObservableObject {
     let listViewModel: JobOfferListViewModel
@@ -32,7 +26,6 @@ final class AppRootModel: ObservableObject {
             .assign(to: &$isListLoading)
     }
 
-    /// Règle partagée avec Android : splash affiché tant que (durée minimale non écoulée) OU (liste en chargement).
     var keepSplash: Bool {
         let gating = SplashGating.shared
         let elapsed: Int64 = minDurationElapsed ? gating.MIN_DURATION_MILLIS : 0
@@ -40,8 +33,8 @@ final class AppRootModel: ObservableObject {
     }
 
     func completeOnboarding() {
-        onboardingViewModel.completeOnboarding()   // « Passer » comme « Commencer » : ne plus le montrer
-        showOnboarding = false                     // navigation vers la liste, sans redémarrer l'app
+        onboardingViewModel.completeOnboarding()
+        showOnboarding = false
     }
 }
 
@@ -50,7 +43,6 @@ struct AppRootView: View {
 
     var body: some View {
         ZStack {
-            // Le contenu est présent SOUS le splash : le chargement de la liste se fait pendant qu'il est affiché.
             if model.showOnboarding {
                 OnboardingView(onFinished: model.completeOnboarding)
             } else {

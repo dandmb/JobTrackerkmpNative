@@ -12,7 +12,7 @@ kotlin {
     }
 }
 dependencies {
-    implementation(project(":sharedUI"))
+    implementation(project(":sharedLogic"))
     implementation(libs.koin.android)
     implementation(libs.koin.core)
     implementation(libs.androidx.activity.compose)
@@ -28,12 +28,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.core.splashscreen)
 
-    testImplementation(libs.kotlin.testJunit)   // kotlin.test + annotation @Test JUnit 4
+    testImplementation(libs.kotlin.testJunit)
     testImplementation(libs.junit)
 }
 
-// Build « staging » (CD de distribution bêta, .github/workflows/cd-android-staging.yml) : tout vient de variables
-// d'environnement, absentes en local et dans la CI de tests → aucune erreur Gradle, l'APK staging est alors simplement non signé.
+// Signature « staging » lue depuis des variables d'environnement, absentes en local et en CI de tests : aucune
+// erreur Gradle dans ce cas, l'APK staging est alors simplement non signé.
 fun envOrNull(name: String): String? = providers.environmentVariable(name).orNull?.takeIf { it.isNotBlank() }
 val stagingKeystorePath = envOrNull("STAGING_KEYSTORE_PATH")
 val stagingKeystorePassword = envOrNull("STAGING_KEYSTORE_PASSWORD")
@@ -48,7 +48,6 @@ android {
         applicationId = "com.dmb.joblog"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        // VERSION_CODE (github.run_number en CD) ; 1 par défaut en local.
         versionCode = envOrNull("VERSION_CODE")?.toInt() ?: 1
         versionName = "1.0"
         buildConfigField("boolean", "IS_STAGING", "false")
@@ -76,7 +75,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-        // Basé sur release ; com.dmb.joblog.staging s'installe à côté de la prod. Non signé si les variables STAGING_* manquent.
         create("staging") {
             initWith(getByName("release"))
             applicationIdSuffix = ".staging"
@@ -93,15 +91,13 @@ android {
         compose = true
         buildConfig = true
     }
-    // Seules l'anglais (par défaut) et le français sont gérés : les ressources des bibliothèques (Material, AndroidX…) dans
-    // d'autres langues sont retirées de l'APK, donc une langue système « autre » retombe partout sur l'anglais (y compris
-    // pour les textes fournis par les bibliothèques, ex. le sélecteur de date).
+    // localeFilters retire des ressources des BIBLIOTHÈQUES (Material, AndroidX…) les langues non listées : une langue
+    // système « autre » retombe donc sur l'anglais même pour les textes fournis par les bibliothèques (ex. le sélecteur de date).
     androidResources {
         localeFilters += listOf("en", "fr")
     }
 }
-// Couverture (Kover) : par défaut on mesure la LOGIQUE de l'app (le rendu des Composables n'est pas testé unitairement).
-// `./gradlew koverHtmlReport -PkoverFull` inclut aussi les Composables pour voir le chiffre brut.
+
 kover {
     reports {
         filters {

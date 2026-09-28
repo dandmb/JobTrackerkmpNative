@@ -26,10 +26,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * Le ViewModel crée son scope sur `Dispatchers.Main` : on le remplace par un `StandardTestDispatcher`, ce qui
- * donne le contrôle du temps (rien ne s'exécute avant `advanceUntilIdle()`) et évite tout test dépendant de l'horloge.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class JobOfferListViewModelTest {
 
@@ -49,8 +45,6 @@ class JobOfferListViewModelTest {
         updateJobOffer = UpdateJobOfferUseCase(repository),
         deleteJobOffer = DeleteJobOfferUseCase(repository),
     )
-
-    // ---------- état initial et chargement ----------
 
     @Test
     fun init_beforeAnyEmission_stateIsLoadingWithNoOffersAndNoError() = runTest {
@@ -159,8 +153,6 @@ class JobOfferListViewModelTest {
         viewModel.onCleared()
     }
 
-    // ---------- ajout ----------
-
     @Test
     fun onAddOffer_validOffer_isSentToTheRepositoryAndAppearsInState() = runTest {
         val repository = FakeJobOfferRepository()
@@ -248,7 +240,6 @@ class JobOfferListViewModelTest {
 
     @Test
     fun onAddOffer_offerWithExistingId_isRestoredWithThatId() = runTest {
-        // Scénario « Annuler » : l'offre supprimée est ré-ajoutée telle quelle.
         val deleted = jobOffer(id = 7, title = "Restaurée")
         val viewModel = viewModelFor(FakeJobOfferRepository())
         advanceUntilIdle()
@@ -259,8 +250,6 @@ class JobOfferListViewModelTest {
         assertEquals(listOf(deleted), viewModel.state.value.offers)
         viewModel.onCleared()
     }
-
-    // ---------- mise à jour ----------
 
     @Test
     fun onUpdateOffer_validOffer_replacesItInState() = runTest {
@@ -306,8 +295,6 @@ class JobOfferListViewModelTest {
         viewModel.onCleared()
     }
 
-    // ---------- changement de statut ----------
-
     @Test
     fun onStatusChanged_updatesOnlyTheStatusOfTheGivenOffer() = runTest {
         val target = jobOffer(id = 1, title = "Cible", location = "Paris", status = ApplicationStatus.APPLIED)
@@ -338,8 +325,6 @@ class JobOfferListViewModelTest {
         }
         viewModel.onCleared()
     }
-
-    // ---------- suppression ----------
 
     @Test
     fun onDeleteOffer_removesTheOfferFromState() = runTest {
@@ -386,8 +371,6 @@ class JobOfferListViewModelTest {
         assertEquals(listOf(offer), viewModel.state.value.offers)
         viewModel.onCleared()
     }
-
-    // ---------- erreurs du repository (pas de validation) : jamais d'exception qui s'échappe du scope ----------
 
     @Test
     fun onStatusChanged_repositoryFails_setsErrorMessageInsteadOfLettingTheExceptionEscape() = runTest {
@@ -451,8 +434,6 @@ class JobOfferListViewModelTest {
         assertEquals(listOf(offer), viewModel.state.value.offers)
         viewModel.onCleared()
     }
-
-    // ---------- message de repli quand l'exception n'a pas de message exploitable ----------
 
     @Test
     fun onDeleteOffer_repositoryFailsWithoutMessage_showsTheFallbackMessageAndKeepsTheOffer() = runTest {
@@ -574,18 +555,16 @@ class JobOfferListViewModelTest {
         val repository = FakeJobOfferRepository(listOf(offer))
         val viewModel = viewModelFor(repository)
         advanceUntilIdle()
-        repository.gate = CompletableDeferred()      // l'action reste suspendue dans le repository
+        repository.gate = CompletableDeferred()
 
         viewModel.onDeleteOffer(offer)
-        runCurrent()                                 // l'action démarre et attend la porte
-        viewModel.onCleared()                        // annulation du scope pendant l'action
+        runCurrent()
+        viewModel.onCleared()
         advanceUntilIdle()
 
         assertNull(viewModel.state.value.errorMessage, "une annulation n'est pas une erreur à afficher")
         assertTrue(repository.deleteCalls.isEmpty())
     }
-
-    // ---------- cycle de vie ----------
 
     @Test
     fun onCleared_stopsObservingTheRepository() = runTest {
@@ -612,8 +591,6 @@ class JobOfferListViewModelTest {
 
         assertTrue(repository.addCalls.isEmpty())
     }
-
-    // ---------- séquences ----------
 
     @Test
     fun sequence_addStatusChangeThenDelete_endsWithAnEmptyLoadedState() = runTest {
