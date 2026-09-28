@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 internal class JobOfferRepositoryImpl(
-    private val dao: JobOfferDao
+    private val dao: JobOfferDao,
+    private val purgeDeletedData: suspend () -> Unit = {},
 ) : JobOfferRepository {
 
     override fun getAll(): Flow<List<JobOffer>> =
@@ -37,6 +38,8 @@ internal class JobOfferRepositoryImpl(
         dao.insert(offer.toEntity(existingCreatedAt = createdAtEpochMillis))
     }
 
-    override suspend fun deleteAll() =
+    override suspend fun deleteAll() {
         dao.deleteAll()
+        purgeDeletedData()
+    }
 }

@@ -12,7 +12,7 @@ kotlin {
     }
 }
 dependencies {
-    implementation(project(":sharedUI"))
+    implementation(project(":sharedLogic"))
     implementation(libs.koin.android)
     implementation(libs.koin.core)
     implementation(libs.androidx.activity.compose)

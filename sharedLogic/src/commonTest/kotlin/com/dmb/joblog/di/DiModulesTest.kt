@@ -15,6 +15,7 @@ import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.joblog.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
+import com.dmb.joblog.data.local.DeletedDataPurger
 import com.dmb.joblog.testutil.FakeJobOfferDao
 import com.dmb.joblog.testutil.jobOffer
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +51,10 @@ class DiModulesTest {
         Dispatchers.resetMain()
     }
 
-    private val fakeDatabaseModule = module { single<JobOfferDao> { FakeJobOfferDao() } }
+    private val fakeDatabaseModule = module {
+        single<JobOfferDao> { FakeJobOfferDao() }
+        single<DeletedDataPurger> { DeletedDataPurger {} }
+    }
 
     private val fakeSettingsModule = module { single<Settings> { MapSettings() } }
 

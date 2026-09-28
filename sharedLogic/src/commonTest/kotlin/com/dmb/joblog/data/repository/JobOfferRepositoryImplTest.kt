@@ -240,6 +240,17 @@ class JobOfferRepositoryImplTest {
     }
 
     @Test
+    fun deleteAll_purgesDeletedDataOnceAfterTheDaoDeletion() = runTest {
+        val deleteAllCallsSeenByPurge = mutableListOf<Int>()
+        val purgingRepository = JobOfferRepositoryImpl(dao, purgeDeletedData = { deleteAllCallsSeenByPurge += dao.deleteAllCalls })
+        dao.entities.value = listOf(jobOfferEntity(id = 1))
+
+        purgingRepository.deleteAll()
+
+        assertEquals(listOf(1), deleteAllCallsSeenByPurge)
+    }
+
+    @Test
     fun deleteAll_emptyTable_doesNotFail() = runTest {
         repository.deleteAll()
 

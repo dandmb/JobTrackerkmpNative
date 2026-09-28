@@ -47,23 +47,23 @@ struct JobOfferFormSheet: View {
         NavigationStack {
             Form {
                 Section("form_section_job") {
-                    TextField("form_field_title", text: $title)
-                    TextField("form_field_company", text: $company)
-                    TextField("form_field_location", text: $location)
-                    TextField("form_field_source", text: $source)
-                    TextField("form_field_url", text: $url)
+                    labeledField("form_field_title", text: $title)
+                    labeledField("form_field_company", text: $company)
+                    labeledField("form_field_location", text: $location)
+                    labeledField("form_field_source", text: $source)
+                    labeledField("form_field_url", text: $url)
                         .keyboardType(.URL)
                         .autocapitalization(.none)
                 }
 
                 Section {
                     HStack {
-                        TextField("form_salary_min_short", text: $salaryMin)
+                        labeledField("form_salary_min_short", text: $salaryMin)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMin) { old, new in
                                 salaryMin = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
                             }
-                        TextField("form_salary_max_short", text: $salaryMax)
+                        labeledField("form_salary_max_short", text: $salaryMax)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMax) { old, new in
                                 salaryMax = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
@@ -115,6 +115,16 @@ struct JobOfferFormSheet: View {
                         .disabled(!validation.isValid)
                 }
             }
+        }
+    }
+
+    private func labeledField(_ label: LocalizedStringKey, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .appTextStyle(.labelLarge)
+                .foregroundStyle(Color.onSurfaceVariant)
+                .accessibilityHidden(true)
+            TextField(text: text, prompt: Text(verbatim: "")) { Text(label) }
         }
     }
 

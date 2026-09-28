@@ -8,6 +8,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
@@ -43,8 +46,12 @@ fun SwipeableJobOfferItem(
         )
     }
 
+    val deleteActionLabel = stringResource(R.string.delete_action)
     SwipeToDismissBox(
         state = dismissState,
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            customActions = listOf(CustomAccessibilityAction(deleteActionLabel) { currentOnDelete(); true })
+        },
         enableDismissFromStartToEnd = false,
         backgroundContent = {
             Box(

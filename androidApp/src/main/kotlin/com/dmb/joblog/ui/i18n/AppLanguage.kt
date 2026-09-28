@@ -8,8 +8,8 @@ import java.util.Locale
 
 @Composable
 fun rememberAppLanguage(): AppLanguage {
-    val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
-    return remember(locale) { languageOf(locale) }
+    val locale: Locale? = LocalConfiguration.current.locales[0]
+    return remember(locale) { languageOf(locale ?: Locale.ROOT) }
 }
 
 fun currentAppLanguage(): AppLanguage = languageOf(Locale.getDefault())

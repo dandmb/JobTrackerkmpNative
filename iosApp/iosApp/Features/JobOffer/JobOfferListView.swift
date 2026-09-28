@@ -142,6 +142,7 @@ struct JobOfferListView: View {
                             .clipShape(Circle())
                             .shadow(radius: 4)
                     }
+                    .accessibilityLabel("list_add")
                     .padding(20)
                     .accessibilityLabel("list_add")
                 }

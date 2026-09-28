@@ -30,7 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.dmb.joblog.R
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
@@ -54,7 +54,7 @@ fun JobOfferListScreen(
     val listState = rememberLazyListState()
     var restoredOfferId by remember { mutableStateOf<Long?>(null) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val resources = LocalResources.current
     val language = rememberAppLanguage()
 
     val visibleOffers = remember(state.offers, searchQuery, sortOption, selectedStatuses) {
@@ -190,8 +190,8 @@ fun JobOfferListScreen(
                                         scope.launch {
                                             snackbarHostState.currentSnackbarData?.dismiss()
                                             val result = snackbarHostState.showSnackbar(
-                                                message = context.getString(R.string.list_deleted_snackbar, offer.title),
-                                                actionLabel = context.getString(R.string.undo),
+                                                message = resources.getString(R.string.list_deleted_snackbar, offer.title),
+                                                actionLabel = resources.getString(R.string.undo),
                                                 duration = SnackbarDuration.Long
                                             )
                                             if (result == SnackbarResult.ActionPerformed) {
