@@ -1,7 +1,6 @@
 import XCTest
 @testable import JobLog
 
-/// `FlowLayout.arrange` est un calcul pur (tailles → positions) : testable sans rendu SwiftUI.
 final class FlowLayoutTests: XCTestCase {
 
     private func box(_ w: CGFloat, _ h: CGFloat = 20) -> CGSize { CGSize(width: w, height: h) }
@@ -30,7 +29,6 @@ final class FlowLayoutTests: XCTestCase {
     func test_arrange_viewThatDoesNotFit_wrapsToTheNextRow() {
         let result = FlowLayout.arrange(sizes: [box(150), box(100), box(100)], maxWidth: 300, spacing: 8)
 
-        // 150 + 8 + 100 = 258 tient ; le 3e (258 + 8 + 100 > 300) passe à la ligne suivante.
         XCTAssertEqual(result.origins, [CGPoint(x: 0, y: 0), CGPoint(x: 158, y: 0), CGPoint(x: 0, y: 28)])
         XCTAssertEqual(result.size.height, 48)
     }
@@ -38,11 +36,10 @@ final class FlowLayoutTests: XCTestCase {
     func test_arrange_rowSpacingEqualsHorizontalSpacing() {
         let result = FlowLayout.arrange(sizes: [box(200), box(200)], maxWidth: 250, spacing: 12)
 
-        XCTAssertEqual(result.origins[1], CGPoint(x: 0, y: 32))   // 20 (hauteur) + 12 (espacement)
+        XCTAssertEqual(result.origins[1], CGPoint(x: 0, y: 32))
     }
 
     func test_arrange_exactFit_staysOnTheSameRow() {
-        // 100 + 8 + 92 = 200 = maxWidth : « ne tient plus » n'est vrai qu'au-delà, pas à égalité.
         let result = FlowLayout.arrange(sizes: [box(100), box(92)], maxWidth: 200, spacing: 8)
 
         XCTAssertEqual(result.origins[1], CGPoint(x: 108, y: 0))
@@ -70,7 +67,6 @@ final class FlowLayoutTests: XCTestCase {
     func test_arrange_rowHeight_isTheTallestViewOfThatRow() {
         let result = FlowLayout.arrange(sizes: [box(100, 20), box(100, 50), box(250, 10)], maxWidth: 250, spacing: 8)
 
-        // Ligne 1 : hauteur 50 ; ligne 2 démarre à 50 + 8.
         XCTAssertEqual(result.origins[2], CGPoint(x: 0, y: 58))
         XCTAssertEqual(result.size.height, 68)
     }
@@ -78,7 +74,6 @@ final class FlowLayoutTests: XCTestCase {
     func test_arrange_totalWidth_isTheWidestRowWithoutTrailingSpacing() {
         let result = FlowLayout.arrange(sizes: [box(100), box(100), box(60)], maxWidth: 220, spacing: 10)
 
-        // Ligne 1 : 100 + 10 + 100 = 210 ; ligne 2 : 60. Largeur = 210 (pas 220).
         XCTAssertEqual(result.size.width, 210)
     }
 

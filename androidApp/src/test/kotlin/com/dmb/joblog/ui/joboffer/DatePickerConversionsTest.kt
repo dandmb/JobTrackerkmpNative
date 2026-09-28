@@ -4,7 +4,6 @@ import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** Conversions propres à Android (DatePicker Material en millisecondes UTC). La logique de formulaire est testée dans sharedLogic. */
 class DatePickerConversionsTest {
 
     @Test

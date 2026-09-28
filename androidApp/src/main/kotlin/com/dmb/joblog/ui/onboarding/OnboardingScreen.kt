@@ -44,17 +44,9 @@ import androidx.compose.ui.res.stringResource
 import com.dmb.joblog.R
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 
-// Capture d'écran de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques. Remplace les
-// icônes génériques par de vraies captures de l'app : une carte détaillée (titre/entreprise/lieu/salaire/dates), une
-// carte avec son statut (couleur du statut), la carte de statistiques.
-// `drawable-nodpi` : bitmap unique, non redimensionné par densité (la taille affichée est fixée par le Modifier ci-dessous).
 // ⚠️ Ces images devront être régénérées si l'UI des écrans montrés (carte, statuts, carte de stats) change.
 private val PageImages: List<Int> = listOf(R.drawable.onboarding_1, R.drawable.onboarding_2, R.drawable.onboarding_3)
 
-/**
- * Onboarding en 3 pages (contenu et règles de navigation communs à iOS : sharedLogic `OnboardingContent`).
- * « Passer » et « Commencer » appellent tous deux [onFinished] ; « Suivant » fait défiler vers la page suivante.
- */
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
     val language = rememberAppLanguage()
@@ -70,7 +62,6 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             .background(MaterialTheme.colorScheme.background)
             .safeDrawingPadding()
     ) {
-        // « Passer » : réserve la place sur la dernière page pour éviter un saut de mise en page
         Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.CenterEnd) {
             if (content.showsSkip(current)) {
                 TextButton(onClick = onFinished, modifier = Modifier.padding(end = 8.dp)) {
@@ -115,11 +106,9 @@ private fun OnboardingPageContent(imageRes: Int, title: String, description: Str
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Capture d'écran réelle de l'app, présentée comme une petite carte (coins arrondis + ombre légère), pas en
-        // plein cadre : elle garde son ratio d'origine (widthIn borne la largeur, la hauteur suit).
         Image(
             painterResource(imageRes),
-            contentDescription = null,   // décorative : le titre porte le sens
+            contentDescription = null,
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .widthIn(max = 280.dp)

@@ -20,11 +20,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * Parcours « glisser pour supprimer » puis « Annuler » de bout en bout dans le ViewModel de la liste : vrai repository,
- * DAO fake qui reproduit le tri par date de création décroissante. La liste observée (`state.offers`) doit retrouver
- * l'ordre d'origine, quel que soit l'ordre des annulations.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class JobOfferListViewModelUndoTest {
 
@@ -33,7 +28,6 @@ class JobOfferListViewModelUndoTest {
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(StandardTestDispatcher())
-        // Créé APRÈS setMain : le ViewModel lance sa collecte sur Dispatchers.Main dès son init.
         viewModel = JobOfferListViewModel(
             GetAllJobOffersUseCase(repository), AddJobOfferUseCase(repository),
             UpdateJobOfferUseCase(repository), DeleteJobOfferUseCase(repository),
@@ -97,7 +91,7 @@ class JobOfferListViewModelUndoTest {
         val c = offer("C")
 
         viewModel.onDeleteOffer(c)
-        viewModel.onRestoreOffer(c)   // aucune attente entre les deux : le Mutex ordonne suppression puis restauration
+        viewModel.onRestoreOffer(c)
         advanceUntilIdle()
 
         assertEquals(listOf("A", "B", "C", "D", "E"), titles())
@@ -112,7 +106,7 @@ class JobOfferListViewModelUndoTest {
         viewModel.onDeleteOffer(c); advanceUntilIdle()
 
         viewModel.onRestoreOffer(c)
-        viewModel.onRestoreOffer(c)   // 2e tap : plus de suppression connue, mais l'offre est déjà là
+        viewModel.onRestoreOffer(c)
         advanceUntilIdle()
 
         assertEquals(listOf("A", "B", "C", "D", "E"), titles())
@@ -140,11 +134,11 @@ class JobOfferListViewModelUndoTest {
         advanceUntilIdle()
         val first = offer("O1")
         val last = offer("O${MAX_UNDOABLE_DELETIONS + 2}")
-        viewModel.state.value.offers.reversed().forEach { viewModel.onDeleteOffer(it) }   // O1 d'abord (la plus ancienne suppression)
+        viewModel.state.value.offers.reversed().forEach { viewModel.onDeleteOffer(it) }
         advanceUntilIdle()
 
-        viewModel.onRestoreOffer(last); advanceUntilIdle()   // récente : restaurée fidèlement
-        viewModel.onRestoreOffer(first); advanceUntilIdle()  // trop ancienne : oubliée → ajout simple
+        viewModel.onRestoreOffer(last); advanceUntilIdle()
+        viewModel.onRestoreOffer(first); advanceUntilIdle()
 
         assertEquals(last.id, dao.entities.value.first { it.id == last.id }.id)
         assertEquals((MAX_UNDOABLE_DELETIONS + 2) * 1_000L, dao.entities.value.first { it.id == last.id }.createdAtEpochMillis)
@@ -154,8 +148,6 @@ class JobOfferListViewModelUndoTest {
 
     @Test
     fun repeatedDeleteCallsForTheSameSwipe_doNotLoseTheOriginalTimestamp() = runTest {
-        // Défaut constaté sur émulateur : un seul glissement appelle onDeleteOffer 4 fois. Les appels suivants voient une
-        // ligne déjà supprimée (horodatage null) et ne doivent pas écraser l'horodatage d'origine.
         loaded()
         val c = offer("C")
 

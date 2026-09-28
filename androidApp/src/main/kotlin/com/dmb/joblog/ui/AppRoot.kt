@@ -23,22 +23,14 @@ import com.dmb.joblog.ui.onboarding.OnboardingScreen
 import com.dmb.joblog.ui.privacy.PrivacyScreen
 import com.dmb.joblog.ui.settings.SettingsScreen
 
-/** Écran superposé à la liste, accessible depuis l'icône ⚙️ de sa barre du haut : Réglages → À propos / Confidentialité. */
 private enum class OverlayScreen { NONE, SETTINGS, ABOUT, PRIVACY }
 
-/**
- * Racine de l'app : onboarding au premier lancement, sinon liste directement. Les deux ViewModels sont créés UNE fois par
- * `MainActivity` (le même `jobOfferListViewModel` sert au splash et à l'écran de liste : pas de double chargement).
- * « Réglages », « À propos » et « Politique de confidentialité » se superposent à la liste (qui reste composée dessous :
- * recherche, tri et défilement sont conservés) : Liste → Réglages → (À propos | Confidentialité), retour en cascade.
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppRoot(
     jobOfferListViewModel: JobOfferListViewModel,
     onboardingViewModel: OnboardingViewModel,
 ) {
-    // Lu une seule fois ; sauvegardé pour survivre à une rotation pendant l'onboarding.
     var showOnboarding by rememberSaveable { mutableStateOf(!onboardingViewModel.hasCompletedOnboarding()) }
     var overlay by rememberSaveable { mutableStateOf(OverlayScreen.NONE) }
 
@@ -46,21 +38,19 @@ fun AppRoot(
         if (onboarding) {
             OnboardingScreen(
                 onFinished = {
-                    onboardingViewModel.completeOnboarding()   // « Passer » comme « Commencer » : ne plus le montrer
-                    showOnboarding = false                     // navigation sans redémarrer l'app
+                    onboardingViewModel.completeOnboarding()
+                    showOnboarding = false
                 }
             )
         } else {
             Box {
                 JobOfferListScreen(viewModel = jobOfferListViewModel, onOpenSettings = { overlay = OverlayScreen.SETTINGS })
-                // Motion Material 3 Expressive (ressorts) pour l'ouverture / fermeture de la pile Réglages uniquement.
                 val motion = MotionScheme.expressive()
                 AnimatedVisibility(
                     visible = overlay != OverlayScreen.NONE,
                     enter = slideInHorizontally(animationSpec = motion.defaultSpatialSpec()) { it } + fadeIn(motion.defaultEffectsSpec()),
                     exit = slideOutHorizontally(animationSpec = motion.defaultSpatialSpec()) { it } + fadeOut(motion.defaultEffectsSpec()),
                 ) {
-                    // Retour système : ferme À propos/Confidentialité vers Réglages, puis Réglages vers la liste.
                     BackHandler {
                         overlay = when (overlay) {
                             OverlayScreen.ABOUT, OverlayScreen.PRIVACY -> OverlayScreen.SETTINGS

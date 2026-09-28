@@ -1,14 +1,7 @@
-//
-//  PrivacyView.swift
-//  iosApp
-//
 
 import SwiftUI
 import SharedLogic
 
-/// Écran « Politique de confidentialité », séparé de « À propos ».
-/// Le texte français vient VERBATIM de `PrivacyContent` (sharedLogic) — cet écran ne fait que le mettre en forme,
-/// comme `AboutView`.
 struct PrivacyView: View {
     private let content = PrivacyContent.companion.of(language: AppLanguage.current)
     @Environment(\.openURL) private var openURL
@@ -64,7 +57,6 @@ struct PrivacyView: View {
         }
     }
 
-    /// Lien vers la version en ligne (Gist), tenue identique à ce texte — condition explicite de la demande.
     private var onlineVersionLink: some View {
         Button {
             if let url = URL(string: PrivacyContent.companion.ONLINE_URL) { openURL(url) }

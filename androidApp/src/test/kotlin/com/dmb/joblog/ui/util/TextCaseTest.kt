@@ -5,8 +5,6 @@ import kotlin.test.assertEquals
 
 class TextCaseTest {
 
-    // ---------- toTitleCase ----------
-
     @Test
     fun toTitleCase_lowercaseWords_capitalizesEachWord() {
         assertEquals("Développeur Android Senior", "développeur android senior".toTitleCase())
@@ -81,11 +79,8 @@ class TextCaseTest {
 
     @Test
     fun toTitleCase_entirelyLowercaseAcronym_isCapitalizedLikeAnyWord() {
-        // Limite connue : sans dictionnaire de sigles, « ios » est indiscernable de n'importe quel mot.
         assertEquals("Ios Developer", "ios developer".toTitleCase())
     }
-
-    // ---------- capitalizeFirst ----------
 
     @Test
     fun capitalizeFirst_lowercaseCompany_capitalizesOnlyTheFirstLetter() {

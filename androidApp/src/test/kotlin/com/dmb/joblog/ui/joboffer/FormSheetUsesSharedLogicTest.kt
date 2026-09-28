@@ -5,11 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fou d'architecture : l'écran Android n'a PAS le droit de réimplémenter la logique de formulaire, il doit appeler
- * la logique commune (`sharedLogic` → `JobOfferFormLogic`). Un vrai test de câblage demanderait un test UI Compose ;
- * ce contrôle lit donc le source (approche volontairement simple, un peu fragile si le fichier est renommé).
- */
 class FormSheetUsesSharedLogicTest {
 
     private val source: String = listOf(
@@ -30,7 +25,6 @@ class FormSheetUsesSharedLogicTest {
 
     @Test
     fun formSheet_disablesSaveOnValidationAndShowsTheSharedErrorMessage() {
-        // Câblage de la règle « salaire max sans min » : bouton lié à la validation partagée, message affiché.
         assertTrue(source.contains("enabled = validation.isValid"), "le bouton Enregistrer doit dépendre de validation.isValid")
         assertTrue(source.contains("validation.errorMessage"), "le message d'erreur de validation doit être affiché")
     }

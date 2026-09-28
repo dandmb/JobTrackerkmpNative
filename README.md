@@ -6,13 +6,19 @@ on both Android and iOS, and no server, no account and no tracking.
 
 ## Screenshots
 
-<p>
-  <img src="docs/screenshots/list.webp" alt="List of tracked applications, with search, status filters and a stats summary card" width="260">
-  <img src="docs/screenshots/add-application.webp" alt="Form to add a new application, with title, company, location, source, salary range and dates" width="260">
-  <img src="docs/screenshots/stats.webp" alt="Stats summary card counting applications by status" width="260">
-</p>
+| | Android | iOS |
+|---|---|---|
+| **List** | <img src="docs/screenshots/list-android.webp" alt="Android: list of tracked applications, with search, status filters and a stats summary card" width="220"> | <img src="docs/screenshots/list-ios.webp" alt="iOS: list of tracked applications, with search, status filters and a stats summary card" width="220"> |
+| **Add application** | <img src="docs/screenshots/add-application-android.webp" alt="Android: form to add a new application, with title, company, location, source, salary range and dates" width="220"> | *(see note below)* |
+| **About** | <img src="docs/screenshots/about-android.webp" alt="Android: About screen, listing what the app stores and where the data lives" width="220"> | *(see note below)* |
 
-*(Android, with sample data. These screenshots will need to be regenerated if the UI they show changes.)*
+*(Sample data, never a real company. These screenshots will need to be regenerated if the UI they show changes.)*
+
+The iOS Simulator can't currently be driven by taps/typing from this environment (no Accessibility
+automation access), so only the list screen — reachable without any interaction — has an iOS
+screenshot for now. The "Add application" and "About" screens are visually and functionally
+identical on iOS (same shared content from `sharedLogic`, same native SwiftUI form/screen), just
+not captured yet.
 
 ## Features
 

@@ -6,14 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fous de l'écran « À propos » (lecture du source, comme `FormSheetUsesSharedLogicTest`).
- *
- * Deux familles :
- * 1. le câblage (le texte vient de sharedLogic, la version est lue dans la config de build, la suppression passe par le ViewModel) ;
- * 2. les FAITS sur lesquels s'appuie le texte de confidentialité (`AboutContent`) : si l'un d'eux devient faux (permission Internet,
- *    SDK d'analyse ou de pub, bibliothèque réseau…), ce test échoue pour rappeler de RELIRE le texte avant de continuer.
- */
 class AboutScreenWiringTest {
 
     private fun read(vararg candidates: String): String = candidates.map(::File).first { it.exists() }.readText()
@@ -37,8 +29,6 @@ class AboutScreenWiringTest {
         read("build.gradle.kts", "androidApp/build.gradle.kts"),
         read("../sharedLogic/build.gradle.kts", "sharedLogic/build.gradle.kts"),
     ).joinToString("\n")
-
-    // ---------- câblage ----------
 
     @Test
     fun aboutScreen_takesItsTextFromTheSharedContentAndDoesNotHardCodeIt() {
@@ -123,8 +113,6 @@ class AboutScreenWiringTest {
         assertTrue(contactIntentSource.contains("ActivityNotFoundException"))
     }
 
-    // ---------- lien LinkedIn ----------
-
     @Test
     fun aboutScreen_hasALinkedInLink_usingTheSharedUrl() {
         assertTrue(aboutScreen.contains("openUrl(context, AboutContent.LINKEDIN_URL)"))
@@ -132,8 +120,6 @@ class AboutScreenWiringTest {
         assertTrue(aboutScreen.contains("content.linkedinHint"), "contentDescription approprié attendu")
         assertFalse(aboutScreen.contains("linkedin.com"), "l'URL doit venir de AboutContent.LINKEDIN_URL, pas être codée en dur dans l'écran")
     }
-
-    // ---------- Material 3 Expressive : limité à l'écran « À propos » ----------
 
     private fun mainSources(): Map<String, String> =
         File(if (File("src/main").exists()) "src/main/kotlin" else "androidApp/src/main/kotlin")
@@ -152,16 +138,13 @@ class AboutScreenWiringTest {
 
     @Test
     fun expressive_isNotAppliedToOtherScreensInThisChange() {
-        // Périmètre demandé : « À propos » uniquement (le thème global de l'app n'est pas modifié).
-        val allowed = setOf("AboutScreen.kt", "AppRoot.kt")   // AppRoot : seulement le motion d'ouverture de « À propos »
+        val allowed = setOf("AboutScreen.kt", "AppRoot.kt")
         mainSources().filterKeys { it !in allowed }.forEach { (name, text) ->
             listOf("MaterialExpressiveTheme", "MotionScheme.expressive", "LargeFlexibleTopAppBar", "ButtonDefaults.shapes", "LoadingIndicator")
                 .forEach { assertFalse(text.contains(it), "« $it » dans $name : Expressive ne doit pas déborder de l'écran À propos") }
         }
         assertFalse(mainSources().getValue("AppRoot.kt").contains("MaterialExpressiveTheme"))
     }
-
-    // ---------- faits sur lesquels repose le texte de confidentialité ----------
 
     @Test
     fun fact_manifestDeclaresNoPermissionAtAll() {
@@ -191,7 +174,6 @@ class AboutScreenWiringTest {
 
     @Test
     fun fact_backupIsTheSystemDefault_soTheTextMentionsSystemBackups() {
-        // allowBackup=true (défaut) : le système peut sauvegarder la base ; le texte l'annonce. Si cela change, relire la note.
         assertTrue(manifest.contains("allowBackup=\"true\""))
         assertEquals(1, Regex("allowBackup").findAll(manifest).count())
     }

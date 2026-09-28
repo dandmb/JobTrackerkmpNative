@@ -1,6 +1,5 @@
 package com.dmb.joblog.data.repository
 
-
 import com.dmb.joblog.data.local.dao.JobOfferDao
 import com.dmb.joblog.data.mapper.toDomain
 import com.dmb.joblog.data.mapper.toEntity

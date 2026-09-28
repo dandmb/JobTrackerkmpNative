@@ -17,8 +17,6 @@ class JobOfferRepositoryImplTest {
     private val dao = FakeJobOfferDao()
     private val repository = JobOfferRepositoryImpl(dao)
 
-    // ---------- add ----------
-
     @Test
     fun add_newOffer_insertsMappedEntityAndReturnsGeneratedId() = runTest {
         val offer = jobOffer(title = "Dev", company = "Acme", location = "Paris", appliedDate = LocalDate(2026, 9, 5))
@@ -69,8 +67,6 @@ class JobOfferRepositoryImplTest {
 
         assertTrue(first != second)
     }
-
-    // ---------- getAll ----------
 
     @Test
     fun getAll_emptyDao_emitsEmptyList() = runTest {
@@ -129,8 +125,6 @@ class JobOfferRepositoryImplTest {
         }
     }
 
-    // ---------- getByStatus ----------
-
     @Test
     fun getByStatus_givenStatus_passesItsNameToTheDao() = runTest {
         repository.getByStatus(ApplicationStatus.REJECTED).test {
@@ -155,8 +149,6 @@ class JobOfferRepositoryImplTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
-
-    // ---------- update ----------
 
     @Test
     fun update_existingOffer_preservesTheOriginalCreatedAt() = runTest {
@@ -218,8 +210,6 @@ class JobOfferRepositoryImplTest {
         }
     }
 
-    // ---------- delete ----------
-
     @Test
     fun delete_existingOffer_removesTheRowByPrimaryKey() = runTest {
         dao.entities.value = listOf(jobOfferEntity(id = 1), jobOfferEntity(id = 2))
@@ -238,8 +228,6 @@ class JobOfferRepositoryImplTest {
 
         assertEquals(listOf(1L), dao.entities.value.map { it.id })
     }
-
-    // ---------- deleteAll ----------
 
     @Test
     fun deleteAll_severalRows_delegatesToTheDaoAndEmptiesTheTable() = runTest {
@@ -279,11 +267,8 @@ class JobOfferRepositoryImplTest {
         assertTrue(dao.deleted.isEmpty(), "une requête unique doit vider la table, pas une suppression ligne à ligne")
     }
 
-    // ---------- scénario complet ----------
-
     @Test
     fun addThenDeleteThenAddAgainWithSameId_restoresTheOffer() = runTest {
-        // Scénario « Annuler » du snackbar : l'offre supprimée est ré-ajoutée avec le même id.
         val id = repository.add(jobOffer(title = "À restaurer"))
         val saved = jobOffer(id = id, title = "À restaurer")
         repository.delete(saved)

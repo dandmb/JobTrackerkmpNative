@@ -2,8 +2,6 @@ import XCTest
 import UIKit
 @testable import JobLog
 
-/// Détecte un fichier de police manquant, mal nommé ou non copié dans le bundle : sans lui, SwiftUI retombe
-/// silencieusement sur la police système et on ne s'en aperçoit qu'à l'œil.
 final class FontRegistrationTests: XCTestCase {
 
     private let expectedWeights: [AppFontWeight] = [.regular, .medium, .semiBold, .bold]

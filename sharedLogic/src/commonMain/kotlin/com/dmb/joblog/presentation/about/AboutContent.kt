@@ -3,9 +3,6 @@ package com.dmb.joblog.presentation.about
 import com.dmb.joblog.i18n.AppLanguage
 import com.dmb.joblog.i18n.pick
 
-/**
- * Une section de l'écran « À propos » : titre, phrase d'introduction facultative, liste à puces facultative, note facultative.
- */
 data class AboutSection(
     val title: String,
     val intro: String? = null,
@@ -13,7 +10,6 @@ data class AboutSection(
     val note: String? = null,
 )
 
-/** Textes d'une boîte de dialogue de confirmation. */
 data class ConfirmationTexts(
     val title: String,
     val message: String,
@@ -21,31 +17,17 @@ data class ConfirmationTexts(
     val cancelLabel: String,
 )
 
-/**
- * Contenu de l'écran « À propos » : UNE source de vérité pour Android et iOS (comme `OnboardingContent`), dans la langue demandée ([AppLanguage]).
- *
- * Aucune licence de dépendance ni de police n'est mentionnée à l'écran : décision explicite du propriétaire (ne pas la rétablir).
- * Chaque affirmation ci-dessous a été vérifiée dans le code du projet (voir `PROJECT_CONTEXT.md`). **Si le code change
- * (nouveau champ de `JobOffer`, SDK d'analyse,
- * appel réseau, nouvelle permission…), ce texte doit être revu** : `AboutContentTest` verrouille la liste des champs
- * du modèle pour que l'ajout d'un champ fasse échouer un test et rappelle de mettre le texte à jour.
- *
- * Texte informatif de bonne foi, pas un document juridique : une publication sur un store demandera une vraie
- * politique de confidentialité hébergée en ligne.
- */
+/** Contenu de l'écran « À propos », source unique Android/iOS. Toute affirmation doit rester vraie dans le code : voir AboutContentTest. */
 class AboutContent private constructor(private val lang: AppLanguage) {
     val screenTitle: String = lang.pick(en = "About", fr = "À propos")
     val tagline: String = lang.pick(en = "Track your applications, at your own pace.", fr = "Suis tes candidatures, à ton rythme.")
     val backLabel: String = lang.pick(en = "Back", fr = "Retour")
 
-    /** « Version 1.0 (1) » : `versionName` et numéro de build lus par chaque plateforme dans sa configuration de build. */
     fun versionLabel(versionName: String, buildNumber: String): String {
         val version = versionName.trim().ifEmpty { "?" }
         val build = buildNumber.trim()
         return if (build.isEmpty()) "Version $version" else "Version $version ($build)"
     }
-
-    // ---- Suppression de toutes les données (libellé utilisé aussi dans la section « droits ») ----
 
     val deleteAllLabel: String = lang.pick(en = "Delete all my data", fr = "Supprimer toutes mes données")
     val deleteAllExplanation: String = lang.pick(
@@ -174,8 +156,6 @@ class AboutContent private constructor(private val lang: AppLanguage) {
         ),
     )
 
-    // ---- Contact ----
-
     val contactTitle: String = lang.pick(en = "Contact us", fr = "Nous contacter")
     val contactIntro: String = lang.pick(en = "A question, some feedback? Write to us:", fr = "Une question, un retour ? Écris-nous :")
     val contactLabel: String = contactTitle
@@ -188,8 +168,6 @@ class AboutContent private constructor(private val lang: AppLanguage) {
         fr = "Aucune application de messagerie n'a pu s'ouvrir. Tu peux nous écrire à $CONTACT_EMAIL.",
     )
 
-    // ---- LinkedIn ----
-
     val linkedinLabel: String = lang.pick(en = "LinkedIn profile", fr = "Profil LinkedIn")
     val linkedinHint: String = lang.pick(
         en = "Opens Dan Bizwa's LinkedIn profile in your browser.",
@@ -197,22 +175,15 @@ class AboutContent private constructor(private val lang: AppLanguage) {
     )
 
     companion object {
-        /** Contenu dans la langue demandée. */
         fun of(language: AppLanguage): AboutContent = AboutContent(language)
 
-        // Constantes indépendantes de la langue.
         const val APP_NAME = "JobLog"
         const val CONTACT_EMAIL = "bizwadan@gmail.com"
         const val CONTACT_SUBJECT = "JobLog - Contact"
         const val LINKEDIN_URL = "https://www.linkedin.com/in/dan-bizwa/"
 
-        /**
-         * Adresse `mailto:` du lien de contact, identique sur les deux plateformes et dans les deux langues :
-         * `mailto:bizwadan@gmail.com?subject=JobLog%20-%20Contact` (objet pré-rempli pour faciliter le tri des messages).
-         */
         fun contactMailtoUri(): String = "mailto:$CONTACT_EMAIL?subject=${percentEncode(CONTACT_SUBJECT)}"
 
-        /** Encodage pourcent (RFC 3986) en UTF-8 : seuls `A-Z a-z 0-9 - . _ ~` restent tels quels. */
         internal fun percentEncode(text: String): String = buildString {
             for (byte in text.encodeToByteArray()) {
                 val value = byte.toInt() and 0xFF

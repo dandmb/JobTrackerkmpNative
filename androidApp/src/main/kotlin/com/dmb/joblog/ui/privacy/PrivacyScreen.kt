@@ -40,11 +40,6 @@ import com.dmb.joblog.ui.i18n.rememberAppLanguage
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
 import com.dmb.joblog.ui.util.openUrl
 
-/**
- * Écran « Politique de confidentialité », séparé de « À propos ».
- * Le texte français vient VERBATIM de `PrivacyContent` (sharedLogic) — cet écran ne fait que le mettre en forme, comme
- * `AboutScreen`. Thème Material 3 standard (Expressive reste limité à `AboutScreen`).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyScreen(onBack: () -> Unit) {
@@ -110,7 +105,6 @@ private fun PrivacySectionCard(section: AboutSection) {
     }
 }
 
-/** Lien vers la version en ligne (Gist), tenue identique à ce texte — condition explicite de la demande. */
 @Composable
 private fun OnlineVersionLink(content: PrivacyContent, context: android.content.Context) {
     Surface(
@@ -122,7 +116,6 @@ private fun OnlineVersionLink(content: PrivacyContent, context: android.content.
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                // Précise que le lien s'ouvre à l'extérieur de l'app (contentDescription approprié demandé).
                 contentDescription = content.onlineVersionHint
             },
     ) {

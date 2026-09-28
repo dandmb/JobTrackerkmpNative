@@ -35,7 +35,6 @@ fun JobOfferStatsCard(offers: List<JobOffer>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // Total + libellé lus ensemble (« 3 applications tracked » / « 3 candidatures suivies »)
             Column(modifier = Modifier.semantics(mergeDescendants = true) {}) {
                 Text(
                     "$total",
@@ -51,7 +50,6 @@ fun JobOfferStatsCard(offers: List<JobOffer>) {
 
             if (counts.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                // FlowRow : avec 4-5 statuts, une Row simple déborde de l'écran (360 dp) ou à grande taille de police
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),

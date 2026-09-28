@@ -2,9 +2,6 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Pont Swift ↔ Kotlin des écrans « Réglages » et « Politique de confidentialité » (miroir de `AboutBridgeTests`).
-/// Le texte VERBATIM de la politique de confidentialité est verrouillé côté Kotlin (`PrivacyContentTest`, sharedLogic,
-/// JVM + natif) : ici on vérifie seulement que Swift l'affiche sans le recopier ni le modifier.
 final class SettingsPrivacyBridgeTests: XCTestCase {
 
     private var projectDir: URL {
@@ -66,7 +63,6 @@ final class SettingsPrivacyBridgeTests: XCTestCase {
         XCTAssertTrue(privacy.contains("content.sections"))
         XCTAssertTrue(privacy.contains("content.documentTitle"))
         XCTAssertTrue(privacy.contains("content.introText"))
-        // Aucun morceau du texte français verbatim ne doit être recopié dans la vue (seul PrivacyContent le porte).
         XCTAssertFalse(privacy.contains("Résumé"))
         XCTAssertFalse(privacy.contains("JobTracker"))
     }

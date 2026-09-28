@@ -29,12 +29,6 @@ import com.dmb.joblog.presentation.settings.SettingsContent
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
 
-/**
- * Écran « Réglages » : point d'entrée unique vers « À propos » et « Politique de confidentialité », atteint depuis
- * l'icône ⚙️ de la barre du haut de la liste (avant cette intervention, l'icône ⓘ menait directement à « À propos »,
- * qui contenait aussi la confidentialité). Thème Material 3 standard (Expressive reste limité à `AboutScreen`, voir
- * `AboutScreenWiringTest.expressive_isNotAppliedToOtherScreensInThisChange`).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(

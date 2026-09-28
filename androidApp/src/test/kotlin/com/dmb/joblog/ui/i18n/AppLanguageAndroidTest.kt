@@ -5,7 +5,6 @@ import java.util.Locale
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/** Détection de la langue depuis les `Locale` Android : français → FR ; anglais et TOUT le reste → EN. */
 class AppLanguageAndroidTest {
 
     @Test

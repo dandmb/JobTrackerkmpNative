@@ -1,14 +1,7 @@
-//
-//  JobOfferFormBridge.swift
-//  iosApp
-//
 
 import Foundation
 import SharedLogic
 
-// Toute la logique du formulaire (salaire, validation, assemblage de l'offre) vit dans sharedLogic :
-// `JobOfferFormLogic.shared` (Kotlin), commune à Android et iOS. Ce fichier ne contient AUCUNE règle : seulement la
-// conversion propre à iOS des dates `Date` (DatePicker SwiftUI) vers `Kotlinx_datetimeLocalDate`.
 enum JobOfferFormBridge {
 
     static func buildOffer(

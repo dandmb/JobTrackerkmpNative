@@ -5,20 +5,8 @@ import com.dmb.joblog.i18n.pick
 import com.dmb.joblog.presentation.about.AboutSection
 
 /**
- * Contenu de l'écran « Politique de confidentialité » : UNE source de vérité pour Android et iOS (comme `AboutContent`).
- *
- * ⚠️ **Le texte français est VERBATIM** : rédigé et validé par le propriétaire du projet (fourni le 2026-09-27), une copie
- * identique est hébergée en ligne à [ONLINE_URL] (obligatoire pour les stores). **Ne JAMAIS reformuler le texte français** —
- * toute correction doit venir du propriétaire (et être répercutée sur le Gist en ligne pour que les deux versions restent
- * identiques, condition explicite de la demande). `PrivacyContentTest.frenchText_isExactlyTheApprovedVerbatimText` verrouille
- * chaque mot.
- *
- * ⚠️ **Le texte anglais est une TRADUCTION non officielle**, écrite par manque de version anglaise fournie (le projet est
- * bilingue, voir §10 PROJECT_CONTEXT.md) : à faire relire avant toute publication réelle sur un store.
- *
- * **Historique** : le texte fourni le 2026-09-27 nommait l'app « JobLog » (ancien nom du projet, voir
- * PROJECT_CONTEXT.md §9) ; corrigé en « JobLog » le même jour, à la demande du propriétaire, dans le texte français
- * ET dans sa traduction anglaise (le Gist hébergé en ligne doit être corrigé à l'identique de son côté).
+ * ⚠️ Texte français VERBATIM (approuvé par le propriétaire, identique au Gist [ONLINE_URL]) : ne jamais le reformuler
+ * — verrouillé par `PrivacyContentTest`. Texte anglais = traduction non officielle.
  */
 class PrivacyContent private constructor(private val lang: AppLanguage) {
     val screenTitle: String = lang.pick(en = "Privacy Policy", fr = "Politique de confidentialité")
@@ -168,7 +156,6 @@ class PrivacyContent private constructor(private val lang: AppLanguage) {
 
         const val CONTACT_EMAIL = "bizwadan@gmail.com"
 
-        /** Même contenu que le Gist hébergé en ligne (condition explicite de la demande : garder les deux identiques). */
         const val ONLINE_URL = "https://gist.github.com/dandmb/c7461e74a35140d79e657a19eb66566f"
     }
 }

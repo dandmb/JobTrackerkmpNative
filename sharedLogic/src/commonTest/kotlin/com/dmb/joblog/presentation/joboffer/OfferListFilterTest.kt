@@ -8,12 +8,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * SEULE suite de tests pour la recherche + le filtre de statut + le tri de la liste (voir `OfferListFilter.kt`).
- * Migré de `OfferListLogicTest.kt` (Android) / `JobOfferListLogicTests.swift` (iOS), qui testaient chacun leur propre
- * copie de la recherche/tri : ces deux fichiers sont désormais réduits aux gardes de câblage (la logique est ICI,
- * testée une fois pour les deux plateformes, JVM + iOS simulator).
- */
 class OfferListFilterTest {
 
     private fun offer(
@@ -36,8 +30,6 @@ class OfferListFilterTest {
         sortOption: SortOption = SortOption.DATE_DESC,
         selectedStatuses: Set<ApplicationStatus> = emptySet(),
     ) = filteredForDisplay(query, sortOption, selectedStatuses)
-
-    // ---------- recherche (migré de OfferListLogicTest / JobOfferListLogicTests) ----------
 
     @Test
     fun emptyQuery_keepsEveryOffer() {
@@ -114,8 +106,6 @@ class OfferListFilterTest {
         assertTrue(listOf(offer).filtered(query = "lundi").isEmpty())
     }
 
-    // ---------- tri (migré) ----------
-
     @Test
     fun dateDesc_putsTheMostRecentApplicationFirst() {
         assertEquals(listOf(3L, 1L, 2L), all.filtered(sortOption = SortOption.DATE_DESC).ids())
@@ -174,7 +164,6 @@ class OfferListFilterTest {
             offer(4, "Dev B", applied = LocalDate(2026, 9, 2)),
         )
 
-        // « dev » retient Dev C (1), Dev A (2), Dev B (4) ; « Chef » (3) est écarté avant le tri.
         assertEquals(listOf(2L, 4L, 1L), offers.filtered(query = "dev", sortOption = SortOption.ALPHA_ASC).ids())
         assertEquals(listOf(1L, 4L, 2L), offers.filtered(query = "dev", sortOption = SortOption.DATE_ASC).ids())
     }
@@ -187,8 +176,6 @@ class OfferListFilterTest {
 
         assertEquals(listOf(backend, android, ios), input)
     }
-
-    // ---------- filtre de statut (nouveau) ----------
 
     private val statusOffers = listOf(
         offer(1, "Dev A", status = ApplicationStatus.PENDING),
@@ -231,8 +218,6 @@ class OfferListFilterTest {
 
     @Test
     fun allStatusChip_meansAnEmptySelection_soItResetsAnyPreviousStatusFilter() {
-        // « Tous » ne mémorise aucun état à part vider la sélection : la fonction est pure, donc appeler avec un
-        // ensemble vide donne exactement le résultat « aucun filtre », qu'un filtre ait été actif juste avant ou non.
         assertEquals(1, statusOffers.filtered(selectedStatuses = setOf(ApplicationStatus.INTERVIEW)).size)
         assertEquals(5, statusOffers.filtered(selectedStatuses = emptySet()).size)
         assertEquals(statusOffers.filtered(selectedStatuses = emptySet()).ids(), statusOffers.filtered().ids())
@@ -246,7 +231,6 @@ class OfferListFilterTest {
             offer(3, "Backend dev", "Spotify", status = ApplicationStatus.INTERVIEW),
         )
 
-        // « android » ET statut = INTERVIEW : seule l'offre 1 matche les deux critères à la fois.
         assertEquals(listOf(1L), offers.filtered(query = "android", selectedStatuses = setOf(ApplicationStatus.INTERVIEW)).ids())
     }
 
@@ -283,8 +267,6 @@ class OfferListFilterTest {
 
         assertEquals(listOf(backend, android, ios), input)
     }
-
-    // ---------- OfferListFilter.apply (objet appelé depuis Swift) : même résultat que l'extension côté Kotlin ----------
 
     @Test
     fun offerListFilterApply_andTheKotlinExtension_giveTheSameResult() {

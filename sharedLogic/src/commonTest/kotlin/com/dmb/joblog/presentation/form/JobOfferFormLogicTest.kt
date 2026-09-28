@@ -10,18 +10,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * Logique de formulaire UNIQUE (Android + iOS), testée une seule fois sur les deux runtimes (JVM et Kotlin/Native).
- * Regroupe les cas des anciens `JobOfferFormLogicTest` (Android) et `JobOfferFormLogicTests` (iOS), plus les cas des
- * comportements de référence tranchés lors de l'unification (voir KDoc de [JobOfferFormLogic]).
- */
 class JobOfferFormLogicTest {
 
     private val logic = JobOfferFormLogic
 
     private fun fields(min: String, max: String) = SalaryFields(min, max)
-
-    // ---------- parseSalaryFields : entrées vides ----------
 
     @Test
     fun parseSalaryFields_nullRange_returnsEmptyFields() {
@@ -38,8 +31,6 @@ class JobOfferFormLogicTest {
         assertEquals(fields("", ""), logic.parseSalaryFields("   \t"))
     }
 
-    // ---------- parseSalaryFields : les 2 formes écrites par le formulaire + le format « jusqu'à » hérité ----------
-
     @Test
     fun parseSalaryFields_closedRange_splitsMinAndMax() {
         assertEquals(fields("55", "70"), logic.parseSalaryFields("55k - 70k"))
@@ -52,8 +43,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun parseSalaryFields_legacyUpToRange_isStillReadAsMaxOnly() {
-        // Le formulaire n'écrit plus « jusqu'à 70k » mais on le lit encore (build de test) : sans ce cas il serait lu comme
-        // « min = 70 », un changement de sens silencieux.
         assertEquals(fields("", "70"), logic.parseSalaryFields("jusqu'à 70k"))
     }
 
@@ -61,8 +50,6 @@ class JobOfferFormLogicTest {
     fun parseSalaryFields_legacyUpToRangeWithTypographicApostropheAndCapital_isStillReadAsMaxOnly() {
         assertEquals(fields("", "70"), logic.parseSalaryFields("Jusqu’à 70k"))
     }
-
-    // ---------- parseSalaryFields : texte libre hérité (grammaire explicite) ----------
 
     @Test
     fun parseSalaryFields_legacyFreeText_keepsDigitsOnEachSideOfTheDash() {
@@ -81,7 +68,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun parseSalaryFields_dashWithoutMin_fillsOnlyMaxByPosition() {
-        // Décision : la position fait foi (à gauche du tiret = min, à droite = max) ; « -70k » = max seul, sur les 2 plateformes.
         assertEquals(fields("", "70"), logic.parseSalaryFields("-70k"))
     }
 
@@ -102,7 +88,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun parseSalaryFields_severalDashes_isRejectedInsteadOfGuessing() {
-        // Décision : « 55k - 70k - 80k » est ambigu → champs vides (avant : « 7080 » sur Android, « 70 » sur iOS).
         assertEquals(fields("", ""), logic.parseSalaryFields("55k - 70k - 80k"))
     }
 
@@ -118,8 +103,6 @@ class JobOfferFormLogicTest {
         assertEquals(fields("455", "60"), logic.parseSalaryFields("45.5k - 60k"))
     }
 
-    // ---------- composeSalaryRange ----------
-
     @Test
     fun composeSalaryRange_minAndMax_producesTheClosedRange() {
         assertEquals("55k - 70k", logic.composeSalaryRange("55", "70"))
@@ -132,7 +115,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun composeSalaryRange_onlyMax_producesNullNoUpToFormatAnymore() {
-        // Décision 6 (révisée) : le format « jusqu'à » n'est plus produit. Le cas est refusé en amont par validate().
         assertNull(logic.composeSalaryRange("", "70"))
     }
 
@@ -162,8 +144,6 @@ class JobOfferFormLogicTest {
         assertNull(logic.composeSalaryRange("abc", "xyz"))
     }
 
-    // ---------- aller-retour compose → parse (les 3 formes sont relues à l'identique) ----------
-
     @Test
     fun composeThenParse_closedRange_roundTripsTheFields() {
         assertEquals(fields("55", "70"), logic.parseSalaryFields(logic.composeSalaryRange("55", "70")))
@@ -187,8 +167,6 @@ class JobOfferFormLogicTest {
             assertEquals(stored, logic.composeSalaryRange(parsed.min, parsed.max), stored)
         }
     }
-
-    // ---------- nextSalaryInput (filtre de saisie, identique sur les 2 plateformes) ----------
 
     @Test
     fun nextSalaryInput_digitsWithinTheLimit_areAccepted() {
@@ -238,8 +216,6 @@ class JobOfferFormLogicTest {
         assertEquals(4, JobOfferFormLogic.SALARY_INPUT_MAX_LENGTH)
     }
 
-    // ---------- validate : champs obligatoires (règle 2) ----------
-
     private fun validate(title: String = "Dev", company: String = "Acme", min: String = "", max: String = "") =
         logic.validate(title, company, min, max, AppLanguage.FR)
 
@@ -279,12 +255,9 @@ class JobOfferFormLogicTest {
 
     @Test
     fun validate_missingRequiredField_hasNoMessageToShow() {
-        // Comportement historique : titre/entreprise vides = bouton désactivé, sans message.
         assertNull(validate(title = "").errorMessage)
         assertFalse(validate(title = "").isValid)
     }
-
-    // ---------- validate : salaire max sans min (règle 6, bloquante) ----------
 
     @Test
     fun validate_maxWithoutMin_isInvalidWithTheClearMessage() {
@@ -342,7 +315,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun validate_maxWithoutMinAndBlankTitle_showsTheSalaryMessageFirst() {
-        // Le message de salaire est le seul à afficher : il apparaît dès que le max est rempli, même titre encore vide.
         val result = validate(title = "", max = "70")
 
         assertEquals(FormValidation.InvalidSalary(JobOfferFormLogic.salaryMinRequiredMessage(AppLanguage.FR)), result)
@@ -383,8 +355,6 @@ class JobOfferFormLogicTest {
         assertNull(FormValidation.Valid.errorMessage)
     }
 
-    // ---------- initialAppliedDate ----------
-
     @Test
     fun initialAppliedDate_newOffer_isToday() {
         val today = LocalDate(2026, 9, 20)
@@ -398,8 +368,6 @@ class JobOfferFormLogicTest {
 
         assertEquals(LocalDate(2026, 3, 1), logic.initialAppliedDate(existing, today = LocalDate(2026, 9, 20)))
     }
-
-    // ---------- toJobOffer ----------
 
     private fun draft(
         title: String = "Dev", company: String = "Acme", url: String = "", location: String = "", source: String = "",
@@ -435,7 +403,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun toJobOffer_blankOptionalTextFields_becomeNullOnBothPlatforms() {
-        // Décision : un champ optionnel blanc n'est jamais stocké comme « "  " » (avant : conservé tel quel sur iOS).
         val result = logic.toJobOffer(draft(url = "  ", location = "  ", source = "\t", notes = "   "), null)
 
         assertNull(result.url)
@@ -528,7 +495,6 @@ class JobOfferFormLogicTest {
 
     @Test
     fun editThenSave_offerStoredWithLegacyUpToFormat_opensAsMaxOnlyAndMustBeFixedBeforeSaving() {
-        // Donnée d'une build de test : rien n'est perdu ni réinterprété ; l'utilisateur voit le message et complète ou vide le max.
         val salary = logic.parseSalaryFields("jusqu'à 70k")
 
         val validation = logic.validate("Dev", "Acme", salary.min, salary.max, AppLanguage.FR)

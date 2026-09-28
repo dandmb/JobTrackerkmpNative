@@ -5,7 +5,6 @@ import com.russhwolf.settings.Settings
 
 internal const val ONBOARDING_COMPLETED_KEY = "onboarding_completed"
 
-/** Persistance via multiplatform-settings (SharedPreferences sur Android, NSUserDefaults sur iOS). */
 internal class OnboardingRepositoryImpl(private val settings: Settings) : OnboardingRepository {
 
     override fun hasCompletedOnboarding(): Boolean = settings.getBoolean(ONBOARDING_COMPLETED_KEY, false)

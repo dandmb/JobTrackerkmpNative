@@ -6,11 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fou (lecture du source) : l'écran appelle la recherche/filtre/tri partagée (`filteredForDisplay`, sharedLogic)
- * au lieu de réimplémenter sa propre logique (avant : deux copies indépendantes de la recherche/tri, le schéma de
- * duplication qui avait déjà fait diverger les formulaires).
- */
 class StatusFilterWiringTest {
 
     private fun readSource(relative: String): String =
@@ -19,8 +14,6 @@ class StatusFilterWiringTest {
 
     private val screen = readSource("com/dmb/joblog/ui/joboffer/JobOfferListScreen.kt")
     private val filterRow = readSource("com/dmb/joblog/ui/joboffer/StatusFilterRow.kt")
-
-    // ---------- l'écran appelle la fonction partagée, ne la réimplémente pas ----------
 
     @Test
     fun screen_computesVisibleOffers_byCallingTheSharedFilterFunction() {
@@ -38,8 +31,6 @@ class StatusFilterWiringTest {
         val logic = readSource("com/dmb/joblog/ui/joboffer/OfferListLogic.kt")
         assertFalse(logic.contains("fun List<JobOffer>.searchedAndSorted"), "logique déplacée dans sharedLogic (OfferListFilter)")
     }
-
-    // ---------- rangée de puces : FilterChip (togglé), pas AssistChip (action) ----------
 
     @Test
     fun statusFilterRow_usesFilterChip_notAssistChip() {
@@ -65,8 +56,6 @@ class StatusFilterWiringTest {
         assertTrue(chipBlock.contains("selectedLabelColor = status.color()"))
     }
 
-    // ---------- sémantique « Tous » / multi-sélection ----------
-
     @Test
     fun allChip_selectsAnEmptySet_resettingEveryOtherChip() {
         val allChipBlock = filterRow.substringBefore("ApplicationStatus.entries.forEach")
@@ -81,14 +70,10 @@ class StatusFilterWiringTest {
         assertTrue(chipBlock.contains("selectedStatuses + status"), "sélection : ajoute à la sélection existante (multi-statuts)")
     }
 
-    // ---------- rangée insérée sous la recherche, cachée avec elle si la liste est vide ----------
-
     @Test
     fun statusFilterRow_isInsertedRightAfterTheSearchField_underTheSameEmptinessGuard() {
         val searchField = screen.indexOf("R.string.list_search_placeholder")
         val filterRowCall = screen.indexOf("StatusFilterRow(")
-        // Le garde qui entoure le champ de recherche ET la rangée de filtre : le DERNIER « if (state.offers.isNotEmpty()) »
-        // avant le champ de recherche (celui de l'icône de tri, dans la TopAppBar, apparaît plus haut dans le fichier).
         val guardStart = screen.lastIndexOf("if (state.offers.isNotEmpty()) {", searchField)
         val guardEnd = screen.indexOf("\n            }", searchField)
 
@@ -103,8 +88,6 @@ class StatusFilterWiringTest {
         assertTrue(resetBlock.substringBefore("}").contains("selectedStatuses = emptySet()"))
     }
 
-    // ---------- état vide spécifique au filtre (priorité documentée : filtre avant recherche) ----------
-
     @Test
     fun emptyFilterResult_showsADedicatedMessage_priorOverTheSearchMessage() {
         val noResultsBlock = screen.substringAfter("key = \"no-results\"").substringBefore("items(visibleOffers")
@@ -112,8 +95,6 @@ class StatusFilterWiringTest {
         assertTrue(noResultsBlock.contains("R.string.list_no_results_filter"))
         assertTrue(noResultsBlock.contains("selectedStatuses.isNotEmpty()"), "le message de filtre doit être prioritaire quand un statut est sélectionné")
     }
-
-    // ---------- l'action de tri reste soumise à state.offers, pas à la sélection filtrée (règle inchangée) ----------
 
     @Test
     fun sortAction_staysGatedOnAllOffers_notOnTheFilteredSelection() {

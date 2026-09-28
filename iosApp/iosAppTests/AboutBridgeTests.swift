@@ -2,10 +2,6 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Pont Swift ↔ Kotlin de l'écran « À propos ». Le contenu et la machine à états sont testés dans sharedLogic (JVM + natif) ;
-/// ici on vérifie que Swift les appelle correctement, que la version vient de la vraie config de build, et que les FAITS sur
-/// lesquels repose le texte de confidentialité (pas de réseau, pas d'analyse, aucune permission) restent vrais côté iOS.
-///
 /// NB : `onDeleteAllFinalConfirmed()` n'est volontairement JAMAIS appelé : il viderait la vraie base de l'app hôte sur le simulateur.
 final class AboutBridgeTests: XCTestCase {
 
@@ -53,7 +49,7 @@ final class AboutBridgeTests: XCTestCase {
         XCTAssertEqual(viewModel.state.deleteStep, .firstConfirmation)
         viewModel.onDeleteAllFirstConfirmed()
         XCTAssertEqual(viewModel.state.deleteStep, .finalConfirmation)
-        viewModel.onDeleteAllCancelled()   // on s'arrête AVANT la confirmation finale : rien n'est supprimé
+        viewModel.onDeleteAllCancelled()
         XCTAssertEqual(viewModel.state.deleteStep, .idle)
         XCTAssertFalse(viewModel.state.dataDeleted)
         XCTAssertFalse(viewModel.state.isDeleting)
@@ -63,11 +59,11 @@ final class AboutBridgeTests: XCTestCase {
         let viewModel = KoinHelper().aboutViewModel()
         defer { viewModel.onCleared() }
 
-        viewModel.onDeleteAllFirstConfirmed()   // sans demande préalable : ignoré
+        viewModel.onDeleteAllFirstConfirmed()
         XCTAssertEqual(viewModel.state.deleteStep, .idle)
         viewModel.onDeleteAllRequested()
         viewModel.onDeleteAllCancelled()
-        viewModel.onDeleteAllFirstConfirmed()   // après annulation : ignoré
+        viewModel.onDeleteAllFirstConfirmed()
         XCTAssertEqual(viewModel.state.deleteStep, .idle)
     }
 

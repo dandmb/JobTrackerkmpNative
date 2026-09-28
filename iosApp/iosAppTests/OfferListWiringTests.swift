@@ -2,9 +2,6 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Garde-fous (lecture du source + pont Swift↔Kotlin) : la recherche/filtre/tri de la liste vient d'UNE SEULE
-/// implémentation, `OfferListFilter` (sharedLogic) — la logique elle-même est testée exhaustivement côté Kotlin
-/// (`OfferListFilterTest.kt`, JVM + ce simulateur via `iosSimulatorArm64Test`). Miroir de `StatusFilterWiringTest.kt` (Android).
 final class OfferListWiringTests: XCTestCase {
 
     private let listView: String = {

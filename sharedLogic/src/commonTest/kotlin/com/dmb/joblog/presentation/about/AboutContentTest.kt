@@ -22,9 +22,6 @@ class AboutContentTest {
 
     private fun AboutContent.section(index: Int) = sections[index]
 
-    // ---------- fidélité au modèle de données ----------
-
-    /** Noms des propriétés du modèle, lus dans le `toString()` d'une `data class` (pas de réflexion en commonTest). */
     private fun jobOfferFieldNames(): List<String> =
         Regex("""(\w+)=""").findAll(jobOffer().toString()).map { it.groupValues[1] }.toList()
 
@@ -51,7 +48,6 @@ class AboutContentTest {
         AppLanguage.entries.forEach { language ->
             val text = AboutContent.of(language).section(0).bullets.joinToString(" ").lowercase()
             val map = keywords.getValue(language)
-            // Tous les champs saisis (tous sauf l'id technique) sont couverts par un mot-clé.
             assertEquals(jobOfferFieldNames().filter { it != "id" }.toSet(), map.keys)
             map.forEach { (field, keyword) -> assertTrue(keyword in text, "« $keyword » (champ $field) absent du texte $language") }
         }
@@ -64,8 +60,6 @@ class AboutContentTest {
         assertTrue("date and time" in en.section(0).note.orEmpty())
         assertTrue("welcome screen" in en.section(0).note.orEmpty())
     }
-
-    // ---------- structure ----------
 
     @Test
     fun sections_areTheFourExpectedOnesInOrder() {
@@ -115,8 +109,6 @@ class AboutContentTest {
         both.forEach { assertEquals(it.sections.size, it.sections.map { s -> s.title }.toSet().size) }
     }
 
-    // ---------- traduction complète ----------
-
     @Test
     fun everyText_isTranslated_noStringIsIdenticalInBothLanguages() {
         fr.sections.zip(en.sections).forEach { (f, e) ->
@@ -147,8 +139,6 @@ class AboutContentTest {
     fun frenchTexts_stillUseTheirAccents() {
         assertTrue("À propos" == fr.screenTitle && "Où vivent tes données" == fr.sections[1].title)
     }
-
-    // ---------- affirmations de confidentialité (vérifiées dans le code) ----------
 
     @Test
     fun localStorageSection_saysDataStaysOnTheDeviceAndNothingIsSent() {
@@ -193,15 +183,12 @@ class AboutContentTest {
 
     @Test
     fun text_neverMakesAnAbsoluteClaimTheCodeCannotBackUp() {
-        // Formulations volontairement proscrites : « 100 % sécurisé », conformité légale…
         both.forEach { c ->
             val lower = c.allText().lowercase()
             listOf("rgpd", "gdpr", "100 %", "100%", "sécurisé", "secure", "chiffré", "encrypted", "conforme", "compliant", "garantit", "guarantee", "anonym")
                 .forEach { assertFalse(it in lower, "affirmation non vérifiée : « $it »") }
         }
     }
-
-    // ---------- version ----------
 
     @Test
     fun versionLabel_isFormattedTheSameInBothLanguages() {
@@ -218,8 +205,6 @@ class AboutContentTest {
     fun versionLabel_dependsOnItsInput_notAHardCodedValue() {
         assertNotEquals(fr.versionLabel("1.0", "1"), fr.versionLabel("1.1", "1"))
     }
-
-    // ---------- suppression ----------
 
     @Test
     fun deleteAllTexts_areFilled_andConfirmationsAreDistinct() {
@@ -250,11 +235,8 @@ class AboutContentTest {
         assertEquals("Delete everything" to "Cancel", en.finalConfirmation.confirmLabel to en.finalConfirmation.cancelLabel)
     }
 
-    // ---------- licences : volontairement absentes ----------
-
     @Test
     fun text_mentionsNoThirdPartyLicenseNorLibraryNorFont() {
-        // Décision explicite du propriétaire : aucune licence de dépendance ou de police n'est affichée.
         both.forEach { c ->
             val lower = c.allText().lowercase()
             listOf("licence", "license", "open source", "open-source", "apache", "mit ", "ofl", "jakarta", "kotlin", "jetpack",
@@ -262,8 +244,6 @@ class AboutContentTest {
                 .forEach { assertFalse(it in lower, "mention d'un élément tiers dans le texte de l'écran : « $it »") }
         }
     }
-
-    // ---------- contact (indépendant de la langue) ----------
 
     @Test
     fun contact_emailAndSubject_areTheExpectedConstants() {

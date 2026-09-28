@@ -1,15 +1,7 @@
-//
-//  JobOfferStatsCard.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
-// iosApp/iosApp/Features/JobOffer/JobOfferStatsCard.swift
 import SwiftUI
 import SharedLogic
 
-// Miroir de androidApp/.../ui/joboffer/JobOfferStatsCard.kt.
 struct JobOfferStatsCard: View {
     let offers: [JobOffer]
     @Environment(\.colorScheme) private var colorScheme
@@ -23,9 +15,7 @@ struct JobOfferStatsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Total + libellé lus ensemble par VoiceOver (« 3 applications tracked » / « 3 candidatures suivies »)
             VStack(alignment: .leading, spacing: 0) {
-                // headlineSmall.copy(fontSize = 34.sp, Bold) — le lineHeight reste celui de headlineSmall (30sp)
                 Text("\(offers.count)")
                     .appTextStyle(.headlineSmall.copy(weight: .bold, size: 34), fixedLineHeight: true)
                     .foregroundStyle(Color.tealOnContainer)
@@ -36,7 +26,6 @@ struct JobOfferStatsCard: View {
             .accessibilityElement(children: .combine)
 
             if !counts.isEmpty {
-                // FlowLayout (équivalent FlowRow) : 4-5 badges ne tiennent pas sur une ligne d'iPhone / à grande taille de texte
                 FlowLayout(spacing: 8) {
                     ForEach(counts, id: \.0) { status, count in
                         Text(status.shortLabel(count: count))
@@ -54,8 +43,8 @@ struct JobOfferStatsCard: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.tealContainer)                  // primaryContainer
-        .clipShape(RoundedRectangle(cornerRadius: 12))    // Card : shapes.medium (était 16)
+        .background(Color.tealContainer)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 

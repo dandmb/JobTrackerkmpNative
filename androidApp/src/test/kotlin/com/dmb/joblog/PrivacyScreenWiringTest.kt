@@ -5,10 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fous de l'écran « Politique de confidentialité » (lecture du source). Le texte VERBATIM lui-même est verrouillé
- * dans `PrivacyContentTest` (sharedLogic) : ici on vérifie seulement que l'écran ne fait que le mettre en forme.
- */
 class PrivacyScreenWiringTest {
 
     private fun read(vararg candidates: String): String = candidates.map(::File).first { it.exists() }.readText()
@@ -24,7 +20,6 @@ class PrivacyScreenWiringTest {
         assertTrue(privacyScreen.contains("content.sections"))
         assertTrue(privacyScreen.contains("content.documentTitle"))
         assertTrue(privacyScreen.contains("content.introText"))
-        // Aucun morceau du texte français verbatim ne doit être recopié dans l'écran (seul PrivacyContent.kt le porte).
         assertFalse(privacyScreen.contains("Résumé"))
         assertFalse(privacyScreen.contains("JobTracker"))
     }

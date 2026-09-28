@@ -1,6 +1,5 @@
 package com.dmb.joblog.di
 
-
 import com.dmb.joblog.domain.usecase.AddJobOfferUseCase
 import com.dmb.joblog.domain.usecase.DeleteAllJobOffersUseCase
 import com.dmb.joblog.domain.usecase.DeleteJobOfferUseCase

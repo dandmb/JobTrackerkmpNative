@@ -1,7 +1,6 @@
 import XCTest
 @testable import JobLog
 
-/// Garde-fous (lecture du source) : l'état « aucune candidature » a son icône « plateau vide » (tray) ; « aucun résultat de recherche » reste du texte seul.
 final class EmptyStateWiringTests: XCTestCase {
 
     private let source: String = {
@@ -29,7 +28,6 @@ final class EmptyStateWiringTests: XCTestCase {
 
     func test_searchWithNoResult_staysTextOnly() throws {
         let start = try XCTUnwrap(source.range(of: "Text(selectedStatuses.isEmpty ? L(\"list_no_results\""))
-        // Le bloc « aucun résultat » : de son texte jusqu'au ForEach des cartes qui suit.
         let end = try XCTUnwrap(source.range(of: "ForEach(visibleOffers)", range: start.upperBound..<source.endIndex))
         let block = String(source[start.lowerBound..<end.lowerBound])
 

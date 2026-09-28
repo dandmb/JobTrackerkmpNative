@@ -2,11 +2,8 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Pont Swift ↔ Kotlin du splash et de l'onboarding. La logique (persistance, contenu, gating) est testée dans sharedLogic
-/// (JVM + natif) ; ici on vérifie que Swift l'appelle correctement et que l'app la câble comme prévu.
-///
-/// NB : `completeOnboarding()` n'est volontairement PAS appelé : il écrirait dans les vraies préférences (NSUserDefaults)
-/// de l'app hôte sur le simulateur et ferait sauter l'onboarding au prochain lancement.
+/// NB : `completeOnboarding()` n'est volontairement jamais appelé ici : il écrirait dans les vraies préférences
+/// (NSUserDefaults) de l'app hôte sur le simulateur et ferait sauter l'onboarding au prochain lancement.
 final class OnboardingBridgeTests: XCTestCase {
 
     // MARK: KoinHelper / OnboardingViewModel
@@ -20,7 +17,6 @@ final class OnboardingBridgeTests: XCTestCase {
     }
 
     func test_onboardingViewModel_hasCompletedOnboarding_isReadableFromSwift() {
-        // La valeur dépend de l'état réel du simulateur : on vérifie seulement que l'appel aboutit et que deux lectures concordent.
         let viewModel = KoinHelper().onboardingViewModel()
 
         XCTAssertEqual(viewModel.hasCompletedOnboarding(), KoinHelper().onboardingViewModel().hasCompletedOnboarding())

@@ -1,9 +1,3 @@
-//
-//  JobOffer+Display.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
 import Foundation
 import SharedLogic
@@ -32,8 +26,6 @@ extension ApplicationStatus {
         }
     }
 
-    /// Libellé court AVEC le nombre (badges de la carte de statistiques : « 2 applied » / « 2 postulé »).
-    /// Règle du pluriel : `count > 1` → `_other`, sinon `_one` (identique à Android).
     func shortLabel(count: Int) -> String {
         let suffix = count > 1 ? "_other" : "_one"
         switch self {

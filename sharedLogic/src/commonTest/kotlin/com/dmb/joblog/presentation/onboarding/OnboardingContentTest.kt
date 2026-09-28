@@ -7,14 +7,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
-/** Contenu et règles de navigation de l'onboarding, communs à Android et iOS, dans les deux langues. */
 class OnboardingContentTest {
 
     private val fr = OnboardingContent.of(AppLanguage.FR)
     private val en = OnboardingContent.of(AppLanguage.EN)
     private val both = listOf(fr, en)
-
-    // ---------- contenu ----------
 
     @Test
     fun pages_areExactlyThree_inEachLanguage() {
@@ -74,8 +71,6 @@ class OnboardingContentTest {
             assertTrue(en.pages[1].description.contains(it), "« $it » absent de la page statuts (EN)")
         }
     }
-
-    // ---------- navigation (identique dans les deux langues) ----------
 
     @Test
     fun isLastPage_onlyTheThirdPage() {

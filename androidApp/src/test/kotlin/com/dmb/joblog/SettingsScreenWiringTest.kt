@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Garde-fous de l'écran « Réglages » (lecture du source, comme `AboutScreenWiringTest`). */
 class SettingsScreenWiringTest {
 
     private fun read(vararg candidates: String): String = candidates.map(::File).first { it.exists() }.readText()
@@ -32,7 +31,6 @@ class SettingsScreenWiringTest {
 
     @Test
     fun settingsScreen_usesTheStandardTheme_notExpressive() {
-        // Expressive reste limité à AboutScreen.kt/AppRoot.kt (voir AboutScreenWiringTest.expressive_…).
         listOf("MaterialExpressiveTheme", "MotionScheme.expressive", "LargeFlexibleTopAppBar").forEach {
             assertFalse(settingsScreen.contains(it), "« $it » ne doit pas apparaître dans l'écran Réglages")
         }

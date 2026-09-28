@@ -9,18 +9,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * Garde-fou d'accessibilité : les couleurs de statut servent de TEXTE (chip de la carte, badges de la carte stats).
- * Chacune doit atteindre WCAG AA (>= 4.5:1) sur les fonds où elle s'affiche, dans les deux modes.
- * Si quelqu'un modifie une couleur ou une opacité de teinte, ce test dit immédiatement si le contraste régresse.
- */
 class StatusColorsTest {
 
-    // Fonds Material 3 réellement utilisés (voir PROJECT_CONTEXT.md §4).
-    private val cardLight = Color(0xFFE6E0E9)      // surfaceContainerHighest, clair
-    private val cardDark = Color(0xFF36343B)       // surfaceContainerHighest, sombre
-    private val statsCardLight = TealContainerLight // primaryContainer, clair
-    private val statsCardDark = TealContainerDark   // primaryContainer, sombre
+    private val cardLight = Color(0xFFE6E0E9)
+    private val cardDark = Color(0xFF36343B)
+    private val statsCardLight = TealContainerLight
+    private val statsCardDark = TealContainerDark
 
     private fun contrast(a: Color, b: Color): Double {
         val la = a.luminance().toDouble()
@@ -64,7 +58,6 @@ class StatusColorsTest {
 
     @Test
     fun badgeTintAlpha_isLighterInDarkModeThanInLightMode() {
-        // Une teinte plus forte éclaircit le fond du badge et fait passer le texte sous 4.5:1 en sombre.
         assertEquals(0.16f, LightStatusPalette.badgeTintAlpha)
         assertEquals(0.08f, DarkStatusPalette.badgeTintAlpha)
         assertTrue(DarkStatusPalette.badgeTintAlpha < LightStatusPalette.badgeTintAlpha)
@@ -86,7 +79,6 @@ class StatusColorsTest {
 
     @Test
     fun contrastHelper_blackOnWhite_is21ToOne() {
-        // Vérifie l'outil de mesure lui-même (valeur de référence WCAG).
         assertEquals(21.0, contrast(Color.Black, Color.White), 0.01)
     }
 

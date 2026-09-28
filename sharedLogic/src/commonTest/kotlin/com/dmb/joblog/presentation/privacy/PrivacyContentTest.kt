@@ -5,11 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * Verrouille le texte français **verbatim** (fourni et validé par le propriétaire le 2026-09-27, identique au Gist
- * hébergé en ligne : `PrivacyContent.ONLINE_URL`). Si ce test échoue, quelqu'un a reformulé le texte : NE PAS corriger le
- * test pour le faire passer, restaurer le texte original ou obtenir un nouveau texte validé.
- */
 class PrivacyContentTest {
 
     private val fr = PrivacyContent.of(AppLanguage.FR)
@@ -119,8 +114,6 @@ class PrivacyContentTest {
 
     @Test
     fun contactEmail_matchesTheOneUsedElsewhereInTheApp() {
-        // Même adresse que AboutContent.CONTACT_EMAIL (pas de duplication de constante volontaire : modules différents,
-        // mais la valeur doit rester identique si l'un des deux change).
         assertEquals("bizwadan@gmail.com", PrivacyContent.CONTACT_EMAIL)
         assertTrue(fr.sections.last().intro!!.contains(PrivacyContent.CONTACT_EMAIL))
     }
@@ -128,8 +121,6 @@ class PrivacyContentTest {
     @Test
     fun englishText_existsForEverySection_andDiffersFromFrench() {
         assertEquals(8, en.sections.size)
-        // « 8. Contact » est identique dans les deux langues (mot anglais déjà utilisé tel quel en français, comme
-        // ailleurs dans le projet : app_name, ok…) : seul ce titre est dispensé de différer.
         val sameInBothLanguages = setOf("8. Contact")
         en.sections.zip(fr.sections).forEach { (enSection, frSection) ->
             assertTrue(enSection.title.isNotBlank())

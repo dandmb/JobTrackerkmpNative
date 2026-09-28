@@ -5,11 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fous (lecture du source) de la mise en page de l'écran principal Android. Défauts constatés à l'audit (police à
- * 200 %) et corrigés : la carte de statistiques ÉPINGLÉE mangeait jusqu'à ~60 % de l'écran ; une requête de recherche
- * résiduelle masquait l'état « aucune candidature ».
- */
 class ListLayoutWiringTest {
 
     private val source = listOf(
@@ -58,8 +53,6 @@ class ListLayoutWiringTest {
         assertTrue(effect.contains("searchQuery = \"\""))
         assertTrue(effect.contains("selectedStatuses = emptySet()"))
     }
-
-    // ---------- bouton d'effacement de la recherche ----------
 
     private val searchFieldBlock: String
         get() {

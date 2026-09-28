@@ -35,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import com.dmb.joblog.R
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 
-/** Nombre d'items placés AVANT les candidatures dans la LazyColumn (la carte de statistiques) : décale les index de défilement. */
 private const val STATS_ITEM_COUNT = 1
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,15 +49,12 @@ fun JobOfferListScreen(
     var searchQuery by remember { mutableStateOf("") }
     var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
-    // Filtre par statut : ensemble vide = « Tous » (aucun filtre actif, comportement inchangé).
     var selectedStatuses by remember { mutableStateOf<Set<ApplicationStatus>>(emptySet()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
-    // Offre qu'on vient de restaurer via « Annuler » : le LazyColumn garde en place le 1er élément visible quand
-    // un élément est inséré au-dessus, donc une carte restaurée en tête de liste réapparaîtrait hors écran.
     var restoredOfferId by remember { mutableStateOf<Long?>(null) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current      // getString dans la coroutine du snackbar (hors composition)
+    val context = LocalContext.current
     val language = rememberAppLanguage()
 
     val visibleOffers = remember(state.offers, searchQuery, sortOption, selectedStatuses) {
@@ -68,23 +64,19 @@ fun JobOfferListScreen(
     LaunchedEffect(restoredOfferId, state.offers, visibleOffers) {
         val id = restoredOfferId ?: return@LaunchedEffect
         when (val target = locateRestoredOffer(state.offers, visibleOffers, id)) {
-            RestoredOfferTarget.AwaitingData -> return@LaunchedEffect   // ré-ajout pas encore reflété par le flow
-            RestoredOfferTarget.HiddenBySearch -> Unit                  // filtrée par la recherche : rien à montrer
+            RestoredOfferTarget.AwaitingData -> return@LaunchedEffect
+            RestoredOfferTarget.HiddenBySearch -> Unit
             is RestoredOfferTarget.InList -> {
-                withFrameNanos { }                  // laisse le LazyColumn mesurer avec l'offre ré-insérée
+                withFrameNanos { }
                 val layoutInfo = listState.layoutInfo
                 val bounds = layoutInfo.visibleItemsInfo.firstOrNull { it.key == id }
                     ?.let { ItemBounds(it.offset, it.size) }
                 if (!isItemFullyVisible(bounds, layoutInfo.viewportEndOffset)) listState.animateScrollToItem(target.index + STATS_ITEM_COUNT)
             }
         }
-        // En dernier : restoredOfferId est une clé de cet effet, le remettre à null plus tôt l'annulerait
         restoredOfferId = null
     }
 
-    // Sans candidature, le champ de recherche et la rangée de filtre sont masqués : on efface requête et filtre pour
-    // qu'ils ne masquent pas en silence les futures candidatures (ni l'état « aucune candidature » derrière un message
-    // « aucun résultat »).
     LaunchedEffect(state.offers.isEmpty()) {
         if (state.offers.isEmpty()) {
             searchQuery = ""
@@ -92,11 +84,9 @@ fun JobOfferListScreen(
         }
     }
 
-    // Le menu de tri disparaît avec la dernière candidature : on referme son état pour qu'il ne se rouvre pas tout seul
-    // quand une candidature sera de nouveau ajoutée.
     LaunchedEffect(state.offers.isEmpty()) { if (state.offers.isEmpty()) sortMenuExpanded = false }
 
-    StatusBarIconsForPrimaryTopBar()   // icônes de la barre d'état lisibles sur la barre teal (surtout en thème sombre)
+    StatusBarIconsForPrimaryTopBar()
 
     Scaffold(
         topBar = {
@@ -106,9 +96,6 @@ fun JobOfferListScreen(
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Outlined.Settings, contentDescription = SettingsContent.of(language).entryPointLabel)
                     }
-                    // Trier n'a de sens que s'il existe au moins une candidature (state.offers = TOUTES les offres).
-                    // On teste donc `state.offers`, PAS `visibleOffers` : une recherche sans résultat alors que des
-                    // candidatures existent laisse l'action de tri visible.
                     if (state.offers.isNotEmpty()) {
                         Box {
                             IconButton(onClick = { sortMenuExpanded = true }) {
@@ -141,23 +128,18 @@ fun JobOfferListScreen(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
             ) {
-                // Icône (et non un « + » textuel) : TalkBack annonce « Ajouter une candidature » au lieu de « plus »
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.list_add))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // Seule la recherche reste épinglée en haut (comme sur iOS : barre de recherche sous le titre). La carte de
-            // statistiques défile AVEC la liste : épinglée, elle occupait jusqu'à ~60 % de l'écran en police agrandie / petit écran.
             if (state.offers.isNotEmpty()) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = { Text(stringResource(R.string.list_search_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    // N'efface QUE la recherche : le filtre de statut (StatusFilterRow, selectedStatuses) est indépendant
-                    // et n'est jamais touché ici. Masqué à vide pour ne pas occuper de place inutilement.
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { searchQuery = "" }) {
@@ -175,9 +157,8 @@ fun JobOfferListScreen(
                 )
             }
 
-            // fillMaxWidth OBLIGATOIRE : dans une Column, un enfant à `weight(1f)` reçoit toute la hauteur restante mais sa
-            // LARGEUR reste celle de son contenu (wrap). Sans elle, `Modifier.align(Alignment.Center)` des enfants ne centre que
-            // dans un Box aussi large que le texte, donc collé au bord gauche (« Aucun résultat pour… », indicateur de chargement).
+            // fillMaxWidth nécessaire : sans elle, un enfant `weight(1f)` d'une Column garde la largeur de son
+            // contenu, et `Alignment.Center` ne centre alors que dans une boîte aussi large que le texte.
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 when {
                     state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -186,17 +167,11 @@ fun JobOfferListScreen(
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
-                            // Marge basse : le FAB (56 dp + 16 dp de marge) ne doit pas masquer la dernière carte
                             contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 88.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            // Item 0 : statistiques sur TOUTES les offres (pas filtrées), défile avec la liste
                             item(key = "stats") { JobOfferStatsCard(offers = state.offers) }
                             if (visibleOffers.isEmpty()) {
-                                // Recherche et/ou filtre de statut actifs sans résultat, alors que des candidatures existent.
-                                // Priorité au message de filtre dès qu'un statut est sélectionné (avec ou sans recherche en
-                                // cours) : c'est le contrôle le plus récent et le moins visible en un coup d'œil, donc celui
-                                // que l'utilisateur risque le plus d'oublier avoir activé.
                                 item(key = "no-results") {
                                     Text(
                                         if (selectedStatuses.isNotEmpty()) stringResource(R.string.list_no_results_filter)
@@ -213,7 +188,6 @@ fun JobOfferListScreen(
                                     onDelete = {
                                         viewModel.onDeleteOffer(offer)
                                         scope.launch {
-                                            // Suppression sans confirmation : on offre une annulation (guidelines M3)
                                             snackbarHostState.currentSnackbarData?.dismiss()
                                             val result = snackbarHostState.showSnackbar(
                                                 message = context.getString(R.string.list_deleted_snackbar, offer.title),
@@ -221,7 +195,7 @@ fun JobOfferListScreen(
                                                 duration = SnackbarDuration.Long
                                             )
                                             if (result == SnackbarResult.ActionPerformed) {
-                                                viewModel.onRestoreOffer(offer)   // mêmes valeurs qu'avant, createdAt compris : retrouve SA place dans la liste
+                                                viewModel.onRestoreOffer(offer)
                                                 restoredOfferId = offer.id
                                             }
                                         }
@@ -240,7 +214,6 @@ fun JobOfferListScreen(
             }
         }
     }
-
 
     if (showAddSheet) {
         JobOfferFormSheet(
@@ -272,8 +245,6 @@ private fun EmptyOffersMessage() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Plateau/boîte vide : l'icône conventionnelle de l'état vide (équivalent SF Symbols : `tray`).
-        // Décorative (le titre dit déjà « Aucune candidature ») : pas de contentDescription, donc ignorée par TalkBack
         Icon(
             Icons.Outlined.Inbox,
             contentDescription = null,
@@ -281,8 +252,6 @@ private fun EmptyOffersMessage() {
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(16.dp))
-        // textAlign Center : sans lui, un texte qui passe sur 2 lignes (police agrandie, petit écran) s'aligne à gauche
-        // à l'intérieur de sa colonne centrée (comme le fait `.multilineTextAlignment(.center)` sur iOS)
         Text(stringResource(R.string.list_empty_title), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(8.dp))
         Text(

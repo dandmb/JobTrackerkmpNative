@@ -1,21 +1,13 @@
-//
-//  OnboardingView.swift
-//  iosApp
-//
 
 import SwiftUI
 import SharedLogic
 
-/// Onboarding en 3 pages. Contenu et règles de navigation communs à Android : `OnboardingContent` (sharedLogic).
-/// « Passer » et « Commencer » appellent tous deux `onFinished` ; « Suivant » passe à la page suivante.
 struct OnboardingView: View {
     let onFinished: () -> Void
 
     @State private var page = 0
 
     private let content = OnboardingContent.companion.of(language: AppLanguage.current)
-    // Capture d'écran de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques. Remplace
-    // les icônes (SF Symbols / logo de marque en page 1) par de vraies captures de l'app.
     // ⚠️ À régénérer si l'UI des écrans montrés change.
     private let images = ["Onboarding1", "Onboarding2", "Onboarding3"]
 
@@ -24,7 +16,6 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // « Passer » : réserve la place sur la dernière page pour éviter un saut de mise en page
             HStack {
                 Spacer()
                 if content.showsSkip(index: Int32(page)) {
@@ -36,7 +27,6 @@ struct OnboardingView: View {
             }
             .frame(height: 44)
 
-            // .page : balayage horizontal ; les indicateurs sont dessinés à la main (mêmes que sur Android, couleurs de la marque)
             TabView(selection: $page) {
                 ForEach(0..<pageCount, id: \.self) { index in
                     OnboardingPageView(
@@ -84,8 +74,6 @@ private struct OnboardingPageView: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            // Capture d'écran réelle de l'app, présentée comme une petite carte (coins arrondis + ombre légère), pas en
-            // plein cadre : elle garde son ratio d'origine (largeur bornée, la hauteur suit).
             Image(imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -93,7 +81,7 @@ private struct OnboardingPageView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color.outlineVariant, lineWidth: 1))
                 .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-                .accessibilityHidden(true)      // décorative : le titre porte le sens
+                .accessibilityHidden(true)
             Text(title)
                 .appTextStyle(.headlineSmall)
                 .foregroundStyle(Color.onAppBackground)

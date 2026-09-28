@@ -1,9 +1,3 @@
-//
-//  JobOfferFormSheet.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
 import SwiftUI
 import SharedLogic
@@ -45,7 +39,6 @@ struct JobOfferFormSheet: View {
 
     private var isEditing: Bool { existingOffer != nil }
 
-    // Validation partagée (sharedLogic) : Enregistrer n'est actif que si `isValid` ; `errorMessage` (salaire max sans min) est affiché
     private var validation: FormValidation {
         JobOfferFormLogic.shared.validate(title: title, company: company, salaryMin: salaryMin, salaryMax: salaryMax, language: AppLanguage.current)
     }
@@ -65,7 +58,6 @@ struct JobOfferFormSheet: View {
 
                 Section {
                     HStack {
-                        // Même filtre de saisie que sur Android (4 chiffres, non-chiffres retirés) : règle partagée
                         TextField("form_salary_min_short", text: $salaryMin)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMin) { old, new in
@@ -80,7 +72,6 @@ struct JobOfferFormSheet: View {
                 } header: {
                     Text("form_section_salary")
                 } footer: {
-                    // Message de validation en pied de section (convention SwiftUI/HIG), lu par VoiceOver avec la section
                     if let message = validation.errorMessage {
                         Text(message).foregroundStyle(.red)
                     }

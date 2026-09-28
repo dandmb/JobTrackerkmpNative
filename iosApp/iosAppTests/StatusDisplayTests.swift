@@ -136,7 +136,6 @@ final class StatusDisplayTests: XCTestCase {
     }
 
     func test_contrastHelper_blackOnWhite_is21ToOne() {
-        // Vérifie l'outil de mesure lui-même (valeur de référence WCAG).
         XCTAssertEqual(contrast((0, 0, 0), (1, 1, 1)), 21.0, accuracy: 0.01)
     }
 }

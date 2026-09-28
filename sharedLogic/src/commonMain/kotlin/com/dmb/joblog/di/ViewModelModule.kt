@@ -1,6 +1,5 @@
 package com.dmb.joblog.di
 
-
 import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
 import org.koin.dsl.module

@@ -1,9 +1,3 @@
-//
-//  JobOfferListView.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 18/09/2026.
-//
 
 import Foundation
 import SwiftUI
@@ -42,8 +36,6 @@ class JobOfferListObservable: ObservableObject {
     }
 }
 
-
-
 extension JobOffer: @retroactive Identifiable {}
 
 struct JobOfferListView: View {
@@ -53,7 +45,6 @@ struct JobOfferListView: View {
     @State private var offerPendingDeletion: JobOffer?
     @State private var searchQuery = ""
     @State private var sortOption: SortOption = .dateDesc
-    // Filtre par statut : ensemble vide = « Tous » (aucun filtre actif, comportement inchangé).
     @State private var selectedStatuses: Set<ApplicationStatus> = []
 
     init(viewModel: JobOfferListViewModel) {
@@ -71,10 +62,6 @@ struct JobOfferListView: View {
                         if observable.state.isLoading {
                             ProgressView()
                         } else if observable.state.offers.isEmpty {
-                            // Liste RÉELLEMENT vide (aucune candidature). Ne jamais réutiliser pour « aucun résultat de recherche » :
-                            // ce cas reste un simple texte (voir « Aucun résultat pour… » plus bas). Miroir de EmptyOffersMessage
-                            // (JobOfferListScreen.kt : icône Inbox) ; SF Symbol « tray » (plateau vide) : icône conventionnelle de l'état vide
-                            // (l'exemple « No Mail » d'Apple utilise `tray.fill`).
                             ContentUnavailableView {
                                 Label {
                                     Text("list_empty_title")
@@ -102,16 +89,11 @@ struct JobOfferListView: View {
                                 Section {
                                     JobOfferStatsCard(offers: observable.state.offers)
                                 }
-                                // Marge extérieure de la carte stats : 16 sur les côtés (comme Android : Column.padding(16.dp))
-                                // et 8 + 4 (marge haute des cartes suivantes) = 12 d'écart (Android : spacedBy(12.dp)).
-                                // Avant : EdgeInsets() à zéro → carte collée aux bords de l'écran et à la 1re candidature.
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
 
                                 if visibleOffers.isEmpty {
-                                    // Priorité au message de filtre dès qu'un statut est sélectionné (avec ou sans recherche en
-                                    // cours) : voir JobOfferListScreen.kt (Android) pour la justification du choix, identique ici.
                                     Text(selectedStatuses.isEmpty ? L("list_no_results", searchQuery) : L("list_no_results_filter"))
                                         .appTextStyle(.bodyLarge)
                                         .foregroundStyle(Color.onSurfaceVariant)
@@ -131,7 +113,7 @@ struct JobOfferListView: View {
                                         .listRowBackground(Color.clear)
                                         .swipeActions(edge: .trailing) {
                                             Button(role: .destructive) {
-                                                offerPendingDeletion = offer   // confirmation avant suppression (voir confirmationDialog)
+                                                offerPendingDeletion = offer
                                             } label: {
                                                 Label("delete_action", systemImage: "trash")
                                             }
@@ -140,10 +122,8 @@ struct JobOfferListView: View {
                                 }
                             }
                             .listStyle(.plain)
-                            .scrollContentBackground(.hidden)   // laisse voir le fond appBackground (Scaffold Android)
-                            // Marge basse : le FAB (56 pt + 20 pt de marge) ne doit pas masquer la dernière carte
+                            .scrollContentBackground(.hidden)
                             .contentMargins(.bottom, 88, for: .scrollContent)
-                            // Force la recherche SOUS le titre, comportement classique et prévisible
                             .searchable(
                                 text: $searchQuery,
                                 placement: .navigationBarDrawer(displayMode: .always),
@@ -151,10 +131,9 @@ struct JobOfferListView: View {
                             )
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)   // l'état vide doit remplir l'écran (le FAB reste en bas à droite)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     Button(action: { showingAddSheet = true }) {
-                        // FAB : secondary / onSecondary (Android : Icon Add)
                         Image(systemName: "plus")
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundStyle(Color.onCoralSecondary)
@@ -166,7 +145,7 @@ struct JobOfferListView: View {
                     .padding(20)
                     .accessibilityLabel("list_add")
                 }
-                .background(Color.appBackground.ignoresSafeArea())   // Scaffold : colorScheme.background
+                .background(Color.appBackground.ignoresSafeArea())
                 .navigationTitle("list_title")
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
@@ -178,9 +157,6 @@ struct JobOfferListView: View {
                         }
                         .accessibilityLabel(SettingsContent.companion.of(language: AppLanguage.current).entryPointLabel)
                     }
-                    // Trier n'a de sens que s'il existe au moins une candidature (`state.offers` = TOUTES les offres).
-                    // On teste donc `state.offers`, PAS `visibleOffers` : une recherche sans résultat alors que des
-                    // candidatures existent laisse l'action de tri visible.
                     if !observable.state.offers.isEmpty {
                         ToolbarItem(placement: .primaryAction) {
                             Menu {
@@ -195,9 +171,7 @@ struct JobOfferListView: View {
                     }
                 }
             }
-            .tint(Color.tealPrimary)   // remplace toolbarBackground/toolbarColorScheme
-            // Sans candidature, la rangée de filtre disparaît avec la liste : on efface la sélection pour qu'elle ne masque
-            // pas en silence les futures candidatures (miroir de la remise à zéro de searchQuery, JobOfferListScreen.kt Android).
+            .tint(Color.tealPrimary)
             .onChange(of: observable.state.offers.isEmpty) { _, isEmpty in
                 if isEmpty { selectedStatuses = [] }
             }

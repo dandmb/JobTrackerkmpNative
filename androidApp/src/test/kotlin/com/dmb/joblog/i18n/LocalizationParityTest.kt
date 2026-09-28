@@ -4,11 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/**
- * Parité Android ↔ iOS : les libellés présents sur les DEUX plateformes ont exactement le même texte dans chaque langue
- * (un même mot ne doit pas diverger entre `strings.xml` et `Localizable.strings` — ce qui est déjà arrivé avec les formulaires).
- * Les clés propres à une plateforme (snackbar Android, dialogue et champs iOS…) sont volontairement hors comparaison.
- */
 class LocalizationParityTest {
 
     private val androidOnly = setOf("app_name", "ok", "list_deleted_snackbar", "form_field_salary_min", "form_field_salary_max",

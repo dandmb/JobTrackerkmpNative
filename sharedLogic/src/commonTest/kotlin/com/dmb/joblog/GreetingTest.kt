@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/** Code hérité du template KMP (utilisé seulement par l'écran de démonstration `ContentView.swift`). */
 class GreetingTest {
 
     @Test

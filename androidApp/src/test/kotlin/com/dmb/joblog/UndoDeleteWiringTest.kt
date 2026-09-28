@@ -5,11 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fou (lecture du source) : le « Annuler » du snackbar de suppression passe par `onRestoreOffer` (qui conserve
- * `createdAt` donc la position dans la liste) et non par `onAddOffer` (qui horodate à l'instant présent : la candidature
- * remontait en tête de liste). Défaut constaté et corrigé.
- */
 class UndoDeleteWiringTest {
 
     private val source = listOf(

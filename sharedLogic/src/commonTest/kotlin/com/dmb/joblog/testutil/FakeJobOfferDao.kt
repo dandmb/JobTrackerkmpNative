@@ -6,11 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
-/**
- * DAO en mémoire reproduisant les contrats de Room : `insert` avec id auto-généré quand id == 0 et
- * `OnConflictStrategy.REPLACE`, `update` / `delete` par clé primaire, `getAll` trié par `createdAtEpochMillis`
- * décroissant.
- */
 internal class FakeJobOfferDao : JobOfferDao {
 
     val entities = MutableStateFlow<List<JobOfferEntity>>(emptyList())
