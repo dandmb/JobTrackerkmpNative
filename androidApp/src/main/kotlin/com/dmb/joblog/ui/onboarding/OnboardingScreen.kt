@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -102,17 +103,19 @@ fun OnboardingScreen(onFinished: () -> Unit) {
 @Composable
 private fun OnboardingPageContent(imageRes: Int, title: String, description: String) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        val painter = painterResource(imageRes)
         Image(
-            painterResource(imageRes),
+            painter,
             contentDescription = null,
-            contentScale = ContentScale.FillWidth,
+            contentScale = ContentScale.Fit,
             modifier = Modifier
-                .widthIn(max = 280.dp)
-                .fillMaxWidth()
+                .weight(1f, fill = false)
+                .widthIn(max = 320.dp)
+                .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(20.dp))
                 .clip(RoundedCornerShape(20.dp))
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp)),
