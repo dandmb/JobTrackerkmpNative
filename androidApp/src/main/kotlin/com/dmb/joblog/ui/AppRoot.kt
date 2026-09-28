@@ -20,42 +20,53 @@ import com.dmb.joblog.presentation.onboarding.OnboardingViewModel
 import com.dmb.joblog.ui.about.AboutScreen
 import com.dmb.joblog.ui.joboffer.JobOfferListScreen
 import com.dmb.joblog.ui.onboarding.OnboardingScreen
+import com.dmb.joblog.ui.privacy.PrivacyScreen
+import com.dmb.joblog.ui.settings.SettingsScreen
 
-/**
- * Racine de l'app : onboarding au premier lancement, sinon liste directement. Les deux ViewModels sont créés UNE fois par
- * `MainActivity` (le même `jobOfferListViewModel` sert au splash et à l'écran de liste : pas de double chargement).
- * L'écran « À propos » se superpose à la liste (qui reste composée dessous : recherche, tri et défilement sont conservés).
- */
+private enum class OverlayScreen { NONE, SETTINGS, ABOUT, PRIVACY }
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppRoot(
     jobOfferListViewModel: JobOfferListViewModel,
     onboardingViewModel: OnboardingViewModel,
 ) {
-    // Lu une seule fois ; sauvegardé pour survivre à une rotation pendant l'onboarding.
     var showOnboarding by rememberSaveable { mutableStateOf(!onboardingViewModel.hasCompletedOnboarding()) }
-    var showAbout by rememberSaveable { mutableStateOf(false) }
+    var overlay by rememberSaveable { mutableStateOf(OverlayScreen.NONE) }
 
     Crossfade(targetState = showOnboarding, label = "onboardingToMain") { onboarding ->
         if (onboarding) {
             OnboardingScreen(
                 onFinished = {
-                    onboardingViewModel.completeOnboarding()   // « Passer » comme « Commencer » : ne plus le montrer
-                    showOnboarding = false                     // navigation sans redémarrer l'app
+                    onboardingViewModel.completeOnboarding()
+                    showOnboarding = false
                 }
             )
         } else {
             Box {
-                JobOfferListScreen(viewModel = jobOfferListViewModel, onOpenAbout = { showAbout = true })
-                // Motion Material 3 Expressive (ressorts) pour l'ouverture / fermeture de « À propos » uniquement.
+                JobOfferListScreen(viewModel = jobOfferListViewModel, onOpenSettings = { overlay = OverlayScreen.SETTINGS })
                 val motion = MotionScheme.expressive()
                 AnimatedVisibility(
-                    visible = showAbout,
+                    visible = overlay != OverlayScreen.NONE,
                     enter = slideInHorizontally(animationSpec = motion.defaultSpatialSpec()) { it } + fadeIn(motion.defaultEffectsSpec()),
                     exit = slideOutHorizontally(animationSpec = motion.defaultSpatialSpec()) { it } + fadeOut(motion.defaultEffectsSpec()),
                 ) {
-                    BackHandler { showAbout = false }
-                    AboutScreen(onBack = { showAbout = false })
+                    BackHandler {
+                        overlay = when (overlay) {
+                            OverlayScreen.ABOUT, OverlayScreen.PRIVACY -> OverlayScreen.SETTINGS
+                            else -> OverlayScreen.NONE
+                        }
+                    }
+                    when (overlay) {
+                        OverlayScreen.SETTINGS -> SettingsScreen(
+                            onBack = { overlay = OverlayScreen.NONE },
+                            onOpenAbout = { overlay = OverlayScreen.ABOUT },
+                            onOpenPrivacy = { overlay = OverlayScreen.PRIVACY },
+                        )
+                        OverlayScreen.ABOUT -> AboutScreen(onBack = { overlay = OverlayScreen.SETTINGS })
+                        OverlayScreen.PRIVACY -> PrivacyScreen(onBack = { overlay = OverlayScreen.SETTINGS })
+                        OverlayScreen.NONE -> Unit
+                    }
                 }
             }
         }

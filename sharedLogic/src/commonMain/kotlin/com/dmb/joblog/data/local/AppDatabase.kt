@@ -9,7 +9,6 @@ import com.dmb.joblog.data.local.converter.Converters
 import com.dmb.joblog.data.local.dao.JobOfferDao
 import com.dmb.joblog.data.local.entity.JobOfferEntity
 
-
 @Database(entities = [JobOfferEntity::class], version = 2, exportSchema = true)
 @TypeConverters(Converters::class)
 @ConstructedBy(AppDatabaseConstructor::class)

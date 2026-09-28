@@ -26,7 +26,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Même principe que `JobOfferListViewModelTest` : `Dispatchers.Main` remplacé par un `StandardTestDispatcher`. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class AboutViewModelTest {
 
@@ -51,8 +50,6 @@ class AboutViewModelTest {
         onDeleteAllFinalConfirmed()
     }
 
-    // ---------- état initial ----------
-
     @Test
     fun initialState_isIdleWithNothingDeletedAndNoError() {
         assertEquals(AboutState(), viewModel.state.value)
@@ -61,8 +58,6 @@ class AboutViewModelTest {
         assertFalse(viewModel.state.value.dataDeleted)
         assertFalse(viewModel.state.value.deletionFailed)
     }
-
-    // ---------- double confirmation ----------
 
     @Test
     fun onDeleteAllRequested_opensTheFirstConfirmationWithoutDeletingAnything() = runTest {
@@ -145,8 +140,6 @@ class AboutViewModelTest {
 
         assertEquals(0, repository.deleteAllCalls)
     }
-
-    // ---------- suppression ----------
 
     @Test
     fun fullConfirmation_emptiesTheRepositoryAndReportsSuccess() = runTest {

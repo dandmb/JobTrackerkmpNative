@@ -29,7 +29,7 @@ import com.dmb.joblog.ui.i18n.rememberAppLanguage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JobOfferFormSheet(
-    existingOffer: JobOffer? = null,   // null = mode ajout, sinon mode édition
+    existingOffer: JobOffer? = null,
     onDismiss: () -> Unit,
     onSave: (JobOffer) -> Unit
 ) {
@@ -50,8 +50,6 @@ fun JobOfferFormSheet(
     var salaryMin by remember { mutableStateOf(initialSalary.min) }
     var salaryMax by remember { mutableStateOf(initialSalary.max) }
 
-
-    // Validation partagée (sharedLogic) : Enregistrer n'est actif que si `isValid` ; `errorMessage` (salaire max sans min) est affiché
     val validation = JobOfferFormLogic.validate(title, company, salaryMin, salaryMax, rememberAppLanguage())
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -163,7 +161,7 @@ fun JobOfferFormSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp)
-                        .semantics { liveRegion = LiveRegionMode.Polite }   // annoncé par TalkBack dès qu'il apparaît
+                        .semantics { liveRegion = LiveRegionMode.Polite }
                 )
             }
             Button(
@@ -207,9 +205,8 @@ private fun DatePickerField(
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
-    // Ouverture du sélecteur au TAP SUR LE CHAMP lui-même (et non via une couche transparente superposée) : une couche
-    // décalée par `offset` gardait sa place dans la mise en page (56 dp d'espace en trop sous chaque champ de date) et
-    // interceptait aussi les taps du bouton « Effacer », qui ouvrait le sélecteur au lieu d'effacer la date.
+    // Sélecteur ouvert par le tap sur le champ lui-même : une couche transparente superposée (offset) ajoutait de
+    // l'espace en trop sous le champ et interceptait aussi les taps du bouton « Effacer ».
     val interactionSource = remember { MutableInteractionSource() }
     LaunchedEffect(interactionSource) {
         interactionSource.interactions.collect { if (it is PressInteraction.Release) showPicker = true }

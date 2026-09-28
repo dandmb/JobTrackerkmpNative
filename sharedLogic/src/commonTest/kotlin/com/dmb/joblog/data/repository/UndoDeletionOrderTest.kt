@@ -10,17 +10,12 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
-/**
- * « Annuler » une suppression : la candidature doit retrouver EXACTEMENT sa position dans la liste triée par date de création
- * décroissante, avec tous ses champs (dont `createdAt`) inchangés. Repository de production sur DAO fake qui reproduit le tri.
- */
 class UndoDeletionOrderTest {
 
     private val dao = FakeJobOfferDao()
     private val repository = JobOfferRepositoryImpl(dao)
     private val deleteJobOffer = DeleteJobOfferUseCase(repository)
 
-    /** 5 offres A..E, de la plus récente (A) à la plus ancienne (E) : ids 1..5, createdAt 5000..1000. */
     private val originals = listOf("A", "B", "C", "D", "E").mapIndexed { i, title ->
         jobOfferEntity(
             id = (i + 1).toLong(), title = title, company = "Société $title", location = "Ville $title", source = "Source $title",
@@ -79,7 +74,7 @@ class UndoDeletionOrderTest {
         val a = deleteJobOffer(all.first { it.title == "A" })
         assertEquals(listOf("C", "E"), titles())
 
-        deleteJobOffer.restore(d)   // ordre d'annulation ≠ ordre de suppression
+        deleteJobOffer.restore(d)
         assertEquals(listOf("C", "D", "E"), titles())
         deleteJobOffer.restore(a)
         assertEquals(listOf("A", "C", "D", "E"), titles())
@@ -107,7 +102,7 @@ class UndoDeletionOrderTest {
         val c = repository.getAll().first().first { it.title == "C" }
         repository.delete(c)
 
-        repository.add(c)   // ancien comportement de « Annuler » : createdAt = maintenant
+        repository.add(c)
 
         assertEquals("C", titles().first(), "ancien défaut : la candidature remonte en tête")
         assertNotEquals(3_000L, dao.entities.value.first { it.id == c.id }.createdAtEpochMillis)

@@ -12,8 +12,6 @@ import kotlin.test.assertTrue
 
 class JobOfferMapperTest {
 
-    // ---------- toDomain ----------
-
     @Test
     fun toDomain_fullEntity_mapsEveryField() {
         val entity = jobOfferEntity(
@@ -96,8 +94,6 @@ class JobOfferMapperTest {
         assertEquals(" ", domain.notes)
     }
 
-    // ---------- toEntity ----------
-
     @Test
     fun toEntity_fullOffer_mapsEveryField() {
         val offer = jobOffer(
@@ -142,7 +138,6 @@ class JobOfferMapperTest {
 
     @Test
     fun toEntity_withExistingCreatedAtZero_preservesZeroInsteadOfUsingNow() {
-        // 0 est une valeur légitime : elle ne doit pas être traitée comme « absente ».
         assertEquals(0L, jobOffer().toEntity(existingCreatedAt = 0).createdAtEpochMillis)
     }
 
@@ -174,8 +169,6 @@ class JobOfferMapperTest {
     fun toEntity_newOfferWithZeroId_keepsZeroSoRoomCanGenerateOne() {
         assertEquals(0L, jobOffer(id = 0).toEntity().id)
     }
-
-    // ---------- aller-retour ----------
 
     @Test
     fun roundTrip_domainToEntityToDomain_isLossless() {

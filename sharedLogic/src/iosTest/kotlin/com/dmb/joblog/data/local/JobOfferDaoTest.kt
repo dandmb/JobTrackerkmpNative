@@ -14,7 +14,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Tests du DAO contre un VRAI SQLite en mémoire (les requêtes `@Query` sont réellement exécutées). */
 internal class JobOfferDaoTest {
 
     private lateinit var database: AppDatabase
@@ -30,8 +29,6 @@ internal class JobOfferDaoTest {
     fun tearDown() {
         database.close()
     }
-
-    // ---------- insert ----------
 
     @Test
     fun insert_newEntity_returnsAGeneratedPositiveId() = runTest {
@@ -102,14 +99,10 @@ internal class JobOfferDaoTest {
         assertEquals("V2", rows.single().title)
     }
 
-    // ---------- getById ----------
-
     @Test
     fun getById_unknownId_returnsNull() = runTest {
         assertNull(dao.getById(999))
     }
-
-    // ---------- getAll ----------
 
     @Test
     fun getAll_emptyTable_emitsEmptyList() = runTest {
@@ -147,8 +140,6 @@ internal class JobOfferDaoTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
-
-    // ---------- getByStatus ----------
 
     @Test
     fun getByStatus_mixedStatuses_returnsOnlyTheMatchingRowsMostRecentFirst() = runTest {
@@ -192,8 +183,6 @@ internal class JobOfferDaoTest {
         }
     }
 
-    // ---------- deleteAll ----------
-
     @Test
     fun deleteAll_severalRowsOfEveryStatus_leavesTheTableEmpty() = runTest {
         ApplicationStatus.entries.forEach { dao.insert(jobOfferEntity(title = it.name, status = it)) }
@@ -236,8 +225,6 @@ internal class JobOfferDaoTest {
         }
     }
 
-    // ---------- update ----------
-
     @Test
     fun update_existingRow_changesEveryColumn() = runTest {
         val id = dao.insert(jobOfferEntity(title = "V1", status = ApplicationStatus.APPLIED))
@@ -275,8 +262,6 @@ internal class JobOfferDaoTest {
 
         assertEquals("B", dao.getById(second)?.title)
     }
-
-    // ---------- delete ----------
 
     @Test
     fun delete_existingRow_removesOnlyThatRow() = runTest {

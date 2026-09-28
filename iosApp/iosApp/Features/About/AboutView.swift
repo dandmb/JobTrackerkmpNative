@@ -1,13 +1,8 @@
-//
-//  AboutView.swift
-//  iosApp
-//
 
 import SwiftUI
 import SharedLogic
 import KMPNativeCoroutinesAsync
 
-/// Observe `AboutViewModel` (même principe que `JobOfferListObservable`) et annule son scope à la disparition de l'écran.
 @MainActor
 final class AboutObservable: ObservableObject {
     let viewModel: AboutViewModel
@@ -32,14 +27,16 @@ final class AboutObservable: ObservableObject {
         task?.cancel()
         viewModel.onCleared()
     }
+
+    // iOS 26 ferme le dialogue APRÈS l'action du bouton, avant que `state` (copie asynchrone) ne soit rafraîchi :
+    // la décision doit lire l'état réel du ViewModel, sinon « Continue » est aussitôt annulé.
+    func firstConfirmationDismissed() {
+        if viewModel.state.deleteStep == .firstConfirmation { viewModel.onDeleteAllCancelled() }
+    }
 }
 
-/// Écran « À propos ». Tout le texte vient de `AboutContent` (sharedLogic) : cet écran ne fait que le mettre en forme.
-/// La suppression totale passe par la double confirmation portée par `AboutViewModel`
-/// (1re étape : `confirmationDialog` ; étape finale : `alert`).
 struct AboutView: View {
     @StateObject private var observable = AboutObservable()
-    /// L'alerte finale est présentée avec un léger délai : présenter un 2e dialogue pendant la fermeture du 1er est ignoré par UIKit.
     @State private var showFinalAlert = false
     @State private var noMailApp = false
     @Environment(\.openURL) private var openURL
@@ -57,6 +54,7 @@ struct AboutView: View {
                 }
                 deleteAllBlock
                 contactBlock
+                linkedinBlock
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 20)
@@ -69,8 +67,7 @@ struct AboutView: View {
             content.firstConfirmation.title,
             isPresented: Binding(
                 get: { step == .firstConfirmation },
-                // Fermeture sans bouton (tap à côté) = annulation ; après « Continuer » l'étape a déjà changé : rien à annuler.
-                set: { if !$0 && step == .firstConfirmation { observable.viewModel.onDeleteAllCancelled() } }
+                set: { if !$0 { observable.firstConfirmationDismissed() } }
             ),
             titleVisibility: .visible
         ) {
@@ -109,7 +106,7 @@ struct AboutView: View {
 
     private var header: some View {
         HStack(spacing: 16) {
-            JobLogBrandTile(size: 72)   // logo de marque (parité avec la pastille de l'écran Android)
+            JobLogBrandTile(size: 72)
             VStack(alignment: .leading, spacing: 4) {
                 Text(AboutContent.companion.APP_NAME)
                     .appTextStyle(.headlineSmall)
@@ -147,7 +144,6 @@ struct AboutView: View {
         }
     }
 
-    /// Zone d'alerte : fond teinté d'erreur, bouton destructif — clairement distincte du reste de l'écran.
     private var deleteAllBlock: some View {
         let state = observable.state
         let message = state.deletionFailed ? content.deleteAllFailedMessage : (state.dataDeleted ? content.deleteAllSuccessMessage : nil)
@@ -181,8 +177,6 @@ struct AboutView: View {
         .background(Color.errorBase.opacity(0.14), in: RoundedRectangle(cornerRadius: 16))
     }
 
-    /// Lien de contact : ouvre l'application de messagerie (lien mailto + objet pré-rempli, définis dans sharedLogic).
-    /// Si aucune application ne peut l'ouvrir, l'adresse s'affiche en clair.
     private var contactBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(content.contactTitle)
@@ -220,5 +214,21 @@ struct AboutView: View {
             return
         }
         openURL(url) { accepted in noMailApp = !accepted }
+    }
+
+    private var linkedinBlock: some View {
+        Button {
+            if let url = URL(string: AboutContent.companion.LINKEDIN_URL) { openURL(url) }
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: "link")
+                Text(content.linkedinLabel).appTextStyle(.titleMedium).underline()
+            }
+            .foregroundStyle(Color.tealPrimary)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(content.linkedinHint)
     }
 }

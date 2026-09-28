@@ -3,11 +3,6 @@ package com.dmb.joblog.i18n
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-/**
- * Garde-fou : aucun texte utilisateur français codé en dur dans le code Android. Les libellés viennent de `strings.xml`
- * (`stringResource`) ou du contenu partagé (`AboutContent` / `OnboardingContent`). Détecte un littéral de chaîne contenant
- * une lettre accentuée ou un guillemet français, hors commentaires.
- */
 class NoHardCodedTextTest {
 
     private val accented = Regex(""""[^"\n]*[àâçéèêëîïôûùüÿœÀÂÇÉÈÊËÎÏÔÛÙÜŸŒ«»][^"\n]*"""")

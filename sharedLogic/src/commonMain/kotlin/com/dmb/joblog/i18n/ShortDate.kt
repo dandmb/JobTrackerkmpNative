@@ -6,11 +6,6 @@ import kotlinx.datetime.format.MonthNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 
-/**
- * Date courte de la carte de candidature, IDENTIQUE sur Android et iOS (une seule implémentation) :
- * français « 5 sept. » (jour puis mois abrégé), anglais « Sep 5 » (mois abrégé puis jour). Jour sans zéro initial.
- * kotlinx-datetime n'a pas de noms de mois français intégrés : les abréviations françaises sont explicites.
- */
 object ShortDate {
 
     private val frenchMonths = MonthNames(

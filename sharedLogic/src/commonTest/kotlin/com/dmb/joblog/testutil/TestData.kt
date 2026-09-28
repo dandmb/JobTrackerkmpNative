@@ -5,7 +5,6 @@ import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
 import kotlinx.datetime.LocalDate
 
-/** Fabrique un [JobOffer] valide ; on ne surcharge que ce que le test veut observer. */
 fun jobOffer(
     id: Long = 0,
     title: String = "Développeur Kotlin",
@@ -34,7 +33,6 @@ fun jobOffer(
     notes = notes,
 )
 
-/** Fabrique un [JobOfferEntity] valide (dates en jours depuis l'époque : 2026-09-05 = 20701). */
 fun jobOfferEntity(
     id: Long = 0,
     title: String = "Développeur Kotlin",

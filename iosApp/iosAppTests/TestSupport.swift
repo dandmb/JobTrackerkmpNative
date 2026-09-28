@@ -2,7 +2,6 @@ import Foundation
 import SharedLogic
 @testable import JobLog
 
-/// Fabrique un `JobOffer` Kotlin valide ; on ne surcharge que ce que le test veut observer.
 func makeOffer(
     id: Int64 = 0,
     title: String = "Développeur Kotlin",
@@ -25,15 +24,12 @@ func makeOffer(
     )
 }
 
-
-/// Textes de `Localizable.strings` pour UNE langue (`en` / `fr`), lus dans le bundle de l'app — indépendant de la langue de l'appareil.
 func localizedStrings(for language: String) -> [String: String] {
     guard let path = Bundle.main.path(forResource: "Localizable", ofType: "strings", inDirectory: nil, forLocalization: language),
           let dictionary = NSDictionary(contentsOfFile: path) as? [String: String] else { return [:] }
     return dictionary
 }
 
-/// Chaîne localisée dans une langue précise (sans dépendre de la langue de l'appareil).
 func localized(_ key: String, in language: String, _ args: CVarArg...) -> String {
     let format = localizedStrings(for: language)[key] ?? "⟨manquant: \(key)⟩"
     return args.isEmpty ? format : String(format: format, arguments: args)

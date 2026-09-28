@@ -2,9 +2,6 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// La logique de formulaire est testée UNE fois dans sharedLogic (`JobOfferFormLogicTest`, JVM + natif).
-/// Ici on vérifie seulement le pont côté iOS : que Swift appelle bien la fonction partagée (types, nil, Date → LocalDate)
-/// et que l'écran ne réimplémente aucune règle.
 final class JobOfferFormBridgeTests: XCTestCase {
 
     private let calendar = Calendar(identifier: .gregorian)

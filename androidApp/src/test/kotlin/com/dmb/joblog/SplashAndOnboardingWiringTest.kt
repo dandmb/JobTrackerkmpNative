@@ -6,10 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Garde-fous de câblage (lecture du source, comme `FormSheetUsesSharedLogicTest`) : ces règles ne sont pas exécutables en
- * test unitaire (Activity, splash système), mais leur violation casse l'app de façon silencieuse ou tardive.
- */
 class SplashAndOnboardingWiringTest {
 
     private fun read(vararg candidates: String): String = candidates.map(::File).first { it.exists() }.readText()
@@ -42,7 +38,6 @@ class SplashAndOnboardingWiringTest {
 
     @Test
     fun listViewModel_isInstantiatedOnceAtTheRootAndPassedDown() {
-        // Une seule injection du ViewModel de la liste, au niveau de l'activité (pas de koinInject dans l'écran).
         assertEquals(1, Regex("""JobOfferListViewModel by inject\(\)""").findAll(mainActivity).count())
         assertTrue(mainActivity.contains("AppRoot(jobOfferListViewModel, onboardingViewModel)"))
         assertTrue(appRoot.contains("JobOfferListScreen(viewModel = jobOfferListViewModel,"), "l'écran de liste doit recevoir l'instance déjà chargée")

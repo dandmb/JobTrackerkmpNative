@@ -19,11 +19,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/**
- * Migration 1 → 2 (ajout de location, source, salaryRange, interviewDateEpochDays, resultDateEpochDays) sur un FICHIER
- * SQLite réel, avec l'outil officiel `MigrationTestHelper` (room-testing 2.8.5, multiplatform) qui crée la base à partir
- * du schéma exporté `schemas/.../1.json` puis valide le résultat contre `2.json`.
- */
 internal class MigrationTest {
 
     private val databasePath = temporaryDatabasePath()
@@ -50,8 +45,6 @@ internal class MigrationTest {
     }
 
     private fun migratedConnection() = helper.runMigrationsAndValidate(2, listOf(MIGRATION_1_2))
-
-    // ---------- la migration elle-même ----------
 
     @Test
     fun migration1To2_declaresVersionsOneAndTwo() {
@@ -162,17 +155,14 @@ internal class MigrationTest {
         assertFails { helper.runMigrationsAndValidate(2, emptyList()) }
     }
 
-    // ---------- de bout en bout : ouverture par le vrai code de l'app ----------
-
     @Test
     fun openWithProductionBuilder_version1Database_isMigratedAndReadableThroughTheRepository() = runTest {
         helper.createDatabase(1).also {
             it.insertV1(id = 1, title = "Dev iOS", company = "eBay", notes = "n")
             it.close()
         }
-        helper.finished()   // libère le fichier avant de le rouvrir avec Room
+        helper.finished()
 
-        // getRoomDatabase = le code de production (ajoute MIGRATION_1_2 et le driver embarqué)
         val database = getRoomDatabase(
             Room.databaseBuilder<AppDatabase>(name = databasePath, factory = { AppDatabaseConstructor.initialize() })
                 .setQueryCoroutineContext(Dispatchers.Default),

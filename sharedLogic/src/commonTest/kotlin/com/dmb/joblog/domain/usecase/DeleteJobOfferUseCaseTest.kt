@@ -32,7 +32,6 @@ class DeleteJobOfferUseCaseTest {
 
     @Test
     fun invoke_offerWithBlankTitle_isStillDeleted() = runTest {
-        // Contrairement à add/update, la suppression ne valide rien : on doit pouvoir supprimer une donnée invalide.
         val invalid = jobOffer(id = 3, title = "", company = "")
         repository.offers.value = repository.offers.value + invalid
 
@@ -51,8 +50,6 @@ class DeleteJobOfferUseCaseTest {
         assertEquals(failure, error)
         assertEquals(listOf(first, second), repository.offers.value)
     }
-
-    // ---------- « Annuler » : restauration fidèle ----------
 
     @Test
     fun invoke_returnsTheDeletedOfferWithItsOriginalCreationTimestamp() = runTest {

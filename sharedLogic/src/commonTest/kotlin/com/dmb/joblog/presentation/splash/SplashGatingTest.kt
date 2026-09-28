@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Règle de gating du splash : affiché tant que (durée minimale non écoulée) OU (liste en chargement). */
 class SplashGatingTest {
 
     private val min = SplashGating.MIN_DURATION_MILLIS
@@ -22,7 +21,6 @@ class SplashGatingTest {
 
     @Test
     fun shouldKeepSplash_beforeMinDurationEvenIfAlreadyLoaded_isTrue() {
-        // Données instantanées : on garde quand même le splash jusqu'à la durée minimale (pas de clignotement).
         assertTrue(SplashGating.shouldKeepSplash(elapsedMillis = 100, isLoading = false))
     }
 

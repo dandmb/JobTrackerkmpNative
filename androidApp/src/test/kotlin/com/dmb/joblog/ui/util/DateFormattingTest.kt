@@ -43,7 +43,6 @@ class DateFormattingTest {
 
     @Test
     fun toShortDate_french_monthsWithoutAbbreviationPoint_areFullWords() {
-        // mars, mai, juin, août ne sont pas abrégés (comme le formatage fr_FR d'iOS).
         listOf(3, 5, 6, 8).forEach { month ->
             val text = LocalDate(2026, month, 5).toShortDate(AppLanguage.FR)
             assertEquals(false, text.endsWith("."), text)

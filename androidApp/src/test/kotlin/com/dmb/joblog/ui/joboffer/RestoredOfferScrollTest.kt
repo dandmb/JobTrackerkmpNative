@@ -2,22 +2,18 @@ package com.dmb.joblog.ui.joboffer
 
 import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
+import com.dmb.joblog.presentation.joboffer.SortOption
+import com.dmb.joblog.presentation.joboffer.filteredForDisplay
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/**
- * Décision « faut-il faire défiler jusqu'à la carte restaurée après Annuler ? » : c'est ici qu'a eu lieu la régression
- * « carte invisible / à moitié visible » de l'intervention précédente.
- */
 class RestoredOfferScrollTest {
 
     private fun offer(id: Long, title: String = "Offre $id", applied: LocalDate = LocalDate(2026, 9, 1)) =
         JobOffer(id = id, title = title, company = "Acme", appliedDate = applied, status = ApplicationStatus.APPLIED)
-
-    // ---------- locateRestoredOffer ----------
 
     @Test
     fun locateRestoredOffer_offerNotInDataYet_waitsForTheNextEmission() {
@@ -34,7 +30,7 @@ class RestoredOfferScrollTest {
     @Test
     fun locateRestoredOffer_offerInDataButFilteredOutBySearch_isHiddenBySearch() {
         val all = listOf(offer(1, "Android"), offer(2, "iOS"))
-        val visible = all.searchedAndSorted("android", SortOption.DATE_DESC)
+        val visible = all.filteredForDisplay("android", SortOption.DATE_DESC)
 
         assertEquals(RestoredOfferTarget.HiddenBySearch, locateRestoredOffer(all, visible, offerId = 2))
     }
@@ -58,12 +54,10 @@ class RestoredOfferScrollTest {
         val oldest = offer(1, applied = LocalDate(2026, 1, 1))
         val newest = offer(2, applied = LocalDate(2026, 9, 1))
         val all = listOf(oldest, newest)
-        val visible = all.searchedAndSorted("", SortOption.DATE_DESC)   // newest d'abord
+        val visible = all.filteredForDisplay("", SortOption.DATE_DESC)
 
         assertEquals(RestoredOfferTarget.InList(1), locateRestoredOffer(all, visible, offerId = 1))
     }
-
-    // ---------- isItemFullyVisible ----------
 
     @Test
     fun isItemFullyVisible_itemNotMeasuredYet_isNotVisible() {
@@ -82,7 +76,6 @@ class RestoredOfferScrollTest {
 
     @Test
     fun isItemFullyVisible_itemCutAtTheTop_isNotVisible() {
-        // Le cas de la régression : carte restaurée en tête, dont seul le bas est visible.
         assertFalse(isItemFullyVisible(ItemBounds(offset = -300, size = 500), viewportEndOffset = 2000))
     }
 
@@ -108,7 +101,6 @@ class RestoredOfferScrollTest {
 
     @Test
     fun isItemFullyVisible_itemTallerThanTheViewport_isNeverFullyVisible() {
-        // Limite documentée : une carte plus haute que l'écran déclenchera toujours un défilement jusqu'à elle.
         assertFalse(isItemFullyVisible(ItemBounds(offset = 0, size = 2500), viewportEndOffset = 2000))
     }
 

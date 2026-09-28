@@ -15,6 +15,7 @@ import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.joblog.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
+import com.dmb.joblog.data.local.DeletedDataPurger
 import com.dmb.joblog.testutil.FakeJobOfferDao
 import com.dmb.joblog.testutil.jobOffer
 import kotlinx.coroutines.Dispatchers
@@ -37,10 +38,6 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 
-/**
- * Vérifie le graphe d'injection SANS base de données réelle : `databaseModule` (Room) est remplacé par un DAO fake,
- * tous les autres modules sont les vrais. Un binding manquant ou mal typé est ainsi détecté ici plutôt qu'au lancement de l'app.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class DiModulesTest {
 
@@ -54,9 +51,11 @@ class DiModulesTest {
         Dispatchers.resetMain()
     }
 
-    private val fakeDatabaseModule = module { single<JobOfferDao> { FakeJobOfferDao() } }
+    private val fakeDatabaseModule = module {
+        single<JobOfferDao> { FakeJobOfferDao() }
+        single<DeletedDataPurger> { DeletedDataPurger {} }
+    }
 
-    /** Remplace le vrai `Settings()` (SharedPreferences / NSUserDefaults) par un Settings en mémoire. Doit venir APRÈS onboardingModule. */
     private val fakeSettingsModule = module { single<Settings> { MapSettings() } }
 
     private fun onboardingKoin(): Koin = koinApplication { modules(onboardingModule, fakeSettingsModule) }.koin
@@ -125,8 +124,6 @@ class DiModulesTest {
         viewModel.onCleared()
     }
 
-    // ---------- à propos ----------
-
     @Test
     fun viewModelModule_aboutViewModelIsAFactory_eachResolutionCreatesANewInstance() {
         val koin = koin()
@@ -141,8 +138,6 @@ class DiModulesTest {
 
     @Test
     fun aboutViewModelFromKoin_deletesEverythingThroughTheRealRepositoryAndDao() = runTest {
-        // Instances NEUVES propres à ce test (DAO fake + repository réel) : en natif, les `single` des modules top-level
-        // (`repositoryModule`) et de la classe de test survivent d'un test à l'autre et garderaient les données des autres tests.
         val koin = koinApplication {
             modules(
                 module {
@@ -170,8 +165,6 @@ class DiModulesTest {
         about.onCleared()
     }
 
-    // ---------- onboarding ----------
-
     @Test
     fun onboardingModule_resolvesTheRealRepositoryAsSingleton() {
         val koin = onboardingKoin()
@@ -197,7 +190,6 @@ class DiModulesTest {
 
         first.completeOnboarding()
 
-        // Une AUTRE instance (relancement) voit la valeur : le Settings est un singleton partagé.
         assertTrue(koin.get<OnboardingViewModel>().hasCompletedOnboarding())
     }
 

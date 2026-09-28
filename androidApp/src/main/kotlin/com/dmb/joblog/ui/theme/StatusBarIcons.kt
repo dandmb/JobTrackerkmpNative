@@ -9,12 +9,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-/**
- * Couleur des icônes de la barre d'état (heure, batterie…) pour un écran dont la barre du haut est en couleur `primary` :
- * en thème sombre `primary` est un teal CLAIR (Teal80) → icônes SOMBRES ; en thème clair c'est un teal FONCÉ (Teal40) →
- * icônes CLAIRES. Sans cela, `enableEdgeToEdge()` suit seulement le thème système et affichait des icônes blanches sur
- * fond teal clair en mode sombre (illisibles). L'état précédent est restauré quand l'écran quitte la composition.
- */
+// En thème sombre, `primary` est un teal CLAIR : sans forcer des icônes sombres, `enableEdgeToEdge()` laisse les
+// icônes de la barre d'état blanches sur ce fond clair (illisibles).
 @Composable
 fun StatusBarIconsForPrimaryTopBar() {
     val view = LocalView.current
