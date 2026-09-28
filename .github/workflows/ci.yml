@@ -1,0 +1,177 @@
+# CI : tests unitaires uniquement (pas de build de release, pas de signature, pas de secret, pas de déploiement).
+# Deux jobs INDÉPENDANTS (pas de `needs`) : un statut clair par plateforme dans l'interface GitHub.
+#   - android : ubuntu — tests JVM du module partagé + tests JUnit de l'app Android
+#   - ios     : macOS 26 (arm64) — tests natifs du module partagé sur simulateur iOS + tests XCTest de l'app iOS
+# Versions vérifiées le 2026-09-21 : voir rapport-ci-setup.md (runners, Xcode, JDK, actions).
+name: CI
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+# Lecture seule : aucun job n'écrit dans le dépôt.
+permissions:
+  contents: read
+
+# Une nouvelle poussée sur une PR annule le run précédent de cette PR (économie de minutes) ;
+# sur `dev`, chaque commit garde son run complet.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Les JDK 17 sont préinstallés sur les images, mais setup-java garantit la même distribution partout.
+  JAVA_VERSION: "17"
+
+jobs:
+  android:
+    name: Android (JVM + JUnit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      # Cache Gradle (dépendances, wrapper, build cache). Le cache n'est ÉCRIT que depuis `dev` (les PR le lisent).
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+
+      # Tâches vérifiées dans build.gradle.kts (`allUnitTests` = ces deux + iosSimulatorArm64Test, qui exige macOS).
+      # `--continue` : les deux suites tournent même si la première échoue ; le job échoue quand même (rien n'est masqué).
+      - name: Unit tests (module partagé JVM + app Android)
+        run: ./gradlew :sharedLogic:testAndroidHostTest :androidApp:testDebugUnitTest --continue --stacktrace
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-test-reports
+          path: |
+            sharedLogic/build/reports/tests/
+            sharedLogic/build/test-results/
+            androidApp/build/reports/tests/
+            androidApp/build/test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  ios:
+    name: iOS (natif + XCTest)
+    # macOS 26 arm64 (label `macos-latest` = `macos-26` à la date de vérification) : Xcode 26.6 par défaut,
+    # simulateurs iOS 26.2 / 26.4 / 26.5. Arm64 obligatoire : la cible testée est `iosSimulatorArm64`.
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      SPM_DIR: ${{ github.workspace }}/.spm-packages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+
+      # Cache Kotlin/Native (~/.konan : toolchain + dépendances natives, plusieurs centaines de Mo). Clé = versions du catalogue
+      # (Kotlin). Restauré puis sauvegardé en `always()` : même si un test échoue, le téléchargement n'est pas à refaire.
+      - name: Restore Kotlin/Native cache
+        id: konan
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: |
+            konan-${{ runner.os }}-${{ runner.arch }}-
+
+      # Paquets Swift (KMP-NativeCoroutines, RxSwift), clés = versions résolues du projet Xcode.
+      - name: Restore Swift packages cache
+        id: spm
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.SPM_DIR }}
+          key: spm-${{ runner.os }}-${{ hashFiles('iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      # Simulateur : iPhone du runtime iOS le plus récent réellement installé sur l'image (aucun nom en dur qui casserait
+      # au prochain changement d'image).
+      - name: Select an iPhone simulator
+        id: sim
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes available
+          UDID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          def version(runtime):  # com.apple.CoreSimulator.SimRuntime.iOS-26-5 -> (26, 5)
+              return tuple(int(p) for p in runtime.rsplit("iOS-", 1)[1].split("-"))
+          ios = sorted((r for r in devices if ".SimRuntime.iOS-" in r), key=version, reverse=True)
+          for runtime in ios:
+              phones = [d for d in devices[runtime] if d["name"].startswith("iPhone") and d["isAvailable"]]
+              if phones:
+                  print(phones[0]["udid"]); break
+          ')
+          test -n "$UDID" || { echo "::error::Aucun simulateur iPhone disponible sur cette image"; exit 1; }
+          echo "Simulateur retenu : $UDID"
+          xcrun simctl list devices available | grep "$UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+
+      # 1) Tests natifs du module partagé sur simulateur iOS (Room réel sur SQLite natif inclus). KGP choisit lui-même
+      #    le simulateur par défaut d'Xcode.
+      - name: Shared module tests (Kotlin/Native, iOS simulator)
+        run: ./gradlew :sharedLogic:iosSimulatorArm64Test --stacktrace
+
+      # 2) Tests XCTest de l'app iOS. xcodebuild lance `./gradlew :sharedLogic:embedAndSignAppleFrameworkForXcode` (phase de script
+      #    du projet) : JAVA_HOME est hérité de setup-java. Aucune signature nécessaire pour un simulateur.
+      - name: XCTest (scheme iosAppTests)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosAppTests \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -clonedSourcePackagesDirPath "$SPM_DIR" \
+            -resultBundlePath "$RUNNER_TEMP/iosAppTests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+          | tee "$RUNNER_TEMP/xcodebuild.log" \
+          | xcbeautify --renderer github-actions
+
+      - name: Save Kotlin/Native cache
+        if: always() && steps.konan.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('gradle/libs.versions.toml') }}
+
+      - name: Save Swift packages cache
+        if: always() && steps.spm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.SPM_DIR }}
+          key: spm-${{ runner.os }}-${{ hashFiles('iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-test-reports
+          path: |
+            sharedLogic/build/reports/tests/
+            sharedLogic/build/test-results/
+            ${{ runner.temp }}/iosAppTests.xcresult
+            ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: warn
+          retention-days: 14

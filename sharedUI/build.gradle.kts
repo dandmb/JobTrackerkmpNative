@@ -10,7 +10,7 @@ plugins {
 kotlin {
     
     android {
-       namespace = "com.dmb.jobtracker.sharedUI"
+       namespace = "com.dmb.joblog.sharedUI"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
     

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Thème de l'application une fois le splash terminé (celui qui était déclaré avant l'ajout du splash). -->
+    <style name="Theme.App" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Thème de démarrage : splash natif (androidx.core.splashscreen), teal de la marque + icône vectorielle. -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.App</item>
+    </style>
+</resources>

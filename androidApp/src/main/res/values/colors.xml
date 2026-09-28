@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Teal primaire de la marque (= Teal40 de ui/theme/Color.kt) : fond du splash, sinon le splash système serait blanc/noir. -->
+    <color name="splash_background">#0D6E68</color>
+</resources>

@@ -1,0 +1,124 @@
+# CD Android : au push sur `staging` (merge de `dev`), build d'un APK SIGNÉ (build type `staging`, com.dmb.joblog.staging)
+# puis envoi à Firebase App Distribution (groupe `beta-testeurs`).
+#
+# Secrets (environment GitHub `staging`) : FIREBASE_APP_ID, FIREBASE_SERVICE_ACCOUNT_JSON, STAGING_KEYSTORE_BASE64,
+# STAGING_KEYSTORE_PASSWORD, STAGING_KEY_ALIAS. Ils ne sont exposés qu'aux steps qui en ont besoin (jamais au niveau du job).
+# Seul STAGING_KEYSTORE_PATH (un chemin, pas un secret) passe par GITHUB_ENV.
+# Les messages de commit ne sont JAMAIS interpolés via ${{ }} dans un `run:` (injection de script) : le git log est écrit dans un
+# fichier par le shell, puis donné à l'action via `releaseNotesFile`.
+# Ne touche pas à ci.yml (tests uniquement).
+name: CD Android staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+# Lecture seule : le job n'écrit rien dans le dépôt.
+permissions:
+  contents: read
+
+# Un seul déploiement à la fois ; on n'annule pas un déploiement en cours (les suivants attendent leur tour).
+concurrency:
+  group: cd-android-staging
+  cancel-in-progress: false
+
+env:
+  JAVA_VERSION: "17"   # comme ci.yml
+
+jobs:
+  deploy:
+    name: Build APK staging + Firebase App Distribution
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    steps:
+      # Historique complet : le git log des release notes remonte jusqu'au dernier build.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # Release notes = commits depuis le push précédent. Seuls des SHA (github.event.before / github.sha) passent par ${{ }} ;
+      # les messages de commit ne transitent que par le shell.
+      - name: Write release notes
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          notes="$GITHUB_WORKSPACE/release-notes.txt"   # dans le workspace : l'action Docker ne voit pas $RUNNER_TEMP
+          range="$HEAD_SHA"
+          if [[ "$BEFORE_SHA" =~ ^[0-9a-f]{40}$ && ! "$BEFORE_SHA" =~ ^0+$ ]] && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            range="${BEFORE_SHA}..${HEAD_SHA}"
+          fi
+          {
+            echo "Build #${RUN_NUMBER} (${HEAD_SHA:0:7})"
+            echo
+            if [ "$range" = "$HEAD_SHA" ]; then
+              git log --no-merges --max-count=10 --pretty='- %s (%h)' "$HEAD_SHA"   # dispatch / premier push / force-push
+            else
+              git log --no-merges --max-count=50 --pretty='- %s (%h)' "$range"
+            fi
+          } > "$notes.full"
+          head -c 4000 "$notes.full" > "$notes"   # Firebase limite les notes à 5000 octets
+          rm -f "$notes.full"
+          cat "$notes"
+
+      # Le keystore n'existe que dans $RUNNER_TEMP, le temps du job (supprimé par le dernier step).
+      - name: Decode keystore
+        env:
+          STAGING_KEYSTORE_BASE64: ${{ secrets.STAGING_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$STAGING_KEYSTORE_BASE64" || { echo "::error::Secret STAGING_KEYSTORE_BASE64 absent de l'environment staging"; exit 1; }
+          umask 077
+          printf '%s' "$STAGING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/staging.jks"
+          test -s "$RUNNER_TEMP/staging.jks" || { echo "::error::Keystore décodé vide"; exit 1; }
+          echo "STAGING_KEYSTORE_PATH=$RUNNER_TEMP/staging.jks" >> "$GITHUB_ENV"
+
+      - name: Build staging APK
+        env:
+          STAGING_KEYSTORE_PASSWORD: ${{ secrets.STAGING_KEYSTORE_PASSWORD }}
+          STAGING_KEY_ALIAS: ${{ secrets.STAGING_KEY_ALIAS }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew :androidApp:assembleStaging --stacktrace
+
+      # Gradle ne plante pas si la signature manque (build local / CI de tests) : c'est CE step qui garantit qu'on ne distribue
+      # jamais un APK non signé. apksigner vient des build-tools de l'image (version la plus récente).
+      - name: Verify APK signature
+        id: apk
+        run: |
+          shopt -s nullglob
+          apks=(androidApp/build/outputs/apk/staging/*.apk)
+          [ "${#apks[@]}" -eq 1 ] || { echo "::error::Attendu 1 APK staging, trouvé ${#apks[@]}"; exit 1; }
+          apksigner="$(find "${ANDROID_HOME}/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
+          test -x "$apksigner" || { echo "::error::apksigner introuvable dans ${ANDROID_HOME}/build-tools"; exit 1; }
+          "$apksigner" verify --verbose --print-certs "${apks[0]}" || { echo "::error::APK staging non signé ou signature invalide"; exit 1; }
+          echo "path=${apks[0]}" >> "$GITHUB_OUTPUT"
+
+      # wzieba/Firebase-Distribution-Github-Action v1.7.1 (dernière release au 2026-09-21), épinglée par SHA de commit :
+      # ce step reçoit les credentials Firebase. Entrées vérifiées sur le README : appId, serviceCredentialsFileContent,
+      # groups, file, releaseNotesFile.
+      - name: Distribute to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1.7.1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          groups: beta-testeurs
+          file: ${{ steps.apk.outputs.path }}
+          releaseNotesFile: release-notes.txt   # chemin relatif au workspace (action Docker)
+
+      # L'action écrit le JSON du compte de service dans le workspace (service_credentials_content.json) : à supprimer aussi.
+      - name: Cleanup
+        if: always()
+        run: rm -f "$RUNNER_TEMP/staging.jks" "$GITHUB_WORKSPACE/release-notes.txt" "$GITHUB_WORKSPACE/service_credentials_content.json"
