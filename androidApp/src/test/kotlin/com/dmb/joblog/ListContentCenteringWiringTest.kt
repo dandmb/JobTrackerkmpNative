@@ -4,11 +4,6 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-/**
- * Garde-fou (lecture du source) : le conteneur du contenu de la liste doit occuper toute la largeur, sinon les enfants
- * alignés `Alignment.Center` (« Aucun résultat pour… », indicateur de chargement) sont centrés dans un Box aussi étroit que
- * leur contenu, donc collés au bord gauche (défaut constaté sur émulateur, corrigé).
- */
 class ListContentCenteringWiringTest {
 
     private val source = listOf(

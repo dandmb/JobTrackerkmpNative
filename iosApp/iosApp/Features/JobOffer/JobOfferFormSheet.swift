@@ -1,9 +1,3 @@
-//
-//  JobOfferFormSheet.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
 import SwiftUI
 import SharedLogic
@@ -45,7 +39,6 @@ struct JobOfferFormSheet: View {
 
     private var isEditing: Bool { existingOffer != nil }
 
-    // Validation partagée (sharedLogic) : Enregistrer n'est actif que si `isValid` ; `errorMessage` (salaire max sans min) est affiché
     private var validation: FormValidation {
         JobOfferFormLogic.shared.validate(title: title, company: company, salaryMin: salaryMin, salaryMax: salaryMax, language: AppLanguage.current)
     }
@@ -54,24 +47,23 @@ struct JobOfferFormSheet: View {
         NavigationStack {
             Form {
                 Section("form_section_job") {
-                    TextField("form_field_title", text: $title)
-                    TextField("form_field_company", text: $company)
-                    TextField("form_field_location", text: $location)
-                    TextField("form_field_source", text: $source)
-                    TextField("form_field_url", text: $url)
+                    labeledField("form_field_title", text: $title)
+                    labeledField("form_field_company", text: $company)
+                    labeledField("form_field_location", text: $location)
+                    labeledField("form_field_source", text: $source)
+                    labeledField("form_field_url", text: $url)
                         .keyboardType(.URL)
                         .autocapitalization(.none)
                 }
 
                 Section {
                     HStack {
-                        // Même filtre de saisie que sur Android (4 chiffres, non-chiffres retirés) : règle partagée
-                        TextField("form_salary_min_short", text: $salaryMin)
+                        labeledField("form_salary_min_short", text: $salaryMin)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMin) { old, new in
                                 salaryMin = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
                             }
-                        TextField("form_salary_max_short", text: $salaryMax)
+                        labeledField("form_salary_max_short", text: $salaryMax)
                             .keyboardType(.numberPad)
                             .onChange(of: salaryMax) { old, new in
                                 salaryMax = JobOfferFormLogic.shared.nextSalaryInput(previous: old, input: new)
@@ -80,7 +72,6 @@ struct JobOfferFormSheet: View {
                 } header: {
                     Text("form_section_salary")
                 } footer: {
-                    // Message de validation en pied de section (convention SwiftUI/HIG), lu par VoiceOver avec la section
                     if let message = validation.errorMessage {
                         Text(message).foregroundStyle(.red)
                     }
@@ -124,6 +115,16 @@ struct JobOfferFormSheet: View {
                         .disabled(!validation.isValid)
                 }
             }
+        }
+    }
+
+    private func labeledField(_ label: LocalizedStringKey, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .appTextStyle(.labelLarge)
+                .foregroundStyle(Color.onSurfaceVariant)
+                .accessibilityHidden(true)
+            TextField(text: text, prompt: Text(verbatim: "")) { Text(label) }
         }
     }
 

@@ -42,8 +42,6 @@ class AppLanguageTest {
         assertEquals("b", AppLanguage.FR.pick(en = "a", fr = "b"))
     }
 
-    // ---------- date courte de la carte ----------
-
     @Test
     fun shortDate_french_isDayThenAbbreviatedMonth() {
         assertEquals("5 sept.", ShortDate.format(LocalDate(2026, 9, 5), AppLanguage.FR))

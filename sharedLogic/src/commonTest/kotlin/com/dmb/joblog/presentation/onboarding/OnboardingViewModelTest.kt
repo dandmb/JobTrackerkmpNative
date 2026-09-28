@@ -63,7 +63,6 @@ class OnboardingViewModelTest {
     fun viewModel_afterRestart_readsThePersistedValueFromTheRepository() {
         viewModel.completeOnboarding()
 
-        // Nouveau ViewModel (relancement) sur le même dépôt persistant
         assertTrue(OnboardingViewModel(repository).hasCompletedOnboarding())
     }
 }

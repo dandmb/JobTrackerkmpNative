@@ -1,7 +1,6 @@
 import XCTest
 @testable import JobLog
 
-/// Miroir des cas de `TextCaseTest.kt` (Android) : la logique doit rester identique sur les deux plateformes.
 final class StringCaseTests: XCTestCase {
 
     // MARK: toTitleCase
@@ -66,7 +65,6 @@ final class StringCaseTests: XCTestCase {
     }
 
     func test_toTitleCase_entirelyLowercaseAcronym_isCapitalizedLikeAnyWord() {
-        // Limite connue : sans dictionnaire de sigles, « ios » est indiscernable de n'importe quel mot.
         XCTAssertEqual("ios developer".toTitleCase(), "Ios Developer")
     }
 

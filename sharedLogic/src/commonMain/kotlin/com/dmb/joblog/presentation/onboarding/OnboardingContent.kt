@@ -3,17 +3,9 @@ package com.dmb.joblog.presentation.onboarding
 import com.dmb.joblog.i18n.AppLanguage
 import com.dmb.joblog.i18n.pick
 
-/** Une page de l'onboarding. L'icône est choisie par chaque plateforme (Material / SF Symbols) selon l'index. */
 data class OnboardingPage(val title: String, val description: String)
 
-/**
- * Contenu et règles de navigation de l'onboarding, COMMUNS à Android et iOS : mêmes textes, mêmes boutons, mêmes
- * conditions d'affichage (« Passer » sur les pages non finales ; « Suivant » puis « Commencer » sur la dernière),
- * dans la langue demandée ([AppLanguage]).
- *
- * Les noms de statut cités dans la 2e page doivent rester identiques aux libellés de statut des écrans
- * (`status_*` dans `strings.xml` / `Localizable.strings`) : un test le vérifie.
- */
+/** Contenu et navigation de l'onboarding, communs à Android/iOS. Les statuts cités en page 2 doivent rester identiques aux libellés d'écran (test dédié). */
 class OnboardingContent private constructor(private val lang: AppLanguage) {
 
     val skipLabel: String = lang.pick(en = "Skip", fr = "Passer")
@@ -48,12 +40,10 @@ class OnboardingContent private constructor(private val lang: AppLanguage) {
 
     fun isLastPage(index: Int): Boolean = index >= pages.lastIndex
 
-    /** « Passer » n'est proposé que tant qu'il reste des pages à voir. */
     fun showsSkip(index: Int): Boolean = !isLastPage(index)
 
     fun primaryButtonLabel(index: Int): String = if (isLastPage(index)) startLabel else nextLabel
 
-    /** Index de la page suivante, borné à la dernière page (le bouton principal de la dernière page termine l'onboarding). */
     fun nextPageIndex(index: Int): Int = (index + 1).coerceIn(0, pages.lastIndex)
 
     companion object {

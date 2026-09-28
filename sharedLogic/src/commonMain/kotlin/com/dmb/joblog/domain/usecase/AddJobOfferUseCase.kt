@@ -4,7 +4,6 @@ import com.rickclephas.kmp.nativecoroutines.NativeCoroutines
 import com.dmb.joblog.domain.model.JobOffer
 import com.dmb.joblog.domain.repository.JobOfferRepository
 
-
 class AddJobOfferUseCase(private val repository: JobOfferRepository) {
     @NativeCoroutines
     suspend operator fun invoke(offer: JobOffer): Long {

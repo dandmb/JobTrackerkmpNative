@@ -8,6 +8,8 @@
 "list_empty_title" = "No applications";
 "list_empty_subtitle" = "Add your first application with the + button";
 "list_no_results" = "No results for “%1$@”";
+"list_no_results_filter" = "No application matches the selected status filter";
+"filter_all" = "All";
 "delete_action" = "Delete";
 "undo" = "Undo";
 "cancel" = "Cancel";

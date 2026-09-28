@@ -6,7 +6,6 @@ import androidx.compose.ui.res.stringResource
 import com.dmb.joblog.R
 import com.dmb.joblog.domain.model.ApplicationStatus
 
-/** Ressource du libellé complet d'un statut (chip de la carte, menu de statut) : `status_*` dans strings.xml. */
 @StringRes
 fun ApplicationStatus.labelRes(): Int = when (this) {
     ApplicationStatus.PENDING -> R.string.status_pending
@@ -16,10 +15,6 @@ fun ApplicationStatus.labelRes(): Int = when (this) {
     ApplicationStatus.ACCEPTED -> R.string.status_accepted
 }
 
-/**
- * Ressource du libellé court AVEC le nombre (badges de la carte de statistiques : « 2 applied » / « 2 postulé »).
- * Règle du pluriel : `count > 1` → `_other`, sinon `_one` (comme la carte « candidature(s) suivie(s) »).
- */
 @StringRes
 fun ApplicationStatus.shortLabelRes(count: Int): Int {
     val plural = count > 1
@@ -32,10 +27,8 @@ fun ApplicationStatus.shortLabelRes(count: Int): Int {
     }
 }
 
-/** Libellé complet dans la langue courante. */
 @Composable
 fun ApplicationStatus.displayLabel(): String = stringResource(labelRes())
 
-/** Libellé court avec nombre dans la langue courante (« 2 postulé »). */
 @Composable
 fun ApplicationStatus.shortLabel(count: Int): String = stringResource(shortLabelRes(count), count)

@@ -6,9 +6,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 
-// Spécifique à Android : le DatePicker Material travaille en millisecondes UTC à minuit. (Toute la logique de formulaire
-// commune — salaire, validation, assemblage de l'offre — est dans sharedLogic : `presentation.form.JobOfferFormLogic`.)
-
+// Spécifique à Android : le DatePicker Material travaille en millisecondes UTC à minuit.
 fun LocalDate.toDatePickerMillis(): Long = atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds()
 
 fun datePickerMillisToLocalDate(millis: Long): LocalDate =

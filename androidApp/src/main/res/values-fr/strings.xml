@@ -6,11 +6,14 @@
     <!-- Liste -->
     <string name="list_title">Candidatures</string>
     <string name="list_search_placeholder">Rechercher un poste ou une entreprise</string>
+    <string name="list_search_clear">Effacer la recherche</string>
     <string name="list_sort">Trier</string>
     <string name="list_add">Ajouter une candidature</string>
     <string name="list_empty_title">Aucune candidature</string>
     <string name="list_empty_subtitle">Ajoute ta première candidature avec le bouton +</string>
     <string name="list_no_results">Aucun résultat pour « %1$s »</string>
+    <string name="list_no_results_filter">Aucune candidature ne correspond au filtre de statut sélectionné</string>
+    <string name="filter_all">Tous</string>
     <string name="list_deleted_snackbar">« %1$s » supprimée</string>
     <string name="delete_action">Supprimer</string>
     <string name="undo">Annuler</string>

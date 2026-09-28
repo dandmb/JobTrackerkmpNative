@@ -1,22 +1,11 @@
-//
-//  JobLogMark.swift
-//  iosApp
-//
 
 import SwiftUI
 
-/// Logo JobLog : carnet / journal minimaliste (couverture pleine + trait de reliure) avec une coche corail, dessiné en
-/// vectoriel (net à toute taille, aucune image). Blanc + corail = à poser sur le teal de marque.
-///
-/// ⚠️ SYNCHRONISATION MANUELLE avec `branding/generate_brand_assets.py` (source de vérité de la géométrie, grille 108) :
-/// les constantes ci-dessous (couverture x 36-72 / y 31-77, rayon 5, reliure x 44,5 de largeur 2,5, coche et largeur 5,5)
-/// sont recopiées à la main. Toute modification du script doit être reportée ici (et inversement), puis vérifiée à l'écran.
 struct JobLogMark: View {
     var bodyColor: Color = .white
-    var checkColor: Color = Color(hex: 0xE8734A)   // Coral40
-    var spineColor: Color = Color(hex: 0x0D6E68)   // « fente » de reliure : couleur du fond sur lequel le logo est posé (teal)
+    var checkColor: Color = Color(hex: 0xE8734A)
+    var spineColor: Color = Color(hex: 0x0D6E68)
 
-    /// Fenêtre visible = la couverture, en unités de la grille 108 (origine 36,31).
     private static let window = CGSize(width: 36, height: 46)
     private static let origin = CGPoint(x: 36, y: 31)
 
@@ -41,7 +30,6 @@ struct JobLogMark: View {
         CGPoint(x: o.x + (x - Self.origin.x) * k, y: o.y + (y - Self.origin.y) * k)
     }
 
-    // M44.5,31 V77
     private func spine(_ k: CGFloat, _ o: CGPoint) -> Path {
         Path { p in
             p.move(to: point(44.5, 31, k, o))
@@ -49,7 +37,6 @@ struct JobLogMark: View {
         }
     }
 
-    // M51,54 L57,60 L66,47
     private func check(_ k: CGFloat, _ o: CGPoint) -> Path {
         Path { p in
             p.move(to: point(51, 54, k, o))
@@ -59,7 +46,6 @@ struct JobLogMark: View {
     }
 }
 
-/// Pastille de marque : teal primaire (fixe, identique clair/sombre) + logo.
 struct JobLogBrandTile: View {
     var size: CGFloat = 72
 

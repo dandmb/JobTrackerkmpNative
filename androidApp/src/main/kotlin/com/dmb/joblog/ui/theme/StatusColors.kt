@@ -6,7 +6,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import com.dmb.joblog.domain.model.ApplicationStatus
 
-/** Couleurs de statut du mode courant (fournies par [JobLogTheme]). */
 @Immutable
 class StatusPalette(
     val pending: Color,

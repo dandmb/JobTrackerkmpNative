@@ -20,7 +20,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Le repository de production contre le DAO Room RÉEL (SQLite en mémoire) : complète les tests avec DAO fake. */
 internal class JobOfferRepositoryRoomTest {
 
     private lateinit var database: AppDatabase
@@ -113,7 +112,6 @@ internal class JobOfferRepositoryRoomTest {
 
     @Test
     fun deleteThenAddAgainWithSameId_restoresTheOffer() = runTest {
-        // Scénario « Annuler » : la carte supprimée est ré-ajoutée avec son id d'origine.
         val id = repository.add(jobOffer(title = "À restaurer"))
         val saved = jobOffer(id = id, title = "À restaurer")
         repository.delete(saved)
@@ -140,8 +138,8 @@ internal class JobOfferRepositoryRoomTest {
     @Test
     fun getAll_offersAddedLater_appearFirst() = runTest {
         repository.add(jobOffer(title = "première"))
-        // createdAt = horloge système en millisecondes : il faut une VRAIE attente (dans runTest, `delay` est virtuel et
-        // n'attend pas), sinon les deux ajouts peuvent partager la même milliseconde et l'ordre devient aléatoire.
+        // Vraie attente : dans runTest, un `delay` ordinaire est virtuel et n'attend pas, donc les deux ajouts
+        // peuvent partager la même milliseconde et l'ordre devient aléatoire.
         withContext(Dispatchers.Default) { delay(5) }
         repository.add(jobOffer(title = "seconde"))
 
@@ -163,9 +161,6 @@ internal class JobOfferRepositoryRoomTest {
         }
     }
 
-    // ---------- « Annuler » une suppression : position et valeurs d'origine (SQLite réel) ----------
-
-    /** 5 offres A..E, de la plus récente (A) à la plus ancienne (E), createdAt explicites. */
     private suspend fun seedFive() {
         val dao = database.jobOfferDao()
         listOf("A", "B", "C", "D", "E").forEachIndexed { i, t ->

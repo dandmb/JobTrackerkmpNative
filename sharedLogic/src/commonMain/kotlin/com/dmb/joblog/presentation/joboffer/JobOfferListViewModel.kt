@@ -25,12 +25,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import com.rickclephas.kmp.nativecoroutines.NativeCoroutinesState
 
-
-/**
- * Message de repli quand une exception capturée n'a pas de message exploitable (null ou blanc). Message TECHNIQUE (anglais,
- * comme les exceptions) : `state.errorMessage` n'est affiché par aucun écran pour l'instant ; s'il l'était un jour, il
- * faudrait le remplacer par un code d'erreur traduit par chaque écran.
- */
 internal const val DEFAULT_ERROR_MESSAGE = "An error occurred, please try again."
 
 private fun Throwable.messageOrDefault(): String = message?.takeIf { it.isNotBlank() } ?: DEFAULT_ERROR_MESSAGE
@@ -41,14 +35,8 @@ class JobOfferListViewModel internal constructor(
     private val updateJobOffer: UpdateJobOfferUseCase,
     private val deleteJobOffer: DeleteJobOfferUseCase
 ) {
-    // Pas d'androidx.lifecycle.ViewModel ici : on reste 100% Kotlin pur
-    // pour que ce soit consommable nativement depuis Swift sans dépendance Android.
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    // Suppressions récentes, gardées EN MÉMOIRE le temps que l'utilisateur puisse les annuler (snackbar « Annuler »).
-    // Elles portent l'horodatage de création d'origine, absent du modèle de domaine. Durée de vie = celle de ce ViewModel,
-    // comme celle du snackbar qui déclenche l'annulation. Le Mutex ordonne suppression et restauration (FIFO) : une
-    // annulation ne peut pas passer avant la fin de la suppression qu'elle annule.
     private val recentlyDeleted = LinkedHashMap<Long, DeletedJobOffer>()
     private val undoMutex = Mutex()
 
@@ -72,17 +60,12 @@ class JobOfferListViewModel internal constructor(
             .launchIn(viewModelScope)
     }
 
-    /**
-     * Lance une action utilisateur dans le scope du ViewModel en rapportant toute erreur dans `state.errorMessage`
-     * au lieu de la laisser s'échapper (une exception non capturée dans ce scope fait planter l'application).
-     * `CancellationException` est relancée : annuler le scope (`onCleared`) n'est pas une erreur à afficher.
-     */
     private fun launchReportingErrors(action: suspend () -> Unit) {
         viewModelScope.launch {
             try {
                 action()
             } catch (e: CancellationException) {
-                throw e
+                throw e   // annuler le scope (onCleared) ne doit jamais s'afficher comme une erreur
             } catch (e: Exception) {
                 _state.value = _state.value.copy(errorMessage = e.messageOrDefault())
             }
@@ -104,11 +87,9 @@ class JobOfferListViewModel internal constructor(
     fun onDeleteOffer(offer: JobOffer) {
         launchReportingErrors {
             undoMutex.withLock {
+                // Le geste « glisser pour supprimer » rappelle onDeleteOffer plusieurs fois pour une seule suppression
+                // (constaté : 4 appels) : à partir du 2e, l'horodatage lu est déjà null et ne doit pas écraser celui mémorisé.
                 val deleted = deleteJobOffer(offer)
-                // IDEMPOTENT : le geste « glisser pour supprimer » rappelle `onDeleteOffer` plusieurs fois pour une seule
-                // suppression (constaté sur émulateur : 4 appels, `confirmValueChange` de Compose est rappelé). Dès le 2e appel
-                // la ligne n'existe plus (horodatage lu = null) : ce résultat NE DOIT PAS écraser l'horodatage d'origine déjà
-                // mémorisé, sinon « Annuler » restaurerait sans horodatage et l'offre remonterait en tête.
                 val known = recentlyDeleted[offer.id]
                 if (deleted.createdAtEpochMillis != null || known == null) {
                     recentlyDeleted.remove(offer.id)
@@ -119,20 +100,11 @@ class JobOfferListViewModel internal constructor(
         }
     }
 
-    /**
-     * « Annuler » après une suppression : restaure l'offre avec ses valeurs d'origine, `createdAt` compris, donc à sa
-     * position d'origine dans la liste (et non en tête). Peut s'appliquer à n'importe laquelle des suppressions récentes,
-     * dans n'importe quel ordre. Sans suppression connue de ce ViewModel (cas qui ne se présente pas via l'interface :
-     * le snackbar et ce ViewModel partagent la même durée de vie), retombe sur un ajout simple si l'offre est absente,
-     * et ne fait rien si elle est déjà présente (double « Annuler »).
-     */
     fun onRestoreOffer(offer: JobOffer) {
         launchReportingErrors {
             undoMutex.withLock {
                 val deleted = recentlyDeleted.remove(offer.id)
                 if (deleted != null) deleteJobOffer.restore(deleted)
-                // Sans suppression connue : ajout simple SAUF si l'offre est déjà en base (double « Annuler ») :
-                // ré-insérer la réhorodaterait et la ferait remonter en tête.
                 else deleteJobOffer.addIfMissing(offer)
             }
         }
@@ -143,5 +115,4 @@ class JobOfferListViewModel internal constructor(
     }
 }
 
-/** Nombre de suppressions récentes pouvant encore être annulées (les plus anciennes sont oubliées). */
 internal const val MAX_UNDOABLE_DELETIONS = 20

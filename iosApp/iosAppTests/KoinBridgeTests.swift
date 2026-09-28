@@ -2,11 +2,8 @@ import XCTest
 import SharedLogic
 @testable import JobLog
 
-/// Pont Swift ↔ Kotlin : `KoinHelper` et `JobOfferListObservable` (observation du `StateFlow` du ViewModel partagé).
-///
-/// LIMITE ASSUMÉE : le constructeur du ViewModel est `internal` en Kotlin, on ne peut donc pas lui injecter un repository fake
-/// depuis Swift. Ces tests utilisent le VRAI graphe Koin démarré par l'app hôte (`iOSApp.init`) et donc la vraie base de l'app
-/// sur le simulateur ; chaque test travaille avec une offre au titre unique et la supprime à la fin.
+/// LIMITE ASSUMÉE : le constructeur du ViewModel est `internal` en Kotlin, impossible d'injecter un repository fake
+/// depuis Swift — ces tests utilisent le vrai graphe Koin et donc la vraie base de l'app sur le simulateur.
 @MainActor
 final class KoinBridgeTests: XCTestCase {
 
@@ -23,7 +20,6 @@ final class KoinBridgeTests: XCTestCase {
         return viewModel
     }
 
-    /// Attend (par sondage) qu'une condition devienne vraie, sans dormir plus que nécessaire.
     private func waitUntil(timeout: TimeInterval = 10, _ condition: () -> Bool) async -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
@@ -79,7 +75,6 @@ final class KoinBridgeTests: XCTestCase {
         let appeared = await waitUntil { observable.state.offers.contains { $0.title == offer.title } }
 
         XCTAssertTrue(appeared, "l'offre ajoutée doit apparaître dans le state publié")
-        // nettoyage
         if let saved = observable.state.offers.first(where: { $0.title == offer.title }) {
             viewModel.onDeleteOffer(offer: saved)
             _ = await waitUntil { !observable.state.offers.contains { $0.title == offer.title } }

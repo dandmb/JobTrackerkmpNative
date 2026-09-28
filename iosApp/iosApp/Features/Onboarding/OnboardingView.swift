@@ -1,29 +1,21 @@
-//
-//  OnboardingView.swift
-//  iosApp
-//
 
 import SwiftUI
 import SharedLogic
 
-/// Onboarding en 3 pages. Contenu et règles de navigation communs à Android : `OnboardingContent` (sharedLogic).
-/// « Passer » et « Commencer » appellent tous deux `onFinished` ; « Suivant » passe à la page suivante.
 struct OnboardingView: View {
     let onFinished: () -> Void
 
     @State private var page = 0
 
     private let content = OnboardingContent.companion.of(language: AppLanguage.current)
-    // Icône de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques.
-    // nil = logo de marque (JobLogMark) ; les pages 2 et 3 gardent une icône thématique.
-    private let icons: [String?] = [nil, "flag.fill", "chart.bar.fill"]
+    // ⚠️ À régénérer si l'UI des écrans montrés change.
+    private let images = ["Onboarding1", "Onboarding2", "Onboarding3"]
 
     private var pageCount: Int { Int(content.pageCount) }
     private var isLastPage: Bool { content.isLastPage(index: Int32(page)) }
 
     var body: some View {
         VStack(spacing: 0) {
-            // « Passer » : réserve la place sur la dernière page pour éviter un saut de mise en page
             HStack {
                 Spacer()
                 if content.showsSkip(index: Int32(page)) {
@@ -35,11 +27,10 @@ struct OnboardingView: View {
             }
             .frame(height: 44)
 
-            // .page : balayage horizontal ; les indicateurs sont dessinés à la main (mêmes que sur Android, couleurs de la marque)
             TabView(selection: $page) {
                 ForEach(0..<pageCount, id: \.self) { index in
                     OnboardingPageView(
-                        systemImage: icons[index],
+                        imageName: images[index],
                         title: content.pages[index].title,
                         description: content.pages[index].description_
                     )
@@ -76,35 +67,35 @@ struct OnboardingView: View {
 }
 
 private struct OnboardingPageView: View {
-    let systemImage: String?
+    let imageName: String
     let title: String
     let description: String
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            ZStack {
-                Circle().fill(Color.tealContainer).frame(width: 160, height: 160)
-                if let systemImage {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 64))
-                        .foregroundStyle(Color.tealOnContainer)
-                        .accessibilityHidden(true)      // décorative : le titre porte le sens
-                } else {
-                    // Logo posé sur tealContainer : couverture teinte « sur conteneur », reliure = couleur du fond du cercle
-                    JobLogMark(bodyColor: .tealOnContainer, spineColor: .tealContainer)
-                        .frame(height: 64)              // même hauteur que la police 64 pt des autres pages
-                }
-            }
+            Image(imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color.outlineVariant, lineWidth: 1))
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+                .frame(maxWidth: 320)
+                .layoutPriority(1)
+                .accessibilityHidden(true)
             Text(title)
                 .appTextStyle(.headlineSmall)
                 .foregroundStyle(Color.onAppBackground)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
                 .padding(.top, 40)
             Text(description)
                 .appTextStyle(.bodyLarge)
                 .foregroundStyle(Color.onSurfaceVariant)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
                 .padding(.top, 12)
             Spacer()
             Spacer()

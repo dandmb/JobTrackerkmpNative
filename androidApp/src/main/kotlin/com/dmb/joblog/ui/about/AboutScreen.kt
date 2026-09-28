@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
@@ -69,20 +71,10 @@ import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.presentation.about.ConfirmationTexts
 import com.dmb.joblog.presentation.about.DeleteAllStep
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
+import com.dmb.joblog.ui.util.openUrl
 import org.koin.compose.koinInject
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 
-/**
- * Écran « À propos », en **Material 3 Expressive** (limité à cet écran : le reste de l'app garde son thème).
- * Tout le texte vient de `AboutContent` (sharedLogic) : cet écran ne fait que le mettre en forme.
- * La suppression totale passe par la double confirmation portée par `AboutViewModel`.
- *
- * Composants / principes Expressive utilisés (voir rapport) : `MaterialExpressiveTheme` + `MotionScheme.expressive()`
- * (ressorts), `LargeFlexibleTopAppBar` (grand titre qui se réduit au défilement), `Button(shapes = ButtonDefaults.shapes())`
- * (forme qui se transforme à l'appui) à hauteur `MediumContainerHeight`, `LoadingIndicator` (forme qui se déforme, pendant la
- * suppression), `MaterialShapes.Cookie9Sided` (pastille d'en-tête, logo JobLog), cartes à grands arrondis (`shapes.extraLarge`), espacements
- * en multiples de 8 dp.
- */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AboutScreen(
@@ -96,9 +88,8 @@ fun AboutScreen(
     val content = remember(language) { AboutContent.of(language) }
     val versionLabel = appVersionLabel(context, content)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    StatusBarIconsForPrimaryTopBar()   // icônes de la barre d'état lisibles sur la barre teal (surtout en thème sombre)
+    StatusBarIconsForPrimaryTopBar()
 
-    // Thème Expressive local à l'écran : couleurs, formes et typographie de l'app conservées, motion en ressorts expressifs.
     MaterialExpressiveTheme(
         colorScheme = MaterialTheme.colorScheme,
         motionScheme = MotionScheme.expressive(),
@@ -143,6 +134,7 @@ fun AboutScreen(
                     onDeleteRequested = viewModel::onDeleteAllRequested,
                 )
                 ContactBlock(context, content)
+                LinkedInBlock(context, content)
             }
         }
 
@@ -164,7 +156,6 @@ fun AboutScreen(
     }
 }
 
-/** En-tête : pastille « cookie » Expressive (forme polygonale) + nom, accroche et version. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AppHeader(content: AboutContent, versionLabel: String) {
@@ -172,8 +163,6 @@ private fun AppHeader(content: AboutContent, versionLabel: String) {
         Box(
             modifier = Modifier
                 .size(72.dp)
-                // Teal de MARQUE fixe (et non `primary`, qui devient un teal clair en thème sombre) : le logo blanc/corail
-                // garde le même contraste dans les deux thèmes, comme l'icône de l'app.
                 .background(Teal40, MaterialShapes.Cookie9Sided.toShape()),
             contentAlignment = Alignment.Center,
         ) {
@@ -197,7 +186,6 @@ private fun SectionTitle(text: String) {
     )
 }
 
-/** Une section = une carte à grands arrondis (surface tonale), titre en `titleLarge`, corps en `bodyLarge`. */
 @Composable
 private fun SectionCard(section: AboutSection) {
     Card(
@@ -223,7 +211,6 @@ private fun Bullet(text: String) {
     }
 }
 
-/** Zone d'alerte : fond `errorContainer`, bouton `error` Expressive — clairement distincte du reste de l'écran. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DeleteAllBlock(
@@ -248,7 +235,7 @@ private fun DeleteAllBlock(
             Button(
                 onClick = onDeleteRequested,
                 enabled = !isDeleting,
-                shapes = ButtonDefaults.shapes(),   // forme qui se transforme à l'appui
+                shapes = ButtonDefaults.shapes(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,
@@ -277,7 +264,6 @@ private fun DeleteAllBlock(
     }
 }
 
-/** Lien de contact : ouvre l'application de messagerie (lien mailto + objet pré-rempli). Sans application : l'adresse s'affiche en clair. */
 @Composable
 private fun ContactBlock(context: Context, content: AboutContent) {
     var noMailApp by remember { mutableStateOf(false) }
@@ -321,10 +307,32 @@ private fun ContactBlock(context: Context, content: AboutContent) {
     }
 }
 
-/**
- * Dialogue de confirmation Expressive : grands arrondis, icône, hiérarchie des actions (annuler = discret, confirmer = plein).
- * À l'étape finale le bouton de confirmation est un bouton `error` plein ; à la première étape c'est un bouton texte en `error`.
- */
+@Composable
+private fun LinkedInBlock(context: Context, content: AboutContent) {
+    Surface(
+        onClick = { openUrl(context, AboutContent.LINKEDIN_URL) },
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 72.dp)
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = content.linkedinHint
+            },
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Icon(Icons.Outlined.Link, contentDescription = null, modifier = Modifier.size(24.dp))
+            Text(content.linkedinLabel, style = MaterialTheme.typography.titleMedium, textDecoration = TextDecoration.Underline)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ConfirmationDialog(texts: ConfirmationTexts, isFinal: Boolean, onConfirm: () -> Unit, onCancel: () -> Unit) {

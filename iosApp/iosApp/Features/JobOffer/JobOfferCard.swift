@@ -1,27 +1,17 @@
-//
-//  JobOfferCard.swift
-//  iosApp
-//
-//  Created by DAN BIZWA on 19/09/2026.
-//
 
 import SwiftUI
 import SharedLogic
 
-// Miroir de androidApp/.../ui/joboffer/JobOfferCard.kt.
-// Les valeurs (paddings, espacements, tailles) sont celles du code Compose, en pt = dp.
 struct JobOfferCard: View {
     let offer: JobOffer
     let onStatusChanged: (ApplicationStatus) -> Void
     let onEditTap: () -> Void
 
-    // Les icônes suivent Dynamic Type comme le texte (sinon elles deviennent minuscules à grande taille de police)
     @ScaledMetric(relativeTo: .body) private var pencilSize: CGFloat = 20
     @ScaledMetric(relativeTo: .body) private var pinSize: CGFloat = 14
     @ScaledMetric(relativeTo: .body) private var chipArrowSize: CGFloat = 8
     @ScaledMetric(relativeTo: .body) private var chipArrowBox: CGFloat = 18
 
-    /// « 5 sept. » (fr) / « Sep 5 » (en) : format court IDENTIQUE à Android (une seule implémentation : `ShortDate`, sharedLogic).
     static func shortDate(_ date: Kotlinx_datetimeLocalDate, language: AppLanguage = .current) -> String {
         ShortDate.shared.format(date: date, language: language)
     }
@@ -36,12 +26,12 @@ struct JobOfferCard: View {
             }
 
             statusChip
-                .padding(.top, 2)                         // 8 - 6 : la zone tactile de 44 pt déborde de 6 pt de chaque côté du chip de 32
+                .padding(.top, 2)
 
-            Rectangle()                                   // HorizontalDivider() : 1dp, outlineVariant
+            Rectangle()
                 .fill(Color.outlineVariant)
                 .frame(height: 1)
-                .padding(.top, 6)                         // 12 - 6 (idem)
+                .padding(.top, 6)
                 .padding(.bottom, 8)
 
             dateRow(label: L("date_row_applied"), date: offer.appliedDate)
@@ -58,11 +48,11 @@ struct JobOfferCard: View {
                     .padding(.top, 4)
             }
         }
-        .foregroundStyle(Color.onSurfaceBase)             // contentColorFor(surfaceContainerHighest)
+        .foregroundStyle(Color.onSurfaceBase)
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.cardContainer)                  // Card filled : surfaceContainerHighest
-        .clipShape(RoundedRectangle(cornerRadius: 12))    // Card : shapes.medium
+        .background(Color.cardContainer)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: Titre + entreprise + crayon
@@ -77,7 +67,6 @@ struct JobOfferCard: View {
                     .foregroundStyle(Color.onSurfaceVariant)
             }
             Spacer(minLength: 0)
-            // IconButton Material : zone tactile 48dp, icône 24dp centrée
             Button(action: onEditTap) {
                 Image(systemName: "pencil")
                     .font(.system(size: pencilSize))
@@ -111,8 +100,6 @@ struct JobOfferCard: View {
                 Button(status.displayLabel) { onStatusChanged(status) }
             }
         } label: {
-            // AssistChip : hauteur 32dp, coin small (8dp), contour outlineVariant 1dp,
-            // fond transparent, label coloré par le statut, icône ArrowDropDown 18dp (primary).
             HStack(spacing: 8) {
                 Text(offer.status.displayLabel)
                     .appTextStyle(.labelLarge)
@@ -124,12 +111,11 @@ struct JobOfferCard: View {
             }
             .padding(.leading, 16)
             .padding(.trailing, 8)
-            .frame(minHeight: 32)                          // minHeight : le chip grandit avec Dynamic Type au lieu de tronquer
+            .frame(minHeight: 32)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(Color.outlineVariant, lineWidth: 1)
             )
-            // HIG : zone tactile >= 44 x 44 pt. Le chip reste visuellement à 32 pt.
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -150,7 +136,7 @@ struct JobOfferCard: View {
             Text(Self.shortDate(date))
                 .appTextStyle(.labelLarge.copy(weight: .semiBold))
         }
-        .accessibilityElement(children: .combine)         // VoiceOver : « Postulé, 5 sept. » d'un bloc
+        .accessibilityElement(children: .combine)
     }
 }
 

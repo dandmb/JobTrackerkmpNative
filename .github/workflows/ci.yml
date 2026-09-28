@@ -1,8 +1,4 @@
-# CI : tests unitaires uniquement (pas de build de release, pas de signature, pas de secret, pas de déploiement).
 # Deux jobs INDÉPENDANTS (pas de `needs`) : un statut clair par plateforme dans l'interface GitHub.
-#   - android : ubuntu — tests JVM du module partagé + tests JUnit de l'app Android
-#   - ios     : macOS 26 (arm64) — tests natifs du module partagé sur simulateur iOS + tests XCTest de l'app iOS
-# Versions vérifiées le 2026-09-21 : voir rapport-ci-setup.md (runners, Xcode, JDK, actions).
 name: CI
 
 on:
