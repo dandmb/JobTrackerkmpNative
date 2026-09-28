@@ -41,7 +41,7 @@ import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
 import com.dmb.joblog.ui.util.openUrl
 
 /**
- * Écran « Politique de confidentialité », séparé de « À propos » (voir rapport-reglages-confidentialite.md).
+ * Écran « Politique de confidentialité », séparé de « À propos ».
  * Le texte français vient VERBATIM de `PrivacyContent` (sharedLogic) — cet écran ne fait que le mettre en forme, comme
  * `AboutScreen`. Thème Material 3 standard (Expressive reste limité à `AboutScreen`).
  */

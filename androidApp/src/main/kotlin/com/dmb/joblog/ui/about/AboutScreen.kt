@@ -80,7 +80,7 @@ import com.dmb.joblog.ui.i18n.rememberAppLanguage
  * Tout le texte vient de `AboutContent` (sharedLogic) : cet écran ne fait que le mettre en forme.
  * La suppression totale passe par la double confirmation portée par `AboutViewModel`.
  *
- * Composants / principes Expressive utilisés (voir rapport) : `MaterialExpressiveTheme` + `MotionScheme.expressive()`
+ * Composants / principes Expressive utilisés : `MaterialExpressiveTheme` + `MotionScheme.expressive()`
  * (ressorts), `LargeFlexibleTopAppBar` (grand titre qui se réduit au défilement), `Button(shapes = ButtonDefaults.shapes())`
  * (forme qui se transforme à l'appui) à hauteur `MediumContainerHeight`, `LoadingIndicator` (forme qui se déforme, pendant la
  * suppression), `MaterialShapes.Cookie9Sided` (pastille d'en-tête, logo JobLog), cartes à grands arrondis (`shapes.extraLarge`), espacements

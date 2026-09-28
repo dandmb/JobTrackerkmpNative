@@ -8,8 +8,8 @@ import kotlin.test.assertTrue
 
 /**
  * Garde-fou (lecture du source) : l'écran appelle la recherche/filtre/tri partagée (`filteredForDisplay`, sharedLogic)
- * au lieu de réimplémenter sa propre logique — c'est tout l'objet de rapport-filtre-statut.md (avant : deux copies
- * indépendantes de la recherche/tri, le schéma de duplication qui avait déjà fait diverger les formulaires).
+ * au lieu de réimplémenter sa propre logique (avant : deux copies indépendantes de la recherche/tri, le schéma de
+ * duplication qui avait déjà fait diverger les formulaires).
  */
 class StatusFilterWiringTest {
 

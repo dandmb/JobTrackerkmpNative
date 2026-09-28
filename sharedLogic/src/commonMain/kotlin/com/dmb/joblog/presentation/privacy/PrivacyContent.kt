@@ -14,8 +14,7 @@ import com.dmb.joblog.presentation.about.AboutSection
  * chaque mot.
  *
  * ⚠️ **Le texte anglais est une TRADUCTION non officielle**, écrite par manque de version anglaise fournie (le projet est
- * bilingue, voir §10 PROJECT_CONTEXT.md) : à faire relire avant toute publication réelle sur un store. Voir
- * rapport-reglages-confidentialite.md.
+ * bilingue, voir §10 PROJECT_CONTEXT.md) : à faire relire avant toute publication réelle sur un store.
  *
  * **Historique** : le texte fourni le 2026-09-27 nommait l'app « JobLog » (ancien nom du projet, voir
  * PROJECT_CONTEXT.md §9) ; corrigé en « JobLog » le même jour, à la demande du propriétaire, dans le texte français

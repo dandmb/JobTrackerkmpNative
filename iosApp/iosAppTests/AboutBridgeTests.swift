@@ -148,8 +148,6 @@ final class AboutBridgeTests: XCTestCase {
     // MARK: garde-fous de câblage
 
     func test_listView_hasASettingsEntryPointInTheToolbar() {
-        // Depuis rapport-reglages-confidentialite.md : l'icône `info.circle` (directe vers « À propos ») a été
-        // remplacée par une icône `gearshape` vers « Réglages », qui liste « À propos » et « Politique de confidentialité ».
         let list = source("iosApp/Features/JobOffer/JobOfferListView.swift")
 
         XCTAssertFalse(list.isEmpty, "source introuvable (chemin #filePath)")

@@ -6,7 +6,7 @@
 import SwiftUI
 import SharedLogic
 
-/// Écran « Politique de confidentialité », séparé de « À propos » (voir rapport-reglages-confidentialite.md).
+/// Écran « Politique de confidentialité », séparé de « À propos ».
 /// Le texte français vient VERBATIM de `PrivacyContent` (sharedLogic) — cet écran ne fait que le mettre en forme,
 /// comme `AboutView`.
 struct PrivacyView: View {

@@ -28,8 +28,6 @@ final class EmptyStateWiringTests: XCTestCase {
     }
 
     func test_searchWithNoResult_staysTextOnly() throws {
-        // Depuis le filtre de statut (rapport-filtre-statut.md) : le texte est choisi par un ternaire (recherche vs filtre),
-        // plus par un seul `Text(L("list_no_results"` littéral.
         let start = try XCTUnwrap(source.range(of: "Text(selectedStatuses.isEmpty ? L(\"list_no_results\""))
         // Le bloc « aucun résultat » : de son texte jusqu'au ForEach des cartes qui suit.
         let end = try XCTUnwrap(source.range(of: "ForEach(visibleOffers)", range: start.upperBound..<source.endIndex))
@@ -75,7 +73,6 @@ final class EmptyStateWiringTests: XCTestCase {
     }
 
     func test_settingsButton_staysAlwaysVisibleOutsideTheSortCondition() throws {
-        // Icône `gearshape` (Réglages), qui a remplacé l'icône `info.circle` directe vers « À propos ».
         let toolbar = toolbarSource
         let settings = try XCTUnwrap(toolbar.range(of: "SettingsView()"))
         let condition = try XCTUnwrap(toolbar.range(of: "if !observable.state.offers.isEmpty {"))

@@ -7,7 +7,7 @@ import com.dmb.joblog.i18n.pick
  * Contenu de l'écran « Réglages » : UNE source de vérité pour Android et iOS (comme `AboutContent`, `OnboardingContent`).
  * Cet écran est le point d'entrée unique vers « À propos » et « Politique de confidentialité », atteint depuis l'icône
  * ⚙️ de la barre du haut de l'écran principal (avant cette intervention, l'icône ⓘ menait directement à « À propos »,
- * qui contenait aussi la confidentialité : voir rapport-reglages-confidentialite.md).
+ * qui contenait aussi la confidentialité).
  */
 class SettingsContent private constructor(private val lang: AppLanguage) {
     val screenTitle: String = lang.pick(en = "Settings", fr = "Réglages")

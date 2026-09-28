@@ -15,8 +15,8 @@ struct OnboardingView: View {
 
     private let content = OnboardingContent.companion.of(language: AppLanguage.current)
     // Capture d'écran de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques. Remplace
-    // les icônes (SF Symbols / logo de marque en page 1) par de vraies captures de l'app — voir
-    // rapport-reglages-confidentialite.md. ⚠️ À régénérer si l'UI des écrans montrés change.
+    // les icônes (SF Symbols / logo de marque en page 1) par de vraies captures de l'app.
+    // ⚠️ À régénérer si l'UI des écrans montrés change.
     private let images = ["Onboarding1", "Onboarding2", "Onboarding3"]
 
     private var pageCount: Int { Int(content.pageCount) }

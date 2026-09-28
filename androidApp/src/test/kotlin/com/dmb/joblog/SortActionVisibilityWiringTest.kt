@@ -40,7 +40,6 @@ class SortActionVisibilityWiringTest {
 
     @Test
     fun settingsAction_staysAlwaysVisible() {
-        // Icône ⚙️ (Réglages), qui a remplacé l'icône ⓘ directe vers « À propos » (rapport-reglages-confidentialite.md).
         val condition = actions.indexOf("if (state.offers.isNotEmpty())")
         val settings = actions.indexOf("onOpenSettings")
 

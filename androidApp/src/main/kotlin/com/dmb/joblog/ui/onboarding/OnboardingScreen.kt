@@ -45,8 +45,8 @@ import com.dmb.joblog.R
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 
 // Capture d'écran de chaque page (même ordre que OnboardingContent.pages) : suivi, statuts, statistiques. Remplace les
-// icônes génériques par de vraies captures de l'app (rapport-reglages-confidentialite.md) : une carte détaillée
-// (titre/entreprise/lieu/salaire/dates), une carte avec son statut (couleur du statut), la carte de statistiques.
+// icônes génériques par de vraies captures de l'app : une carte détaillée (titre/entreprise/lieu/salaire/dates), une
+// carte avec son statut (couleur du statut), la carte de statistiques.
 // `drawable-nodpi` : bitmap unique, non redimensionné par densité (la taille affichée est fixée par le Modifier ci-dessous).
 // ⚠️ Ces images devront être régénérées si l'UI des écrans montrés (carte, statuts, carte de stats) change.
 private val PageImages: List<Int> = listOf(R.drawable.onboarding_1, R.drawable.onboarding_2, R.drawable.onboarding_3)

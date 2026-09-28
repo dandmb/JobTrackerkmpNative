@@ -76,8 +76,6 @@ class AboutScreenWiringTest {
 
     @Test
     fun listScreen_exposesASettingsEntryPointInTheTopBar() {
-        // Depuis rapport-reglages-confidentialite.md : l'icône ⓘ (directe vers « À propos ») a été remplacée par une
-        // icône ⚙️ vers « Réglages », qui liste « À propos » et « Politique de confidentialité ».
         assertTrue(listScreen.contains("onOpenSettings"))
         assertTrue(listScreen.contains("SettingsContent"))
         assertFalse(listScreen.contains("onOpenAbout"), "l'écran principal ne doit plus ouvrir « À propos » directement")

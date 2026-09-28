@@ -4,6 +4,16 @@ JobLog is a job application tracker: add every application you're pursuing, foll
 from pending to accepted or rejected, and see your progress at a glance — with a fully native UI
 on both Android and iOS, and no server, no account and no tracking.
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/list.webp" alt="List of tracked applications, with search, status filters and a stats summary card" width="260">
+  <img src="docs/screenshots/add-application.webp" alt="Form to add a new application, with title, company, location, source, salary range and dates" width="260">
+  <img src="docs/screenshots/stats.webp" alt="Stats summary card counting applications by status" width="260">
+</p>
+
+*(Android, with sample data. These screenshots will need to be regenerated if the UI they show changes.)*
+
 ## Features
 
 - **Track applications** — title, company, location, source, salary range, application/interview/

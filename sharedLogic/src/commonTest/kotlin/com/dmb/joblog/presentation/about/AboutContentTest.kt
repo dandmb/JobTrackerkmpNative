@@ -148,7 +148,7 @@ class AboutContentTest {
         assertTrue("À propos" == fr.screenTitle && "Où vivent tes données" == fr.sections[1].title)
     }
 
-    // ---------- affirmations de confidentialité (vérifiées dans le code, cf. rapport) ----------
+    // ---------- affirmations de confidentialité (vérifiées dans le code) ----------
 
     @Test
     fun localStorageSection_saysDataStaysOnTheDeviceAndNothingIsSent() {

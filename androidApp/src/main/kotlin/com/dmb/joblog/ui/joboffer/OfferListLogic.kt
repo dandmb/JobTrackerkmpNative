@@ -2,9 +2,6 @@ package com.dmb.joblog.ui.joboffer
 
 import com.dmb.joblog.domain.model.JobOffer
 
-// Recherche + filtre de statut + tri : UNE SEULE implémentation, dans sharedLogic (`presentation.joboffer.OfferListFilter`,
-// extension `filteredForDisplay`), appelée par cet écran et par iOS. Elle n'est plus dupliquée ici (voir rapport-filtre-statut.md).
-
 // ---------------------------------------------------------------------------------------------
 // Scroll vers la carte restaurée après « Annuler » : la DÉCISION est pure (testable), l'EFFET (LazyListState,
 // attente d'un frame, animateScrollToItem) reste dans JobOfferListScreen.

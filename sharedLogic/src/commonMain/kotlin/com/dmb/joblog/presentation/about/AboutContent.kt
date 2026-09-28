@@ -25,8 +25,8 @@ data class ConfirmationTexts(
  * Contenu de l'écran « À propos » : UNE source de vérité pour Android et iOS (comme `OnboardingContent`), dans la langue demandée ([AppLanguage]).
  *
  * Aucune licence de dépendance ni de police n'est mentionnée à l'écran : décision explicite du propriétaire (ne pas la rétablir).
- * Chaque affirmation ci-dessous a été vérifiée dans le code du projet ; la liste des vérifications est dans
- * `rapport-a-propos.md` et `PROJECT_CONTEXT.md`. **Si le code change (nouveau champ de `JobOffer`, SDK d'analyse,
+ * Chaque affirmation ci-dessous a été vérifiée dans le code du projet (voir `PROJECT_CONTEXT.md`). **Si le code change
+ * (nouveau champ de `JobOffer`, SDK d'analyse,
  * appel réseau, nouvelle permission…), ce texte doit être revu** : `AboutContentTest` verrouille la liste des champs
  * du modèle pour que l'ajout d'un champ fasse échouer un test et rappelle de mettre le texte à jour.
  *
