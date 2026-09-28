@@ -27,6 +27,12 @@ final class AboutObservable: ObservableObject {
         task?.cancel()
         viewModel.onCleared()
     }
+
+    // iOS 26 ferme le dialogue APRÈS l'action du bouton, avant que `state` (copie asynchrone) ne soit rafraîchi :
+    // la décision doit lire l'état réel du ViewModel, sinon « Continue » est aussitôt annulé.
+    func firstConfirmationDismissed() {
+        if viewModel.state.deleteStep == .firstConfirmation { viewModel.onDeleteAllCancelled() }
+    }
 }
 
 struct AboutView: View {
@@ -61,7 +67,7 @@ struct AboutView: View {
             content.firstConfirmation.title,
             isPresented: Binding(
                 get: { step == .firstConfirmation },
-                set: { if !$0 && step == .firstConfirmation { observable.viewModel.onDeleteAllCancelled() } }
+                set: { if !$0 { observable.firstConfirmationDismissed() } }
             ),
             titleVisibility: .visible
         ) {
