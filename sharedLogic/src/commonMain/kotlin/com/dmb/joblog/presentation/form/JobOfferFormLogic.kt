@@ -82,6 +82,28 @@ object JobOfferFormLogic {
 
     fun initialAppliedDate(existing: JobOffer?, today: LocalDate): LocalDate = existing?.appliedDate ?: today
 
+    fun initialDraft(existing: JobOffer?, today: LocalDate): JobOfferFormDraft {
+        val salary = parseSalaryFields(existing?.salaryRange)
+        return JobOfferFormDraft(
+            title = existing?.title ?: "",
+            company = existing?.company ?: "",
+            url = existing?.url ?: "",
+            location = existing?.location ?: "",
+            source = existing?.source ?: "",
+            salaryMin = salary.min,
+            salaryMax = salary.max,
+            appliedDate = initialAppliedDate(existing, today),
+            interviewDate = existing?.interviewDate,
+            resultDate = existing?.resultDate,
+            notes = existing?.notes ?: "",
+            cvAttachmentId = existing?.cvAttachmentId,
+            coverLetterAttachmentId = existing?.coverLetterAttachmentId,
+        )
+    }
+
+    fun hasUnsavedChanges(draft: JobOfferFormDraft, existing: JobOffer?, today: LocalDate): Boolean =
+        draft != initialDraft(existing, today)
+
     fun toJobOffer(draft: JobOfferFormDraft, existing: JobOffer?): JobOffer = JobOffer(
         id = existing?.id ?: 0,
         title = draft.title,

@@ -22,6 +22,7 @@ struct JobOfferFormSheet: View {
     @State private var coverLetterAttachmentId: Int64?
     @StateObject private var attachments = AttachmentsObservable()
     @StateObject private var documents = DocumentsFormState()
+    @State private var showDiscardConfirmation = false
 
     init(existingOffer: JobOffer?, viewModel: JobOfferListViewModel, onDone: @escaping () -> Void) {
         self.existingOffer = existingOffer
@@ -44,6 +45,25 @@ struct JobOfferFormSheet: View {
     }
 
     private var isEditing: Bool { existingOffer != nil }
+
+    private var hasUnsavedChanges: Bool {
+        JobOfferFormBridge.hasUnsavedChanges(
+            existing: existingOffer,
+            title: title,
+            company: company,
+            url: url,
+            location: location,
+            source: source,
+            salaryMin: salaryMin,
+            salaryMax: salaryMax,
+            notes: notes,
+            appliedDate: appliedDate,
+            interviewDate: interviewDate,
+            resultDate: resultDate,
+            cvAttachmentId: cvAttachmentId,
+            coverLetterAttachmentId: coverLetterAttachmentId
+        )
+    }
 
     private var validation: FormValidation {
         JobOfferFormLogic.shared.validate(title: title, company: company, salaryMin: salaryMin, salaryMax: salaryMax, language: AppLanguage.current)
@@ -125,9 +145,18 @@ struct JobOfferFormSheet: View {
                 coverLetterAttachmentId: $coverLetterAttachmentId
             )
             .navigationTitle(isEditing ? "form_title_edit" : "form_title_new")
+            .interactiveDismissDisabled(hasUnsavedChanges)
+            .confirmationDialog(L("form_discard_title"), isPresented: $showDiscardConfirmation, titleVisibility: .visible) {
+                Button(L("form_discard_confirm"), role: .destructive) { onDone() }
+                Button(L("form_discard_cancel"), role: .cancel) {}
+            } message: {
+                Text(L("form_discard_message"))
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("cancel") { onDone() }
+                    Button("cancel") {
+                        if hasUnsavedChanges { showDiscardConfirmation = true } else { onDone() }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("form_save") { save() }

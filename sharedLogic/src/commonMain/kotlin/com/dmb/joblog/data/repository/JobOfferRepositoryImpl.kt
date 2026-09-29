@@ -1,5 +1,6 @@
 package com.dmb.joblog.data.repository
 
+import com.dmb.joblog.data.local.DatabaseTransaction
 import com.dmb.joblog.data.local.dao.JobOfferDao
 import com.dmb.joblog.data.local.entity.JobOfferAttachmentEntity
 import com.dmb.joblog.data.local.entity.JobOfferEntity
@@ -16,6 +17,7 @@ internal class JobOfferRepositoryImpl(
     private val dao: JobOfferDao,
     private val purgeDeletedData: suspend () -> Unit = {},
     private val onAttachmentsDetached: suspend (Set<Long>) -> Unit = {},
+    private val inTransaction: DatabaseTransaction = DatabaseTransaction { it() },
 ) : JobOfferRepository {
 
     override fun getAll(): Flow<List<JobOffer>> = withAttachments(dao.getAll())
@@ -29,16 +31,22 @@ internal class JobOfferRepositoryImpl(
         }
 
     override suspend fun add(offer: JobOffer): Long {
-        val id = dao.insert(offer.toEntity())
-        writeAttachmentLinks(id, offer)
+        var id = 0L
+        inTransaction.run {
+            id = dao.insert(offer.toEntity())
+            writeAttachmentLinks(id, offer)
+        }
         return id
     }
 
     override suspend fun update(offer: JobOffer) {
-        val existing = dao.getById(offer.id)
-        val previousAttachmentIds = dao.getAttachmentLinks(offer.id).map { it.attachmentId }.toSet()
-        dao.update(offer.toEntity(existingCreatedAt = existing?.createdAtEpochMillis))
-        writeAttachmentLinks(offer.id, offer)
+        var previousAttachmentIds = emptySet<Long>()
+        inTransaction.run {
+            val existing = dao.getById(offer.id)
+            previousAttachmentIds = dao.getAttachmentLinks(offer.id).map { it.attachmentId }.toSet()
+            dao.update(offer.toEntity(existingCreatedAt = existing?.createdAtEpochMillis))
+            writeAttachmentLinks(offer.id, offer)
+        }
         val detached = previousAttachmentIds - offer.attachmentIdsByRole().values.filterNotNull().toSet()
         if (detached.isNotEmpty()) onAttachmentsDetached(detached)
     }
@@ -50,8 +58,10 @@ internal class JobOfferRepositoryImpl(
         dao.getById(id)?.createdAtEpochMillis
 
     override suspend fun restore(offer: JobOffer, createdAtEpochMillis: Long) {
-        val id = dao.insert(offer.toEntity(existingCreatedAt = createdAtEpochMillis))
-        writeAttachmentLinks(id, offer)
+        inTransaction.run {
+            val id = dao.insert(offer.toEntity(existingCreatedAt = createdAtEpochMillis))
+            writeAttachmentLinks(id, offer)
+        }
     }
 
     private suspend fun writeAttachmentLinks(jobOfferId: Long, offer: JobOffer) {
