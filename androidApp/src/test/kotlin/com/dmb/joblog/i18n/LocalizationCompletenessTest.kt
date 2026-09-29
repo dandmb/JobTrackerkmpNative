@@ -11,7 +11,8 @@ class LocalizationCompletenessTest {
     private val fr = StringResources.androidFr
     private val accents = Regex("[àâçéèêëîïôûùüÿœ«»]", RegexOption.IGNORE_CASE)
 
-    private val sameInBothLanguages = setOf("app_name", "ok", "sort_az", "sort_za", "form_section_dates", "form_field_notes")
+    private val sameInBothLanguages = setOf("app_name", "ok", "sort_az", "sort_za", "form_section_dates", "form_field_notes",
+        "form_section_documents", "form_document_cv", "card_documents_cv")
 
     @Test
     fun bothFiles_areNotEmpty() {

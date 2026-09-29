@@ -18,6 +18,10 @@ struct JobOfferFormSheet: View {
     @State private var appliedDate: Date
     @State private var interviewDate: Date?
     @State private var resultDate: Date?
+    @State private var cvAttachmentId: Int64?
+    @State private var coverLetterAttachmentId: Int64?
+    @StateObject private var attachments = AttachmentsObservable()
+    @StateObject private var documents = DocumentsFormState()
 
     init(existingOffer: JobOffer?, viewModel: JobOfferListViewModel, onDone: @escaping () -> Void) {
         self.existingOffer = existingOffer
@@ -35,6 +39,8 @@ struct JobOfferFormSheet: View {
         _appliedDate = State(initialValue: existingOffer?.appliedDate.toDate() ?? Date())
         _interviewDate = State(initialValue: existingOffer?.interviewDate?.toDate())
         _resultDate = State(initialValue: existingOffer?.resultDate?.toDate())
+        _cvAttachmentId = State(initialValue: existingOffer?.cvAttachmentId?.int64Value)
+        _coverLetterAttachmentId = State(initialValue: existingOffer?.coverLetterAttachmentId?.int64Value)
     }
 
     private var isEditing: Bool { existingOffer != nil }
@@ -101,10 +107,23 @@ struct JobOfferFormSheet: View {
                     }
                 }
 
+                DocumentsFormSection(
+                    cvAttachmentId: $cvAttachmentId,
+                    coverLetterAttachmentId: $coverLetterAttachmentId,
+                    attachments: attachments,
+                    state: documents
+                )
+
                 Section("form_field_notes") {
                     TextEditor(text: $notes).frame(minHeight: 80)
                 }
             }
+            .documentsFormPresentations(
+                state: documents,
+                attachments: attachments,
+                cvAttachmentId: $cvAttachmentId,
+                coverLetterAttachmentId: $coverLetterAttachmentId
+            )
             .navigationTitle(isEditing ? "form_title_edit" : "form_title_new")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -141,7 +160,9 @@ struct JobOfferFormSheet: View {
             notes: notes,
             appliedDate: appliedDate,
             interviewDate: interviewDate,
-            resultDate: resultDate
+            resultDate: resultDate,
+            cvAttachmentId: cvAttachmentId,
+            coverLetterAttachmentId: coverLetterAttachmentId
         )
 
         if isEditing {

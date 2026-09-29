@@ -2,11 +2,13 @@ package com.dmb.joblog.di
 
 import com.dmb.joblog.data.local.dao.JobOfferDao
 import com.dmb.joblog.data.local.OnboardingRepositoryImpl
+import com.dmb.joblog.data.repository.AttachmentRepositoryImpl
 import com.dmb.joblog.data.repository.JobOfferRepositoryImpl
 import com.dmb.joblog.domain.repository.OnboardingRepository
 import com.dmb.joblog.presentation.onboarding.OnboardingViewModel
 import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.Settings
+import com.dmb.joblog.domain.repository.AttachmentRepository
 import com.dmb.joblog.domain.repository.JobOfferRepository
 import com.dmb.joblog.domain.usecase.AddJobOfferUseCase
 import com.dmb.joblog.domain.usecase.DeleteAllJobOffersUseCase
@@ -15,7 +17,11 @@ import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.joblog.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
+import com.dmb.joblog.data.files.AttachmentFileStore
 import com.dmb.joblog.data.local.DeletedDataPurger
+import com.dmb.joblog.data.local.dao.AttachmentDao
+import com.dmb.joblog.testutil.FakeAttachmentDao
+import com.dmb.joblog.testutil.FakeAttachmentFileStore
 import com.dmb.joblog.testutil.FakeJobOfferDao
 import com.dmb.joblog.testutil.jobOffer
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +59,8 @@ class DiModulesTest {
 
     private val fakeDatabaseModule = module {
         single<JobOfferDao> { FakeJobOfferDao() }
+        single<AttachmentDao> { FakeAttachmentDao() }
+        single<AttachmentFileStore> { FakeAttachmentFileStore() }
         single<DeletedDataPurger> { DeletedDataPurger {} }
     }
 
@@ -143,6 +151,7 @@ class DiModulesTest {
                 module {
                     single<JobOfferDao> { FakeJobOfferDao() }
                     single<JobOfferRepository> { JobOfferRepositoryImpl(dao = get()) }
+                    single<AttachmentRepository> { AttachmentRepositoryImpl(FakeAttachmentDao(), FakeAttachmentFileStore()) }
                 },
                 useCaseModule,
                 viewModelModule,

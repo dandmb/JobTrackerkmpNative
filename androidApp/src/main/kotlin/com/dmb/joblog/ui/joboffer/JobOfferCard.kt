@@ -126,6 +126,19 @@ fun JobOfferCard(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
+
+            val documentLabels = listOfNotNull(
+                offer.cvAttachmentId?.let { stringResource(R.string.card_documents_cv) },
+                offer.coverLetterAttachmentId?.let { stringResource(R.string.card_documents_letter) },
+            )
+            if (documentLabels.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "📎 " + documentLabels.joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

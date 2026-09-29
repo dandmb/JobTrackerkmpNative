@@ -16,7 +16,9 @@ enum JobOfferFormBridge {
         notes: String,
         appliedDate: Date,
         interviewDate: Date?,
-        resultDate: Date?
+        resultDate: Date?,
+        cvAttachmentId: Int64?,
+        coverLetterAttachmentId: Int64?
     ) -> JobOffer {
         let draft = JobOfferFormDraft(
             title: title,
@@ -29,7 +31,9 @@ enum JobOfferFormBridge {
             appliedDate: appliedDate.toKotlinLocalDate(),
             interviewDate: interviewDate?.toKotlinLocalDate(),
             resultDate: resultDate?.toKotlinLocalDate(),
-            notes: notes
+            notes: notes,
+            cvAttachmentId: cvAttachmentId.map { KotlinLong(value: $0) },
+            coverLetterAttachmentId: coverLetterAttachmentId.map { KotlinLong(value: $0) }
         )
         return JobOfferFormLogic.shared.toJobOffer(draft: draft, existing: existing)
     }

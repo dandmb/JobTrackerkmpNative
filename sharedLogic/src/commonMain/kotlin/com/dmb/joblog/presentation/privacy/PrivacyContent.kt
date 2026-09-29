@@ -13,7 +13,7 @@ class PrivacyContent private constructor(private val lang: AppLanguage) {
     val backLabel: String = lang.pick(en = "Back", fr = "Retour")
 
     val documentTitle: String = lang.pick(en = "Privacy Policy — JobLog", fr = "Politique de confidentialité — JobLog")
-    val lastUpdatedLabel: String = lang.pick(en = "Last updated: September 27, 2026", fr = "Dernière mise à jour : 27 septembre 2026")
+    val lastUpdatedLabel: String = lang.pick(en = "Last updated: September 29, 2026", fr = "Dernière mise à jour : 29 septembre 2026")
     val introText: String = lang.pick(
         en = "JobLog is a job application tracking app developed by Dan Bizwa. This policy explains what data the app processes and how.",
         fr = "JobLog est une application de suivi de candidatures développée par Dan Bizwa. Cette politique explique quelles données l'application traite et comment.",
@@ -44,35 +44,43 @@ class PrivacyContent private constructor(private val lang: AppLanguage) {
                 lang.pick(en = "the salary range;", fr = "la fourchette de salaire ;"),
                 lang.pick(en = "the application, interview and result dates;", fr = "les dates de candidature, d'entretien et de résultat ;"),
                 lang.pick(en = "the application status;", fr = "le statut de la candidature ;"),
+                lang.pick(
+                    en = "the CV and cover letter files you choose to add (PDF, Word or image), copied into the app's private storage on your device;",
+                    fr = "les fichiers de CV et de lettre de motivation que tu choisis d'ajouter (PDF, Word ou image), copiés dans l'espace de stockage privé de l'application sur ton appareil ;",
+                ),
                 lang.pick(en = "your notes.", fr = "tes notes."),
             ),
             note = lang.pick(
                 en = "The app automatically adds the date and time each application was created, to order the list, and remembers " +
-                    "whether you have already seen the welcome screen. It does not ask for your name, e-mail address or an account.",
+                    "whether you have already seen the welcome screen. For each document, it also keeps its name, format, size and " +
+                    "the date it was added. It does not ask for your name, e-mail address or an account.",
                 fr = "L'application ajoute automatiquement la date et l'heure de création de chaque candidature, pour ordonner la liste, " +
-                    "et retient si tu as déjà vu l'écran de bienvenue. Elle ne te demande ni nom, ni adresse e-mail, ni création de compte.",
+                    "et retient si tu as déjà vu l'écran de bienvenue. Pour chaque document, elle conserve aussi son nom, son format, " +
+                    "sa taille et sa date d'ajout. Elle ne te demande ni nom, ni adresse e-mail, ni création de compte.",
             ),
         ),
         AboutSection(
             title = lang.pick(en = "3. Where your data is stored", fr = "3. Où sont stockées tes données"),
             intro = lang.pick(
-                en = "All your data is stored in a local database, on your device. The app contains no code that communicates with a " +
-                    "server: your applications are not sent anywhere, neither to Dan Bizwa nor to a third party.",
-                fr = "Toutes tes données sont stockées dans une base de données locale, sur ton appareil. L'application ne contient aucun " +
-                    "code qui communique avec un serveur : tes candidatures ne sont envoyées nulle part, ni à Dan Bizwa, ni à un tiers.",
+                en = "All your data is stored in a local database and, for CVs and cover letters, in the app's private storage, on " +
+                    "your device. The app contains no code that communicates with a server: your applications are not sent anywhere, " +
+                    "neither to Dan Bizwa nor to a third party. If you choose “Open with…”, the file is handed to the app you select on your device.",
+                fr = "Toutes tes données sont stockées dans une base de données locale et, pour les CV et lettres de motivation, dans " +
+                    "l'espace de stockage privé de l'application, sur ton appareil. L'application ne contient aucun code qui communique " +
+                    "avec un serveur : tes candidatures ne sont envoyées nulle part, ni à Dan Bizwa, ni à un tiers. Si tu choisis « Ouvrir avec… », le fichier est transmis à l'application que tu sélectionnes sur ton appareil.",
             ),
             note = lang.pick(
                 en = "Exception, on Android only: the app's font is provided by Google Play services, which download it on first " +
                     "launch. This network request only concerns the font; it does not transmit any of your applications or any " +
                     "personal data.\n\nSystem backups: depending on your device's settings, the operating system (Google backup on " +
                     "Android, iCloud or local backup on iOS) may include the app's data in a general backup of your phone. This " +
-                    "mechanism is managed by the operating system, not by JobLog, and is outside the app's control.",
+                    "mechanism is managed by the operating system, not by JobLog, and is outside the app's control. CV and cover letter files, however, are never included in these backups.",
                 fr = "Exception, sur Android uniquement : la police d'écriture de l'application est fournie par les services Google " +
                     "Play, qui la téléchargent lors du premier lancement. Cette requête réseau ne concerne que la police d'écriture ; " +
                     "elle ne transmet aucune de tes candidatures ni aucune donnée personnelle.\n\nSauvegardes système : selon les " +
                     "réglages de ton appareil, le système d'exploitation (sauvegarde Google sur Android, iCloud ou sauvegarde locale " +
                     "sur iOS) peut inclure les données de l'application dans une sauvegarde générale de ton téléphone. Ce mécanisme " +
-                    "est géré par le système d'exploitation, pas par JobLog, et échappe au contrôle de l'application.",
+                    "est géré par le système d'exploitation, pas par JobLog, et échappe au contrôle de l'application. Les fichiers de CV et de lettre de motivation, eux, ne sont jamais inclus dans ces sauvegardes.",
             ),
         ),
         AboutSection(

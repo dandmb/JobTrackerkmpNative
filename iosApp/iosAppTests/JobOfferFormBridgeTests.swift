@@ -13,12 +13,14 @@ final class JobOfferFormBridgeTests: XCTestCase {
     private func build(
         existing: JobOffer? = nil, title: String = "Dev", company: String = "Acme", url: String = "", location: String = "",
         source: String = "", salaryMin: String = "", salaryMax: String = "", notes: String = "",
-        applied: Date? = nil, interview: Date? = nil, result: Date? = nil
+        applied: Date? = nil, interview: Date? = nil, result: Date? = nil,
+        cv: Int64? = nil, letter: Int64? = nil
     ) -> JobOffer {
         JobOfferFormBridge.buildOffer(
             existing: existing, title: title, company: company, url: url, location: location, source: source,
             salaryMin: salaryMin, salaryMax: salaryMax, notes: notes,
-            appliedDate: applied ?? date(2026, 9, 5), interviewDate: interview, resultDate: result
+            appliedDate: applied ?? date(2026, 9, 5), interviewDate: interview, resultDate: result,
+            cvAttachmentId: cv, coverLetterAttachmentId: letter
         )
     }
 
@@ -114,6 +116,20 @@ final class JobOfferFormBridgeTests: XCTestCase {
 
         XCTAssertEqual(offer.id, 7)
         XCTAssertEqual(offer.status, .rejected)
+    }
+
+    func test_buildOffer_documentIds_arePassedThrough() {
+        let offer = build(cv: 4, letter: 9)
+
+        XCTAssertEqual(offer.cvAttachmentId?.int64Value, 4)
+        XCTAssertEqual(offer.coverLetterAttachmentId?.int64Value, 9)
+    }
+
+    func test_buildOffer_documentRemovedInTheForm_isNoLongerAttached() {
+        let offer = build(existing: makeOffer(id: 7, cvAttachmentId: 4, coverLetterAttachmentId: 9), cv: nil, letter: 9)
+
+        XCTAssertNil(offer.cvAttachmentId)
+        XCTAssertEqual(offer.coverLetterAttachmentId?.int64Value, 9)
     }
 
     func test_editThenSave_existingOfferLoadedIntoTheFormAndSavedBack_isUnchanged() {

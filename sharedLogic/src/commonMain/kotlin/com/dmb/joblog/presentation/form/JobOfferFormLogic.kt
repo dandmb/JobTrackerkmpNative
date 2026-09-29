@@ -20,6 +20,8 @@ data class JobOfferFormDraft(
     val interviewDate: LocalDate?,
     val resultDate: LocalDate?,
     val notes: String,
+    val cvAttachmentId: Long? = null,
+    val coverLetterAttachmentId: Long? = null,
 )
 
 sealed class FormValidation {
@@ -93,6 +95,8 @@ object JobOfferFormLogic {
         resultDate = draft.resultDate,
         status = existing?.status ?: ApplicationStatus.APPLIED,
         notes = draft.notes.ifBlank { null },
+        cvAttachmentId = draft.cvAttachmentId,
+        coverLetterAttachmentId = draft.coverLetterAttachmentId,
     )
 
     private fun digitsOf(text: String): String = text.filter { it.isDigit() }

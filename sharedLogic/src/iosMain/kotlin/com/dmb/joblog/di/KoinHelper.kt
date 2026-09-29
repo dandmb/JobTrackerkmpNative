@@ -1,6 +1,7 @@
 package com.dmb.joblog.di
 
 import com.dmb.joblog.presentation.about.AboutViewModel
+import com.dmb.joblog.presentation.attachments.AttachmentsViewModel
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
 import com.dmb.joblog.presentation.onboarding.OnboardingViewModel
 import org.koin.mp.KoinPlatform
@@ -13,5 +14,8 @@ class KoinHelper {
         KoinPlatform.getKoin().get()
 
     fun aboutViewModel(): AboutViewModel =
+        KoinPlatform.getKoin().get()
+
+    fun attachmentsViewModel(): AttachmentsViewModel =
         KoinPlatform.getKoin().get()
 }

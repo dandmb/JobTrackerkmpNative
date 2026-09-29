@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +34,7 @@ import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenDocuments: () -> Unit,
     onOpenAbout: () -> Unit,
     onOpenPrivacy: () -> Unit,
 ) {
@@ -58,6 +60,7 @@ fun SettingsScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            SettingsRow(label = content.documentsRowLabel, icon = Icons.Outlined.Description, onClick = onOpenDocuments)
             SettingsRow(label = content.aboutRowLabel, icon = Icons.Outlined.Info, onClick = onOpenAbout)
             SettingsRow(label = content.privacyRowLabel, icon = Icons.Outlined.PrivacyTip, onClick = onOpenPrivacy)
         }

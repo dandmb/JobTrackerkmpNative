@@ -1,5 +1,7 @@
 package com.dmb.joblog.di
 
+import com.dmb.joblog.data.files.AttachmentFileStore
+import com.dmb.joblog.data.files.createAttachmentFileStore
 import com.dmb.joblog.data.local.AppDatabase
 import com.dmb.joblog.data.local.DeletedDataPurger
 import com.dmb.joblog.data.local.getDatabaseBuilder
@@ -9,9 +11,15 @@ import org.koin.dsl.module
 
 val databaseModule = module {
     single { getRoomDatabase(getDatabaseBuilder()) }
-    single { get<com.dmb.joblog.data.local.AppDatabase>().jobOfferDao() }
+    single { get<AppDatabase>().jobOfferDao() }
+    single { get<AppDatabase>().attachmentDao() }
+    single<AttachmentFileStore> { createAttachmentFileStore() }
     single<DeletedDataPurger> {
         val database = get<AppDatabase>()
-        DeletedDataPurger { database.purgeDeletedData() }
+        val fileStore = get<AttachmentFileStore>()
+        DeletedDataPurger {
+            fileStore.deleteAll()
+            database.purgeDeletedData()
+        }
     }
 }

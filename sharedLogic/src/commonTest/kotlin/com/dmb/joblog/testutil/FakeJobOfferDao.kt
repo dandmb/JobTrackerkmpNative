@@ -1,6 +1,7 @@
 package com.dmb.joblog.testutil
 
 import com.dmb.joblog.data.local.dao.JobOfferDao
+import com.dmb.joblog.data.local.entity.JobOfferAttachmentEntity
 import com.dmb.joblog.data.local.entity.JobOfferEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,10 @@ import kotlinx.coroutines.flow.map
 internal class FakeJobOfferDao : JobOfferDao {
 
     val entities = MutableStateFlow<List<JobOfferEntity>>(emptyList())
+    val links = MutableStateFlow<List<JobOfferAttachmentEntity>>(emptyList())
+    val existingAttachmentIds = mutableSetOf<Long>()
+    var deleteAllAttachmentsCalls = 0
+        private set
 
     val inserted = mutableListOf<JobOfferEntity>()
     val updated = mutableListOf<JobOfferEntity>()
@@ -35,11 +40,13 @@ internal class FakeJobOfferDao : JobOfferDao {
     override suspend fun delete(offer: JobOfferEntity) {
         deleted += offer
         entities.value = entities.value.filterNot { it.id == offer.id }
+        links.value = links.value.filterNot { it.jobOfferId == offer.id }
     }
 
     override suspend fun deleteAll() {
         deleteAllCalls++
         entities.value = emptyList()
+        links.value = emptyList()
     }
 
     override fun getAll(): Flow<List<JobOfferEntity>> =
@@ -55,5 +62,25 @@ internal class FakeJobOfferDao : JobOfferDao {
     override suspend fun getById(id: Long): JobOfferEntity? {
         getByIdCalls += id
         return entities.value.firstOrNull { it.id == id }
+    }
+
+    override fun getAllAttachmentLinks(): Flow<List<JobOfferAttachmentEntity>> = links
+
+    override suspend fun getAttachmentLinks(jobOfferId: Long): List<JobOfferAttachmentEntity> =
+        links.value.filter { it.jobOfferId == jobOfferId }
+
+    override suspend fun upsertAttachmentLink(link: JobOfferAttachmentEntity) {
+        links.value = links.value.filterNot { it.jobOfferId == link.jobOfferId && it.role == link.role } + link
+    }
+
+    override suspend fun deleteAttachmentLink(jobOfferId: Long, role: String) {
+        links.value = links.value.filterNot { it.jobOfferId == jobOfferId && it.role == role }
+    }
+
+    override suspend fun attachmentExists(attachmentId: Long): Int = if (attachmentId in existingAttachmentIds) 1 else 0
+
+    override suspend fun deleteAllAttachments() {
+        deleteAllAttachmentsCalls++
+        existingAttachmentIds.clear()
     }
 }

@@ -1,5 +1,6 @@
 package com.dmb.joblog.presentation.joboffer
 
+import com.dmb.joblog.data.local.entity.JobOfferAttachmentEntity
 import com.dmb.joblog.data.repository.JobOfferRepositoryImpl
 import com.dmb.joblog.domain.usecase.AddJobOfferUseCase
 import com.dmb.joblog.domain.usecase.DeleteJobOfferUseCase
@@ -172,6 +173,27 @@ class JobOfferListViewModelUndoTest {
         advanceUntilIdle()
 
         assertEquals(listOf("A", "B", "C", "D", "E"), titles())
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun deleteThenUndo_restoresTheAttachedFiles() = runTest {
+        loaded()
+        dao.existingAttachmentIds += setOf(7L, 8L)
+        dao.upsertAttachmentLink(JobOfferAttachmentEntity(jobOfferId = 3, role = "CV", attachmentId = 7))
+        dao.upsertAttachmentLink(JobOfferAttachmentEntity(jobOfferId = 3, role = "COVER_LETTER", attachmentId = 8))
+        advanceUntilIdle()
+        val c = offer("C")
+        assertEquals(7L, c.cvAttachmentId)
+
+        viewModel.onDeleteOffer(c)
+        advanceUntilIdle()
+        assertTrue(dao.links.value.isEmpty())
+        viewModel.onRestoreOffer(c)
+        advanceUntilIdle()
+
+        assertEquals(7L, offer("C").cvAttachmentId)
+        assertEquals(8L, offer("C").coverLetterAttachmentId)
         viewModel.onCleared()
     }
 }

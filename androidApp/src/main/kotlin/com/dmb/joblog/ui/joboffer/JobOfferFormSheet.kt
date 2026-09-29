@@ -14,7 +14,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.dmb.joblog.domain.model.JobOffer
 import com.dmb.joblog.presentation.form.JobOfferFormDraft
+import com.dmb.joblog.presentation.attachments.AttachmentsViewModel
 import com.dmb.joblog.presentation.form.JobOfferFormLogic
+import com.dmb.joblog.ui.attachments.DocumentsFormSection
+import org.koin.compose.koinInject
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -51,6 +54,10 @@ fun JobOfferFormSheet(
     var salaryMax by remember { mutableStateOf(initialSalary.max) }
 
     val validation = JobOfferFormLogic.validate(title, company, salaryMin, salaryMax, rememberAppLanguage())
+    var cvAttachmentId by remember { mutableStateOf(existingOffer?.cvAttachmentId) }
+    var coverLetterAttachmentId by remember { mutableStateOf(existingOffer?.coverLetterAttachmentId) }
+    val attachmentsViewModel: AttachmentsViewModel = koinInject()
+    DisposableEffect(attachmentsViewModel) { onDispose { attachmentsViewModel.onCleared() } }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -145,6 +152,15 @@ fun JobOfferFormSheet(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+            DocumentsFormSection(
+                cvAttachmentId = cvAttachmentId,
+                coverLetterAttachmentId = coverLetterAttachmentId,
+                onCvChanged = { cvAttachmentId = it },
+                onCoverLetterChanged = { coverLetterAttachmentId = it },
+                viewModel = attachmentsViewModel,
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = notes, onValueChange = { notes = it },
                 label = { Text(stringResource(R.string.form_field_notes)) },
@@ -180,6 +196,8 @@ fun JobOfferFormSheet(
                                 interviewDate = interviewDate,
                                 resultDate = resultDate,
                                 notes = notes,
+                                cvAttachmentId = cvAttachmentId,
+                                coverLetterAttachmentId = coverLetterAttachmentId,
                             ),
                             existingOffer,
                         )

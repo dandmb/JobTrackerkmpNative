@@ -75,4 +75,46 @@
 
     <!-- Onboarding -->
     <string name="onboarding_page_indicator">Page %1$d sur %2$d</string>
+
+    <!-- Mes documents (CV et lettres de motivation) -->
+    <string name="documents_section_cv">CV</string>
+    <string name="documents_section_letters">Lettres de motivation</string>
+    <string name="documents_add_cv">Ajouter un CV</string>
+    <string name="documents_add_letter">Ajouter une lettre de motivation</string>
+    <string name="documents_empty_cv">Aucun CV pour l\'instant.</string>
+    <string name="documents_empty_letters">Aucune lettre de motivation pour l\'instant.</string>
+    <string name="documents_used_by_one">Utilisé dans %1$d candidature</string>
+    <string name="documents_used_by_other">Utilisé dans %1$d candidatures</string>
+    <string name="documents_unused">Non attaché</string>
+    <string name="documents_total_size">Total : %1$s</string>
+    <string name="documents_open">Aperçu</string>
+    <string name="documents_rename">Renommer</string>
+    <string name="documents_rename_title">Renommer le document</string>
+    <string name="documents_name_label">Nom</string>
+    <string name="documents_delete_confirm_title">Supprimer ce document ?</string>
+    <string name="documents_delete_confirm_message">« %1$s » sera définitivement supprimé de l\'application.</string>
+    <string name="documents_actions_a11y">Actions pour %1$s</string>
+    <string name="documents_missing">Fichier introuvable</string>
+    <string name="documents_importing">Import en cours…</string>
+    <string name="form_section_documents">Documents</string>
+    <string name="form_document_cv">CV</string>
+    <string name="form_document_letter">Lettre de motivation</string>
+    <string name="form_document_none">Aucun</string>
+    <string name="form_document_add">Ajouter</string>
+    <string name="form_document_add_a11y">Ajouter un document : %1$s</string>
+    <string name="form_document_options_a11y">Options pour %1$s</string>
+    <string name="form_document_choose_library">Choisir dans mes documents</string>
+    <string name="form_document_import_library">Importer et ajouter à mes documents</string>
+    <string name="form_document_import_once">Importer pour cette candidature uniquement</string>
+    <string name="form_document_replace">Remplacer</string>
+    <string name="form_document_remove">Retirer</string>
+    <string name="form_document_one_time">Pour cette candidature uniquement</string>
+    <string name="form_document_library_empty">Aucun document de ce type dans ta bibliothèque pour l\'instant.</string>
+    <string name="preview_open_with">Ouvrir avec…</string>
+    <string name="preview_no_app">Aucune application de cet appareil ne peut ouvrir ce fichier.</string>
+    <string name="preview_close">Fermer</string>
+    <string name="preview_page_a11y">Page %1$d sur %2$d</string>
+    <string name="preview_failed">Ce fichier ne peut pas être affiché.</string>
+    <string name="card_documents_cv">CV</string>
+    <string name="card_documents_letter">Lettre</string>
 </resources>
