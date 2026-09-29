@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -17,6 +18,8 @@ import com.dmb.joblog.presentation.form.JobOfferFormDraft
 import com.dmb.joblog.presentation.attachments.AttachmentsViewModel
 import com.dmb.joblog.presentation.form.JobOfferFormLogic
 import com.dmb.joblog.ui.attachments.DocumentsFormSection
+import com.dmb.joblog.ui.util.LocalDateSaver
+import com.dmb.joblog.ui.util.OptionalLocalDateSaver
 import org.koin.compose.koinInject
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
@@ -39,27 +42,68 @@ fun JobOfferFormSheet(
     val isEditing = existingOffer != null
     val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
-    var title by remember { mutableStateOf(existingOffer?.title ?: "") }
-    var company by remember { mutableStateOf(existingOffer?.company ?: "") }
-    var url by remember { mutableStateOf(existingOffer?.url ?: "") }
-    var location by remember { mutableStateOf(existingOffer?.location ?: "") }
-    var source by remember { mutableStateOf(existingOffer?.source ?: "") }
-    var notes by remember { mutableStateOf(existingOffer?.notes ?: "") }
-    var appliedDate by remember { mutableStateOf(JobOfferFormLogic.initialAppliedDate(existingOffer, today)) }
-    var interviewDate by remember { mutableStateOf(existingOffer?.interviewDate) }
-    var resultDate by remember { mutableStateOf(existingOffer?.resultDate) }
+    var title by rememberSaveable { mutableStateOf(existingOffer?.title ?: "") }
+    var company by rememberSaveable { mutableStateOf(existingOffer?.company ?: "") }
+    var url by rememberSaveable { mutableStateOf(existingOffer?.url ?: "") }
+    var location by rememberSaveable { mutableStateOf(existingOffer?.location ?: "") }
+    var source by rememberSaveable { mutableStateOf(existingOffer?.source ?: "") }
+    var notes by rememberSaveable { mutableStateOf(existingOffer?.notes ?: "") }
+    var appliedDate by rememberSaveable(stateSaver = LocalDateSaver) { mutableStateOf(JobOfferFormLogic.initialAppliedDate(existingOffer, today)) }
+    var interviewDate by rememberSaveable(stateSaver = OptionalLocalDateSaver) { mutableStateOf(existingOffer?.interviewDate) }
+    var resultDate by rememberSaveable(stateSaver = OptionalLocalDateSaver) { mutableStateOf(existingOffer?.resultDate) }
 
     val initialSalary = remember { JobOfferFormLogic.parseSalaryFields(existingOffer?.salaryRange) }
-    var salaryMin by remember { mutableStateOf(initialSalary.min) }
-    var salaryMax by remember { mutableStateOf(initialSalary.max) }
+    var salaryMin by rememberSaveable { mutableStateOf(initialSalary.min) }
+    var salaryMax by rememberSaveable { mutableStateOf(initialSalary.max) }
 
     val validation = JobOfferFormLogic.validate(title, company, salaryMin, salaryMax, rememberAppLanguage())
-    var cvAttachmentId by remember { mutableStateOf(existingOffer?.cvAttachmentId) }
-    var coverLetterAttachmentId by remember { mutableStateOf(existingOffer?.coverLetterAttachmentId) }
+    var cvAttachmentId by rememberSaveable { mutableStateOf(existingOffer?.cvAttachmentId) }
+    var coverLetterAttachmentId by rememberSaveable { mutableStateOf(existingOffer?.coverLetterAttachmentId) }
     val attachmentsViewModel: AttachmentsViewModel = koinInject()
     DisposableEffect(attachmentsViewModel) { onDispose { attachmentsViewModel.onCleared() } }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val draft = JobOfferFormDraft(
+        title = title,
+        company = company,
+        url = url,
+        location = location,
+        source = source,
+        salaryMin = salaryMin,
+        salaryMax = salaryMax,
+        appliedDate = appliedDate,
+        interviewDate = interviewDate,
+        resultDate = resultDate,
+        notes = notes,
+        cvAttachmentId = cvAttachmentId,
+        coverLetterAttachmentId = coverLetterAttachmentId,
+    )
+    val hasUnsavedChanges = JobOfferFormLogic.hasUnsavedChanges(draft, existingOffer, today)
+    val currentHasUnsavedChanges by rememberUpdatedState(hasUnsavedChanges)
+    var showDiscardConfirmation by rememberSaveable { mutableStateOf(false) }
+
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { value ->
+            (value != SheetValue.Hidden || !currentHasUnsavedChanges).also { allowed -> if (!allowed) showDiscardConfirmation = true }
+        },
+    )
+
+    if (showDiscardConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDiscardConfirmation = false },
+            title = { Text(stringResource(R.string.form_discard_title)) },
+            text = { Text(stringResource(R.string.form_discard_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardConfirmation = false
+                    onDismiss()
+                }) { Text(stringResource(R.string.form_discard_confirm), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardConfirmation = false }) { Text(stringResource(R.string.form_discard_cancel)) }
+            },
+        )
+    }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -182,26 +226,7 @@ fun JobOfferFormSheet(
             }
             Button(
                 onClick = {
-                    onSave(
-                        JobOfferFormLogic.toJobOffer(
-                            JobOfferFormDraft(
-                                title = title,
-                                company = company,
-                                url = url,
-                                location = location,
-                                source = source,
-                                salaryMin = salaryMin,
-                                salaryMax = salaryMax,
-                                appliedDate = appliedDate,
-                                interviewDate = interviewDate,
-                                resultDate = resultDate,
-                                notes = notes,
-                                cvAttachmentId = cvAttachmentId,
-                                coverLetterAttachmentId = coverLetterAttachmentId,
-                            ),
-                            existingOffer,
-                        )
-                    )
+                    onSave(JobOfferFormLogic.toJobOffer(draft, existingOffer))
                 },
                 enabled = validation.isValid,
                 modifier = Modifier.fillMaxWidth()

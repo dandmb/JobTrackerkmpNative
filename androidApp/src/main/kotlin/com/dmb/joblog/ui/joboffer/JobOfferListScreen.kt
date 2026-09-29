@@ -13,23 +13,23 @@ import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dmb.joblog.presentation.settings.SettingsContent
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
+import com.dmb.joblog.ui.util.StatusSetSaver
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
 import com.dmb.joblog.presentation.joboffer.SortOption
 import com.dmb.joblog.presentation.joboffer.filteredForDisplay
-import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import com.dmb.joblog.domain.model.ApplicationStatus
-import com.dmb.joblog.domain.model.JobOffer
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import com.dmb.joblog.R
@@ -44,16 +44,17 @@ fun JobOfferListScreen(
     onOpenSettings: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsState()
-    var showAddSheet by remember { mutableStateOf(false) }
-    var offerBeingEdited by remember { mutableStateOf<JobOffer?>(null) }
-    var searchQuery by remember { mutableStateOf("") }
-    var sortOption by remember { mutableStateOf(SortOption.DATE_DESC) }
+    var showAddSheet by rememberSaveable { mutableStateOf(false) }
+    var editedOfferId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var sortOption by rememberSaveable { mutableStateOf(SortOption.DATE_DESC) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
-    var selectedStatuses by remember { mutableStateOf<Set<ApplicationStatus>>(emptySet()) }
+    var selectedStatuses by rememberSaveable(stateSaver = StatusSetSaver) { mutableStateOf<Set<ApplicationStatus>>(emptySet()) }
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     var restoredOfferId by remember { mutableStateOf<Long?>(null) }
-    val scope = rememberCoroutineScope()
+    var pendingUndoOfferId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var pendingUndoTitle by rememberSaveable { mutableStateOf("") }
     val resources = LocalResources.current
     val language = rememberAppLanguage()
 
@@ -75,6 +76,21 @@ fun JobOfferListScreen(
             }
         }
         restoredOfferId = null
+    }
+
+    LaunchedEffect(pendingUndoOfferId) {
+        val id = pendingUndoOfferId ?: return@LaunchedEffect
+        snackbarHostState.currentSnackbarData?.dismiss()
+        val result = snackbarHostState.showSnackbar(
+            message = resources.getString(R.string.list_deleted_snackbar, pendingUndoTitle),
+            actionLabel = resources.getString(R.string.undo),
+            duration = SnackbarDuration.Long
+        )
+        if (result == SnackbarResult.ActionPerformed) {
+            viewModel.onRestoreDeletedOffer(id)
+            restoredOfferId = id
+        }
+        pendingUndoOfferId = null
     }
 
     LaunchedEffect(state.offers.isEmpty()) {
@@ -187,24 +203,14 @@ fun JobOfferListScreen(
                                     offer = offer,
                                     onDelete = {
                                         viewModel.onDeleteOffer(offer)
-                                        scope.launch {
-                                            snackbarHostState.currentSnackbarData?.dismiss()
-                                            val result = snackbarHostState.showSnackbar(
-                                                message = resources.getString(R.string.list_deleted_snackbar, offer.title),
-                                                actionLabel = resources.getString(R.string.undo),
-                                                duration = SnackbarDuration.Long
-                                            )
-                                            if (result == SnackbarResult.ActionPerformed) {
-                                                viewModel.onRestoreOffer(offer)
-                                                restoredOfferId = offer.id
-                                            }
-                                        }
+                                        pendingUndoTitle = offer.title
+                                        pendingUndoOfferId = offer.id
                                     },
                                     onStatusChanged = { newStatus ->
                                         viewModel.onStatusChanged(offer, newStatus)
                                     },
                                     onEdit = {
-                                        offerBeingEdited = offer
+                                        editedOfferId = offer.id
                                     }
                                 )
                             }
@@ -224,13 +230,13 @@ fun JobOfferListScreen(
             }
         )
     }
-    offerBeingEdited?.let { offer ->
+    editedOfferId?.let { id -> state.offers.firstOrNull { it.id == id } }?.let { offer ->
         JobOfferFormSheet(
             existingOffer = offer,
-            onDismiss = { offerBeingEdited = null },
+            onDismiss = { editedOfferId = null },
             onSave = { updated ->
                 viewModel.onUpdateOffer(updated)
-                offerBeingEdited = null
+                editedOfferId = null
             }
         )
     }

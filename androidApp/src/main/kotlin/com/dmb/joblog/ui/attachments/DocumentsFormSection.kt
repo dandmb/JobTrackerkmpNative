@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,7 +117,7 @@ private fun DocumentSlot(
     var choicesExpanded by remember { mutableStateOf(false) }
     var optionsExpanded by remember { mutableStateOf(false) }
     var choosingFromLibrary by remember { mutableStateOf(false) }
-    var importInLibrary by remember { mutableStateOf(true) }
+    var importInLibrary by rememberSaveable { mutableStateOf(true) }
     var importing by remember { mutableStateOf(false) }
     val importingLabel = stringResource(R.string.documents_importing)
 

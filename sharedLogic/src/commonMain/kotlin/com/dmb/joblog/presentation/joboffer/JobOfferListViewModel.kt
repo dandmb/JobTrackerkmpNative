@@ -119,6 +119,15 @@ class JobOfferListViewModel internal constructor(
         }
     }
 
+    fun onRestoreDeletedOffer(offerId: Long) {
+        launchReportingErrors {
+            undoMutex.withLock {
+                val deleted = recentlyDeleted.remove(offerId) ?: return@withLock
+                deleteJobOffer.restore(deleted)
+            }
+        }
+    }
+
     fun onCleared() {
         viewModelScope.cancel()
     }

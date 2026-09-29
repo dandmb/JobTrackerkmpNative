@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -57,6 +58,7 @@ import com.dmb.joblog.presentation.attachments.AttachmentsViewModel
 import com.dmb.joblog.presentation.settings.SettingsContent
 import com.dmb.joblog.ui.i18n.rememberAppLanguage
 import com.dmb.joblog.ui.theme.StatusBarIconsForPrimaryTopBar
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -78,7 +80,7 @@ fun DocumentsScreen(
 
     var importing by remember { mutableStateOf(false) }
     val importingLabel = stringResource(R.string.documents_importing)
-    var pendingKind by remember { mutableStateOf<AttachmentKind?>(null) }
+    var pendingKind by rememberSaveable { mutableStateOf<AttachmentKind?>(null) }
     var renaming by remember { mutableStateOf<Attachment?>(null) }
     var deleting by remember { mutableStateOf<Attachment?>(null) }
 
@@ -161,7 +163,15 @@ fun DocumentsScreen(
             onDismiss = { renaming = null },
             onConfirm = { name ->
                 renaming = null
-                scope.launch { viewModel.rename(attachment.id, name) }
+                scope.launch {
+                    try {
+                        viewModel.rename(attachment.id, name)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                        showMessage(AttachmentRules.actionFailedMessage(language))
+                    }
+                }
             },
         )
     }
@@ -174,8 +184,14 @@ fun DocumentsScreen(
                 TextButton(onClick = {
                     deleting = null
                     scope.launch {
-                        val result = viewModel.deleteFromLibrary(attachment.id)
-                        if (result is AttachmentDeletionResult.StillInUse) showMessage(AttachmentRules.stillInUseMessage(result.usageCount, language))
+                        try {
+                            val result = viewModel.deleteFromLibrary(attachment.id)
+                            if (result is AttachmentDeletionResult.StillInUse) showMessage(AttachmentRules.stillInUseMessage(result.usageCount, language))
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (_: Exception) {
+                            showMessage(AttachmentRules.actionFailedMessage(language))
+                        }
                     }
                 }) { Text(stringResource(R.string.delete_action)) }
             },
