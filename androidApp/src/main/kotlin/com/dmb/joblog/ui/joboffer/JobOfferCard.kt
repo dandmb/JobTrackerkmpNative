@@ -55,7 +55,7 @@ fun JobOfferCard(
                     )
                 }
                 IconButton(onClick = onEditClick) {
-                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.card_edit_a11y, offer.title))
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.card_edit_a11y, offer.title.toTitleCase()))
                 }
             }
 

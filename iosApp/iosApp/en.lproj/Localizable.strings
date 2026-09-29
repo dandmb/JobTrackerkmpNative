@@ -105,6 +105,10 @@
 "form_document_remove" = "Remove";
 "form_document_one_time" = "For this application only";
 "form_document_library_empty" = "No document of this type in your library yet.";
+"form_discard_title" = "Discard changes?";
+"form_discard_message" = "What you entered in this form will be lost.";
+"form_discard_confirm" = "Discard";
+"form_discard_cancel" = "Keep editing";
 "preview_open_with" = "Open with…";
 "preview_no_app" = "No app on this device can open this file.";
 "preview_close" = "Close";

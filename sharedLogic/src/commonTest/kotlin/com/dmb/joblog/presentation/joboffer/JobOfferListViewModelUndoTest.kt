@@ -69,6 +69,32 @@ class JobOfferListViewModelUndoTest {
     }
 
     @Test
+    fun restoreByIdAfterTheScreenWasRecreated_bringsTheOfferBackAsDeleted() = runTest {
+        loaded()
+        val c = offer("C")
+
+        viewModel.onDeleteOffer(c)
+        advanceUntilIdle()
+        viewModel.onRestoreDeletedOffer(c.id)
+        advanceUntilIdle()
+
+        assertEquals(listOf("A", "B", "C", "D", "E"), titles())
+        assertEquals(originals.toSet(), dao.entities.value.toSet(), "aucune valeur modifiée, createdAt compris")
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun restoreByIdOfAnUnknownDeletion_doesNothing() = runTest {
+        loaded()
+
+        viewModel.onRestoreDeletedOffer(42)
+        advanceUntilIdle()
+
+        assertEquals(listOf("A", "B", "C", "D", "E"), titles())
+        viewModel.onCleared()
+    }
+
+    @Test
     fun severalDeletionsThenUndoInAnotherOrder_restoreTheOriginalListStepByStep() = runTest {
         loaded()
         val (a, b, d) = listOf(offer("A"), offer("B"), offer("D"))

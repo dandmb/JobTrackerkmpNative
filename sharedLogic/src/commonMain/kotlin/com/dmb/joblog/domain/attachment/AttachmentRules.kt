@@ -102,4 +102,9 @@ object AttachmentRules {
         en = "The file couldn't be copied into the app. Please try again.",
         fr = "Le fichier n'a pas pu être copié dans l'application. Réessaie.",
     )
+
+    fun actionFailedMessage(language: AppLanguage): String = language.pick(
+        en = "This action couldn't be completed. Please try again.",
+        fr = "Cette action n'a pas pu aboutir. Réessaie.",
+    )
 }

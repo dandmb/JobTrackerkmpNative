@@ -35,11 +35,11 @@ final class AttachmentsObservable: ObservableObject {
         await AttachmentFiles.importPickedFile(url, kind: kind, inLibrary: inLibrary, viewModel: viewModel, language: .current)
     }
 
-    func rename(_ attachment: Attachment, to name: String) async {
-        _ = try? await asyncFunction(for: viewModel.rename(attachmentId: attachment.id, displayName: name))
+    func rename(_ attachment: Attachment, to name: String) async throws {
+        _ = try await asyncFunction(for: viewModel.rename(attachmentId: attachment.id, displayName: name))
     }
 
-    func deleteFromLibrary(_ attachment: Attachment) async -> AttachmentDeletionResult? {
-        try? await asyncFunction(for: viewModel.deleteFromLibrary(attachmentId: attachment.id))
+    func deleteFromLibrary(_ attachment: Attachment) async throws -> AttachmentDeletionResult {
+        try await asyncFunction(for: viewModel.deleteFromLibrary(attachmentId: attachment.id))
     }
 }

@@ -126,4 +126,10 @@ class DocumentsWiringTest {
         assertEquals(1, Regex("""viewModel\.deleteFromLibrary\(""").findAll(documents).count())
         assertTrue(documents.contains("R.string.documents_delete_confirm_title"))
     }
+
+    @Test
+    fun renameAndDeletionErrors_showAMessageInsteadOfCrashing() {
+        assertEquals(2, Regex("""AttachmentRules\.actionFailedMessage\(language\)""").findAll(documents).count(), "renommage et suppression")
+        assertEquals(2, Regex("""catch \(e: CancellationException\) \{\s*throw e""").findAll(documents).count(), "l'annulation reste une annulation")
+    }
 }

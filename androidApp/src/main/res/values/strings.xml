@@ -117,6 +117,10 @@
     <string name="form_document_remove">Remove</string>
     <string name="form_document_one_time">For this application only</string>
     <string name="form_document_library_empty">No document of this type in your library yet.</string>
+    <string name="form_discard_title">Discard changes?</string>
+    <string name="form_discard_message">What you entered in this form will be lost.</string>
+    <string name="form_discard_confirm">Discard</string>
+    <string name="form_discard_cancel">Keep editing</string>
     <string name="preview_open_with">Open with…</string>
     <string name="preview_no_app">No app on this device can open this file.</string>
     <string name="preview_close">Close</string>

@@ -102,4 +102,11 @@ final class DocumentsWiringTests: XCTestCase {
         XCTAssertTrue(formSection.contains(".accessibilityLabel(L(\"form_document_options_a11y\", label))"))
         XCTAssertTrue(formSection.contains("+ \", \" + attachment.displayName)"), "le bouton Aperçu nomme le document")
     }
+
+    func test_renameAndDeletionErrors_areShown_notSwallowed() {
+        let observable = read("iosApp/Features/Documents/AttachmentsObservable.swift")
+        XCTAssertFalse(observable.contains("try?"), "une erreur ne doit plus être avalée en silence")
+        XCTAssertEqual(documents.components(separatedBy: "AttachmentRules.shared.actionFailedMessage(language: language)").count - 1, 2,
+                       "renommage et suppression")
+    }
 }

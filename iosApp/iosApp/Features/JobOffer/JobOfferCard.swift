@@ -85,7 +85,7 @@ struct JobOfferCard: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(L("card_edit_a11y", offer.title))
+            .accessibilityLabel(L("card_edit_a11y", offer.title.toTitleCase()))
         }
     }
 

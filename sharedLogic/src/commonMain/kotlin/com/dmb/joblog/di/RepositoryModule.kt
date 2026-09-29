@@ -16,6 +16,7 @@ val repositoryModule = module {
             dao = get(),
             purgeDeletedData = { purger.purge() },
             onAttachmentsDetached = { attachments.deleteIfUnusedOneTime(it) },
+            inTransaction = get(),
         )
     }
 }

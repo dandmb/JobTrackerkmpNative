@@ -97,6 +97,7 @@ private struct DocumentSlotRow: View {
                     importChoices
                 } label: {
                     Label(L("form_document_add"), systemImage: "plus")
+                        .foregroundStyle(Color.tealPrimary)
                         .frame(minHeight: 44)
                 }
                 .accessibilityLabel(L("form_document_add_a11y", label))

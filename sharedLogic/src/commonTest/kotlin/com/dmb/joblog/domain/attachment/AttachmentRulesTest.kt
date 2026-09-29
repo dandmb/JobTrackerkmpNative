@@ -88,11 +88,14 @@ class AttachmentRulesTest {
             AttachmentRules::unsupportedFormatMessage,
             AttachmentRules::missingFileMessage,
             AttachmentRules::importFailedMessage,
+            AttachmentRules::actionFailedMessage,
             { AttachmentRules.stillInUseMessage(2, it) },
         )) {
             assertTrue(message(AppLanguage.FR) != message(AppLanguage.EN))
         }
         assertEquals("Utilisé par 1 candidature : retire-le d'abord de cette candidature.", AttachmentRules.stillInUseMessage(1, AppLanguage.FR))
         assertEquals("Used by 3 applications: remove it from those applications first.", AttachmentRules.stillInUseMessage(3, AppLanguage.EN))
+        assertEquals("Cette action n'a pas pu aboutir. Réessaie.", AttachmentRules.actionFailedMessage(AppLanguage.FR))
+        assertEquals("This action couldn't be completed. Please try again.", AttachmentRules.actionFailedMessage(AppLanguage.EN))
     }
 }

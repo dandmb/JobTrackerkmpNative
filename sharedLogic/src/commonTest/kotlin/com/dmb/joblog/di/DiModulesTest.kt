@@ -18,6 +18,7 @@ import com.dmb.joblog.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.joblog.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
 import com.dmb.joblog.data.files.AttachmentFileStore
+import com.dmb.joblog.data.local.DatabaseTransaction
 import com.dmb.joblog.data.local.DeletedDataPurger
 import com.dmb.joblog.data.local.dao.AttachmentDao
 import com.dmb.joblog.testutil.FakeAttachmentDao
@@ -62,6 +63,7 @@ class DiModulesTest {
         single<AttachmentDao> { FakeAttachmentDao() }
         single<AttachmentFileStore> { FakeAttachmentFileStore() }
         single<DeletedDataPurger> { DeletedDataPurger {} }
+        single<DatabaseTransaction> { DatabaseTransaction { it() } }
     }
 
     private val fakeSettingsModule = module { single<Settings> { MapSettings() } }
@@ -115,6 +117,27 @@ class DiModulesTest {
         val second = koin.get<JobOfferListViewModel>()
 
         assertNotSame(first, second)
+        first.onCleared()
+        second.onCleared()
+    }
+
+    @Test
+    fun attachmentStartupCleanUp_runsOnlyOncePerKoinGraph_evenWhenTheListViewModelIsCreatedAgain() = runTest {
+        // Les `single` des modules top-level gardent leur instance d'un graphe à l'autre : fermer un graphe les vide,
+        // sinon ce test hériterait du nettoyage déjà fait (et du faux stockage) d'un test précédent.
+        koin().close()
+        val koin = koin()
+        val store = koin.get<AttachmentFileStore>() as FakeAttachmentFileStore
+        val leftover = store.writeTemporary(byteArrayOf(0))
+        val first = koin.get<JobOfferListViewModel>()
+        advanceUntilIdle()
+        assertFalse(leftover in store.temporary, "le 1er ViewModel doit bien lancer le nettoyage de démarrage")
+        val pendingImport = store.writeTemporary(byteArrayOf(1))
+
+        val second = koin.get<JobOfferListViewModel>()
+        advanceUntilIdle()
+
+        assertTrue(pendingImport in store.temporary, "un 2e ViewModel (rotation Android) ne doit pas relancer le nettoyage")
         first.onCleared()
         second.onCleared()
     }

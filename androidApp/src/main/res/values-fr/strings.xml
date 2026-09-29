@@ -39,13 +39,13 @@
     <string name="stats_pending_one">%1$d attente</string>
     <string name="stats_pending_other">%1$d attente</string>
     <string name="stats_applied_one">%1$d postulé</string>
-    <string name="stats_applied_other">%1$d postulé</string>
+    <string name="stats_applied_other">%1$d postulés</string>
     <string name="stats_interview_one">%1$d entretien</string>
-    <string name="stats_interview_other">%1$d entretien</string>
+    <string name="stats_interview_other">%1$d entretiens</string>
     <string name="stats_rejected_one">%1$d refusé</string>
-    <string name="stats_rejected_other">%1$d refusé</string>
+    <string name="stats_rejected_other">%1$d refusés</string>
     <string name="stats_accepted_one">%1$d accepté</string>
-    <string name="stats_accepted_other">%1$d accepté</string>
+    <string name="stats_accepted_other">%1$d acceptés</string>
 
     <!-- Carte de candidature -->
     <string name="card_edit_a11y">Modifier la candidature %1$s</string>
@@ -110,6 +110,10 @@
     <string name="form_document_remove">Retirer</string>
     <string name="form_document_one_time">Pour cette candidature uniquement</string>
     <string name="form_document_library_empty">Aucun document de ce type dans ta bibliothèque pour l\'instant.</string>
+    <string name="form_discard_title">Abandonner les modifications ?</string>
+    <string name="form_discard_message">Ce que tu as saisi dans ce formulaire sera perdu.</string>
+    <string name="form_discard_confirm">Abandonner</string>
+    <string name="form_discard_cancel">Continuer la saisie</string>
     <string name="preview_open_with">Ouvrir avec…</string>
     <string name="preview_no_app">Aucune application de cet appareil ne peut ouvrir ce fichier.</string>
     <string name="preview_close">Fermer</string>

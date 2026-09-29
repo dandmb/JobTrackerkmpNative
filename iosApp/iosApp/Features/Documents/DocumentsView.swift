@@ -57,7 +57,13 @@ struct DocumentsView: View {
             Button(L("documents_rename")) {
                 if let attachment = renaming {
                     let name = newName
-                    Task { await attachments.rename(attachment, to: name) }
+                    Task {
+                        do {
+                            try await attachments.rename(attachment, to: name)
+                        } catch {
+                            message = AttachmentRules.shared.actionFailedMessage(language: language)
+                        }
+                    }
                 }
                 renaming = nil
             }
@@ -71,9 +77,13 @@ struct DocumentsView: View {
         ) { attachment in
             Button(L("delete_action"), role: .destructive) {
                 Task {
-                    let result = await attachments.deleteFromLibrary(attachment)
-                    if let inUse = result as? AttachmentDeletionResult.StillInUse {
-                        message = AttachmentRules.shared.stillInUseMessage(usageCount: inUse.usageCount, language: language)
+                    do {
+                        let result = try await attachments.deleteFromLibrary(attachment)
+                        if let inUse = result as? AttachmentDeletionResult.StillInUse {
+                            message = AttachmentRules.shared.stillInUseMessage(usageCount: inUse.usageCount, language: language)
+                        }
+                    } catch {
+                        message = AttachmentRules.shared.actionFailedMessage(language: language)
                     }
                 }
             }
