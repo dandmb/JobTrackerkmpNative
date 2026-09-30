@@ -6,7 +6,7 @@ import kotlin.test.assertTrue
 
 class LocalizationParityTest {
 
-    private val androidOnly = setOf("app_name", "ok", "list_deleted_snackbar", "form_field_salary_min", "form_field_salary_max",
+    private val androidOnly = setOf("app_name", "list_deleted_snackbar", "form_field_salary_min", "form_field_salary_max",
         "form_date_interview", "form_date_result", "list_search_clear")
     private val iosOnly = setOf("list_delete_confirm_title", "list_delete_confirm_message", "card_status_hint", "form_section_job",
         "form_section_salary", "form_salary_min_short", "form_salary_max_short", "form_interview_toggle", "form_result_toggle",

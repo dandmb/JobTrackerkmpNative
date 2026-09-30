@@ -82,4 +82,50 @@
 
     <!-- Onboarding -->
     <string name="onboarding_page_indicator">Page %1$d of %2$d</string>
+
+    <!-- Mes documents (CV et lettres de motivation) -->
+    <string name="documents_section_cv">CVs</string>
+    <string name="documents_section_letters">Cover letters</string>
+    <string name="documents_add_cv">Add a CV</string>
+    <string name="documents_add_letter">Add a cover letter</string>
+    <string name="documents_empty_cv">No CV yet.</string>
+    <string name="documents_empty_letters">No cover letter yet.</string>
+    <string name="documents_used_by_one">Used in %1$d application</string>
+    <string name="documents_used_by_other">Used in %1$d applications</string>
+    <string name="documents_unused">Not attached</string>
+    <string name="documents_total_size">Total: %1$s</string>
+    <string name="documents_open">Preview</string>
+    <string name="documents_rename">Rename</string>
+    <string name="documents_rename_title">Rename document</string>
+    <string name="documents_name_label">Name</string>
+    <string name="documents_delete_confirm_title">Delete this document?</string>
+    <string name="documents_delete_confirm_message">“%1$s” will be permanently deleted from the app.</string>
+    <string name="documents_actions_a11y">Actions for %1$s</string>
+    <string name="documents_missing">File not found</string>
+    <string name="documents_importing">Importing…</string>
+    <string name="form_section_documents">Documents</string>
+    <string name="form_document_cv">CV</string>
+    <string name="form_document_letter">Cover letter</string>
+    <string name="form_document_none">None</string>
+    <string name="form_document_add">Add</string>
+    <string name="form_document_add_a11y">Add a document: %1$s</string>
+    <string name="form_document_options_a11y">Options for %1$s</string>
+    <string name="form_document_choose_library">Choose from my documents</string>
+    <string name="form_document_import_library">Import and add to my documents</string>
+    <string name="form_document_import_once">Import for this application only</string>
+    <string name="form_document_replace">Replace</string>
+    <string name="form_document_remove">Remove</string>
+    <string name="form_document_one_time">For this application only</string>
+    <string name="form_document_library_empty">No document of this type in your library yet.</string>
+    <string name="form_discard_title">Discard changes?</string>
+    <string name="form_discard_message">What you entered in this form will be lost.</string>
+    <string name="form_discard_confirm">Discard</string>
+    <string name="form_discard_cancel">Keep editing</string>
+    <string name="preview_open_with">Open with…</string>
+    <string name="preview_no_app">No app on this device can open this file.</string>
+    <string name="preview_close">Close</string>
+    <string name="preview_page_a11y">Page %1$d of %2$d</string>
+    <string name="preview_failed">This file can\'t be displayed.</string>
+    <string name="card_documents_cv">CV</string>
+    <string name="card_documents_letter">Cover letter</string>
 </resources>

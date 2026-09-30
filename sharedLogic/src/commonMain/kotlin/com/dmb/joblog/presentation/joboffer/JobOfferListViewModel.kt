@@ -33,7 +33,8 @@ class JobOfferListViewModel internal constructor(
     private val getAllJobOffers: GetAllJobOffersUseCase,
     private val addJobOffer: AddJobOfferUseCase,
     private val updateJobOffer: UpdateJobOfferUseCase,
-    private val deleteJobOffer: DeleteJobOfferUseCase
+    private val deleteJobOffer: DeleteJobOfferUseCase,
+    private val cleanUpAttachments: suspend () -> Unit = {},
 ) {
     private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -47,6 +48,14 @@ class JobOfferListViewModel internal constructor(
 
     init {
         observeOffers()
+        viewModelScope.launch {
+            try {
+                cleanUpAttachments()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun observeOffers() {
@@ -106,6 +115,15 @@ class JobOfferListViewModel internal constructor(
                 val deleted = recentlyDeleted.remove(offer.id)
                 if (deleted != null) deleteJobOffer.restore(deleted)
                 else deleteJobOffer.addIfMissing(offer)
+            }
+        }
+    }
+
+    fun onRestoreDeletedOffer(offerId: Long) {
+        launchReportingErrors {
+            undoMutex.withLock {
+                val deleted = recentlyDeleted.remove(offerId) ?: return@withLock
+                deleteJobOffer.restore(deleted)
             }
         }
     }

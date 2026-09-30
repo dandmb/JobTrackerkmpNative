@@ -2,6 +2,7 @@ package com.dmb.joblog
 
 import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -19,14 +20,16 @@ class SettingsScreenWiringTest {
         assertTrue(settingsScreen.contains("SettingsContent"))
         assertTrue(settingsScreen.contains("content.aboutRowLabel"))
         assertTrue(settingsScreen.contains("content.privacyRowLabel"))
+        assertTrue(settingsScreen.contains("content.documentsRowLabel"))
         assertFalse(settingsScreen.contains("\"Settings\"") || settingsScreen.contains("\"Réglages\""), "libellé codé en dur")
     }
 
     @Test
-    fun settingsScreen_hasExactlyTwoEntries_aboutAndPrivacy() {
+    fun settingsScreen_hasExactlyThreeEntries_documentsAboutAndPrivacy() {
+        assertTrue(settingsScreen.contains("onOpenDocuments"))
         assertTrue(settingsScreen.contains("onOpenAbout"))
         assertTrue(settingsScreen.contains("onOpenPrivacy"))
-        assertTrue(settingsScreen.contains("SettingsRow("))
+        assertEquals(3, Regex("""SettingsRow\(label = """).findAll(settingsScreen).count())
     }
 
     @Test
