@@ -20,6 +20,8 @@ class SettingsContentTest {
         assertEquals("About", en.aboutRowLabel)
         assertEquals("Politique de confidentialité", fr.privacyRowLabel)
         assertEquals("Privacy Policy", en.privacyRowLabel)
+        assertEquals("Mes documents", fr.documentsRowLabel)
+        assertEquals("My documents", en.documentsRowLabel)
     }
 
     @Test
@@ -29,8 +31,8 @@ class SettingsContentTest {
     }
 
     @Test
-    fun theTwoRowLabels_areDistinctFromEachOther() {
-        assertNotEquals(fr.aboutRowLabel, fr.privacyRowLabel)
-        assertNotEquals(en.aboutRowLabel, en.privacyRowLabel)
+    fun theRowLabels_areDistinctFromEachOther() {
+        assertEquals(3, setOf(fr.aboutRowLabel, fr.privacyRowLabel, fr.documentsRowLabel).size)
+        assertEquals(3, setOf(en.aboutRowLabel, en.privacyRowLabel, en.documentsRowLabel).size)
     }
 }

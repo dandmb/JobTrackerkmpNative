@@ -5,6 +5,7 @@ import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.testutil.FakeJobOfferDao
 import com.dmb.joblog.testutil.jobOffer
 import com.dmb.joblog.testutil.jobOfferEntity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
@@ -291,5 +292,77 @@ class JobOfferRepositoryImplTest {
             assertEquals(listOf(saved), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun add_withAttachments_writesOneLinkPerRole_andGetAllReadsThemBack() = runTest {
+        dao.existingAttachmentIds += setOf(7L, 8L)
+
+        val id = repository.add(jobOffer(cvAttachmentId = 7, coverLetterAttachmentId = 8))
+
+        assertEquals(setOf("CV" to 7L, "COVER_LETTER" to 8L), dao.links.value.filter { it.jobOfferId == id }.map { it.role to it.attachmentId }.toSet())
+        val read = repository.getAll().first().single()
+        assertEquals(7L, read.cvAttachmentId)
+        assertEquals(8L, read.coverLetterAttachmentId)
+    }
+
+    @Test
+    fun update_replacingAndRemovingAttachments_reportsTheDetachedOnes() = runTest {
+        val detached = mutableListOf<Set<Long>>()
+        val tracking = JobOfferRepositoryImpl(dao, onAttachmentsDetached = { detached += it })
+        dao.existingAttachmentIds += setOf(7L, 8L, 9L)
+        val id = tracking.add(jobOffer(cvAttachmentId = 7, coverLetterAttachmentId = 8))
+
+        tracking.update(jobOffer(id = id, cvAttachmentId = 9, coverLetterAttachmentId = null))
+
+        assertEquals(listOf(setOf(7L, 8L)), detached)
+        assertEquals(listOf("CV" to 9L), dao.links.value.map { it.role to it.attachmentId })
+    }
+
+    @Test
+    fun update_withUnchangedAttachments_reportsNothing() = runTest {
+        val detached = mutableListOf<Set<Long>>()
+        val tracking = JobOfferRepositoryImpl(dao, onAttachmentsDetached = { detached += it })
+        dao.existingAttachmentIds += 7L
+        val id = tracking.add(jobOffer(cvAttachmentId = 7))
+
+        tracking.update(jobOffer(id = id, title = "Renamed", cvAttachmentId = 7))
+
+        assertTrue(detached.isEmpty())
+    }
+
+    @Test
+    fun delete_removesTheLinks_butNotTheAttachments() = runTest {
+        dao.existingAttachmentIds += 7L
+        val id = repository.add(jobOffer(cvAttachmentId = 7))
+
+        repository.delete(jobOffer(id = id, cvAttachmentId = 7))
+
+        assertTrue(dao.links.value.isEmpty())
+        assertTrue(7L in dao.existingAttachmentIds)
+    }
+
+    @Test
+    fun restore_relinksAttachmentsThatStillExist_only() = runTest {
+        dao.existingAttachmentIds += setOf(7L, 8L)
+        val offer = jobOffer(cvAttachmentId = 7, coverLetterAttachmentId = 8)
+        val id = repository.add(offer)
+        repository.delete(offer.copy(id = id))
+        dao.existingAttachmentIds -= 8L
+
+        repository.restore(offer.copy(id = id), createdAtEpochMillis = 1_000)
+
+        assertEquals(listOf("CV" to 7L), dao.links.value.map { it.role to it.attachmentId })
+    }
+
+    @Test
+    fun deleteAll_alsoDeletesTheAttachmentRows_beforePurging() = runTest {
+        val events = mutableListOf<String>()
+        val purging = JobOfferRepositoryImpl(dao, purgeDeletedData = { events += "purge after ${dao.deleteAllAttachmentsCalls} attachment deletion(s)" })
+
+        purging.deleteAll()
+
+        assertEquals(1, dao.deleteAllCalls)
+        assertEquals(listOf("purge after 1 attachment deletion(s)"), events)
     }
 }

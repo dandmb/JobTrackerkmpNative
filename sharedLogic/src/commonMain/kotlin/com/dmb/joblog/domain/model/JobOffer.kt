@@ -14,7 +14,9 @@ data class JobOffer(
     val interviewDate: LocalDate? = null,
     val resultDate: LocalDate? = null,
     val status: ApplicationStatus,
-    val notes: String? = null
+    val notes: String? = null,
+    val cvAttachmentId: Long? = null,
+    val coverLetterAttachmentId: Long? = null,
 )
 
 enum class ApplicationStatus {

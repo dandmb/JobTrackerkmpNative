@@ -30,7 +30,7 @@ class AboutContentTest {
         // Si ce test échoue, un champ a été ajouté/retiré/renommé dans JobOffer : relire « Ce que l'app enregistre ».
         assertEquals(
             listOf("id", "title", "company", "url", "location", "source", "salaryRange",
-                "appliedDate", "interviewDate", "resultDate", "status", "notes"),
+                "appliedDate", "interviewDate", "resultDate", "status", "notes", "cvAttachmentId", "coverLetterAttachmentId"),
             jobOfferFieldNames(),
         )
     }
@@ -40,10 +40,12 @@ class AboutContentTest {
         val keywords = mapOf(
             AppLanguage.FR to mapOf("title" to "titre", "company" to "entreprise", "url" to "lien", "location" to "localisation",
                 "source" to "source", "salaryRange" to "salaire", "appliedDate" to "candidature", "interviewDate" to "entretien",
-                "resultDate" to "résultat", "status" to "statut", "notes" to "notes"),
+                "resultDate" to "résultat", "status" to "statut", "notes" to "notes",
+                "cvAttachmentId" to "cv", "coverLetterAttachmentId" to "lettre de motivation"),
             AppLanguage.EN to mapOf("title" to "title", "company" to "company", "url" to "link", "location" to "location",
                 "source" to "source", "salaryRange" to "salary", "appliedDate" to "application", "interviewDate" to "interview",
-                "resultDate" to "result", "status" to "status", "notes" to "notes"),
+                "resultDate" to "result", "status" to "status", "notes" to "notes",
+                "cvAttachmentId" to "cv", "coverLetterAttachmentId" to "cover letter"),
         )
         AppLanguage.entries.forEach { language ->
             val text = AboutContent.of(language).section(0).bullets.joinToString(" ").lowercase()
@@ -155,6 +157,31 @@ class AboutContentTest {
         assertTrue("sauvegarde Google" in fr.section(1).note.orEmpty() && "iCloud" in fr.section(1).note.orEmpty())
         assertTrue(en.section(1).bullets.any { "Android" in it && "font" in it && "never your applications" in it })
         assertTrue("Google backup" in en.section(1).note.orEmpty() && "iCloud" in en.section(1).note.orEmpty())
+    }
+
+    @Test
+    fun localStorageSection_disclosesTheDocumentStorageOpenWithAndBackupExclusion() {
+        val f = fr.section(1).bullets.joinToString(" ")
+        val e = en.section(1).bullets.joinToString(" ")
+
+        assertTrue("espace de stockage privé" in f && "« Ouvrir avec… »" in f)
+        assertTrue("private storage" in e && "“Open with…”" in e)
+        assertTrue("ne sont jamais inclus dans ces sauvegardes" in fr.section(1).note.orEmpty())
+        assertTrue("never included in these backups" in en.section(1).note.orEmpty())
+    }
+
+    @Test
+    fun deleteAllExplanationAndRightsBullet_mentionTheDocuments() {
+        assertTrue("candidatures et tous tes documents" in fr.deleteAllExplanation)
+        assertTrue("applications and documents" in en.deleteAllExplanation)
+        assertTrue(fr.section(3).bullets.any { fr.deleteAllLabel in it && "tous tes documents" in it })
+        assertTrue(en.section(3).bullets.any { en.deleteAllLabel in it && "applications and documents" in it })
+    }
+
+    @Test
+    fun firstDeleteAllConfirmation_mentionsTheDocuments() {
+        assertTrue("CV" in fr.firstConfirmation.message && "lettres de motivation" in fr.firstConfirmation.message)
+        assertTrue("CVs" in en.firstConfirmation.message && "cover letters" in en.firstConfirmation.message)
     }
 
     @Test

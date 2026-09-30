@@ -38,7 +38,7 @@ class SplashAndOnboardingWiringTest {
 
     @Test
     fun listViewModel_isInstantiatedOnceAtTheRootAndPassedDown() {
-        assertEquals(1, Regex("""JobOfferListViewModel by inject\(\)""").findAll(mainActivity).count())
+        assertEquals(1, Regex("""ListViewModelHolder\(get\(\)\)""").findAll(mainActivity).count())
         assertTrue(mainActivity.contains("AppRoot(jobOfferListViewModel, onboardingViewModel)"))
         assertTrue(appRoot.contains("JobOfferListScreen(viewModel = jobOfferListViewModel,"), "l'écran de liste doit recevoir l'instance déjà chargée")
     }

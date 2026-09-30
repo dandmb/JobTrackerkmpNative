@@ -18,6 +18,8 @@ fun jobOffer(
     resultDate: LocalDate? = null,
     status: ApplicationStatus = ApplicationStatus.APPLIED,
     notes: String? = null,
+    cvAttachmentId: Long? = null,
+    coverLetterAttachmentId: Long? = null,
 ) = JobOffer(
     id = id,
     title = title,
@@ -31,6 +33,8 @@ fun jobOffer(
     resultDate = resultDate,
     status = status,
     notes = notes,
+    cvAttachmentId = cvAttachmentId,
+    coverLetterAttachmentId = coverLetterAttachmentId,
 )
 
 fun jobOfferEntity(

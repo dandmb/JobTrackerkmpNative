@@ -2,11 +2,13 @@ package com.dmb.joblog.di
 
 import com.dmb.joblog.data.local.dao.JobOfferDao
 import com.dmb.joblog.data.local.OnboardingRepositoryImpl
+import com.dmb.joblog.data.repository.AttachmentRepositoryImpl
 import com.dmb.joblog.data.repository.JobOfferRepositoryImpl
 import com.dmb.joblog.domain.repository.OnboardingRepository
 import com.dmb.joblog.presentation.onboarding.OnboardingViewModel
 import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.Settings
+import com.dmb.joblog.domain.repository.AttachmentRepository
 import com.dmb.joblog.domain.repository.JobOfferRepository
 import com.dmb.joblog.domain.usecase.AddJobOfferUseCase
 import com.dmb.joblog.domain.usecase.DeleteAllJobOffersUseCase
@@ -15,7 +17,12 @@ import com.dmb.joblog.presentation.about.AboutViewModel
 import com.dmb.joblog.domain.usecase.GetAllJobOffersUseCase
 import com.dmb.joblog.domain.usecase.UpdateJobOfferUseCase
 import com.dmb.joblog.presentation.joboffer.JobOfferListViewModel
+import com.dmb.joblog.data.files.AttachmentFileStore
+import com.dmb.joblog.data.local.DatabaseTransaction
 import com.dmb.joblog.data.local.DeletedDataPurger
+import com.dmb.joblog.data.local.dao.AttachmentDao
+import com.dmb.joblog.testutil.FakeAttachmentDao
+import com.dmb.joblog.testutil.FakeAttachmentFileStore
 import com.dmb.joblog.testutil.FakeJobOfferDao
 import com.dmb.joblog.testutil.jobOffer
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +60,10 @@ class DiModulesTest {
 
     private val fakeDatabaseModule = module {
         single<JobOfferDao> { FakeJobOfferDao() }
+        single<AttachmentDao> { FakeAttachmentDao() }
+        single<AttachmentFileStore> { FakeAttachmentFileStore() }
         single<DeletedDataPurger> { DeletedDataPurger {} }
+        single<DatabaseTransaction> { DatabaseTransaction { it() } }
     }
 
     private val fakeSettingsModule = module { single<Settings> { MapSettings() } }
@@ -112,6 +122,27 @@ class DiModulesTest {
     }
 
     @Test
+    fun attachmentStartupCleanUp_runsOnlyOncePerKoinGraph_evenWhenTheListViewModelIsCreatedAgain() = runTest {
+        // Les `single` des modules top-level gardent leur instance d'un graphe à l'autre : fermer un graphe les vide,
+        // sinon ce test hériterait du nettoyage déjà fait (et du faux stockage) d'un test précédent.
+        koin().close()
+        val koin = koin()
+        val store = koin.get<AttachmentFileStore>() as FakeAttachmentFileStore
+        val leftover = store.writeTemporary(byteArrayOf(0))
+        val first = koin.get<JobOfferListViewModel>()
+        advanceUntilIdle()
+        assertFalse(leftover in store.temporary, "le 1er ViewModel doit bien lancer le nettoyage de démarrage")
+        val pendingImport = store.writeTemporary(byteArrayOf(1))
+
+        val second = koin.get<JobOfferListViewModel>()
+        advanceUntilIdle()
+
+        assertTrue(pendingImport in store.temporary, "un 2e ViewModel (rotation Android) ne doit pas relancer le nettoyage")
+        first.onCleared()
+        second.onCleared()
+    }
+
+    @Test
     fun viewModelFromKoin_isWiredEndToEndThroughRepositoryAndDao() = runTest {
         val koin = koin()
         val viewModel = koin.get<JobOfferListViewModel>()
@@ -143,6 +174,7 @@ class DiModulesTest {
                 module {
                     single<JobOfferDao> { FakeJobOfferDao() }
                     single<JobOfferRepository> { JobOfferRepositoryImpl(dao = get()) }
+                    single<AttachmentRepository> { AttachmentRepositoryImpl(FakeAttachmentDao(), FakeAttachmentFileStore()) }
                 },
                 useCaseModule,
                 viewModelModule,

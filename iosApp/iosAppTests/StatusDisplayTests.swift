@@ -25,11 +25,12 @@ final class StatusDisplayTests: XCTestCase {
                        ["Pending", "Applied", "Interview", "Rejected", "Accepted"])
     }
 
-    func test_shortLabel_carriesTheCount_andOnlyEnglishInterviewChangesWithThePlural() {
+    func test_shortLabel_carriesTheCount_andTakesThePluralFromTwo() {
         XCTAssertEqual(localized("stats_interview_one", in: "en", 1), "1 interview")
         XCTAssertEqual(localized("stats_interview_other", in: "en", 3), "3 interviews")
         XCTAssertEqual(localized("stats_applied_other", in: "en", 2), "2 applied")
-        XCTAssertEqual(localized("stats_applied_other", in: "fr", 2), "2 postulé")
+        XCTAssertEqual(localized("stats_applied_one", in: "fr", 1), "1 postulé")
+        XCTAssertEqual(localized("stats_applied_other", in: "fr", 2), "2 postulés")
         let current = Bundle.main.preferredLocalizations.first == "fr" ? "fr" : "en"
         XCTAssertEqual(ApplicationStatus.interview.shortLabel(count: 1), localized("stats_interview_one", in: current, 1))
         XCTAssertEqual(ApplicationStatus.interview.shortLabel(count: 5), localized("stats_interview_other", in: current, 5))
