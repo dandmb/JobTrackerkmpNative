@@ -55,7 +55,7 @@ fun JobOfferCard(
                     )
                 }
                 IconButton(onClick = onEditClick) {
-                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.card_edit_a11y, offer.title))
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.card_edit_a11y, offer.title.toTitleCase()))
                 }
             }
 
@@ -124,6 +124,19 @@ fun JobOfferCard(
                 Text(
                     "💰 ${offer.salaryRange}",
                     style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            val documentLabels = listOfNotNull(
+                offer.cvAttachmentId?.let { stringResource(R.string.card_documents_cv) },
+                offer.coverLetterAttachmentId?.let { stringResource(R.string.card_documents_letter) },
+            )
+            if (documentLabels.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "📎 " + documentLabels.joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

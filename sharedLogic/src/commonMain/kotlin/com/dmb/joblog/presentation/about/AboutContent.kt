@@ -31,8 +31,8 @@ class AboutContent private constructor(private val lang: AppLanguage) {
 
     val deleteAllLabel: String = lang.pick(en = "Delete all my data", fr = "Supprimer toutes mes données")
     val deleteAllExplanation: String = lang.pick(
-        en = "Permanently erases all your applications from this device. This action cannot be undone.",
-        fr = "Efface définitivement toutes tes candidatures de cet appareil. Cette action est irréversible.",
+        en = "Permanently erases all your applications and documents from this device. This action cannot be undone.",
+        fr = "Efface définitivement toutes tes candidatures et tous tes documents de cet appareil. Cette action est irréversible.",
     )
     val deleteAllSuccessMessage: String = lang.pick(en = "All your data has been deleted.", fr = "Toutes tes données ont été supprimées.")
     val deleteAllInProgressLabel: String = lang.pick(en = "Deleting…", fr = "Suppression en cours…")
@@ -44,8 +44,8 @@ class AboutContent private constructor(private val lang: AppLanguage) {
     val firstConfirmation = ConfirmationTexts(
         title = lang.pick(en = "Delete all your data?", fr = "Supprimer toutes tes données ?"),
         message = lang.pick(
-            en = "All your applications will be erased from this device. You will not be able to recover them.",
-            fr = "Toutes tes candidatures seront effacées de cet appareil. Tu ne pourras pas les récupérer.",
+            en = "All your applications, CVs and cover letters will be erased from this device. You will not be able to recover them.",
+            fr = "Toutes tes candidatures, tes CV et tes lettres de motivation seront effacés de cet appareil. Tu ne pourras pas les récupérer.",
         ),
         confirmLabel = lang.pick(en = "Continue", fr = "Continuer"),
         cancelLabel = lang.pick(en = "Cancel", fr = "Annuler"),
@@ -77,6 +77,10 @@ class AboutContent private constructor(private val lang: AppLanguage) {
                 lang.pick(en = "the salary range;", fr = "la fourchette de salaire ;"),
                 lang.pick(en = "the application, interview and result dates;", fr = "les dates de candidature, d'entretien et de résultat ;"),
                 lang.pick(en = "the application status;", fr = "le statut de la candidature ;"),
+                lang.pick(
+                    en = "the CV and cover letter files you choose to add (PDF, Word or image), copied into the app's private storage on your device;",
+                    fr = "les fichiers de CV et de lettre de motivation que tu choisis d'ajouter (PDF, Word ou image), copiés dans l'espace de stockage privé de l'application sur ton appareil ;",
+                ),
                 lang.pick(en = "your notes.", fr = "tes notes."),
             ),
             note = lang.pick(
@@ -90,13 +94,16 @@ class AboutContent private constructor(private val lang: AppLanguage) {
             title = lang.pick(en = "Where your data lives", fr = "Où vivent tes données"),
             bullets = listOf(
                 lang.pick(
-                    en = "Everything is stored in a local database, on your device.",
-                    fr = "Tout est stocké dans une base de données locale, sur ton appareil.",
+                    en = "Everything is stored in a local database and, for CVs and cover letters, in the app's private storage, " +
+                        "on your device.",
+                    fr = "Tout est stocké dans une base de données locale et, pour les CV et lettres de motivation, dans l'espace " +
+                        "de stockage privé de l'application, sur ton appareil.",
                 ),
                 lang.pick(
                     en = "The app contains no code that talks to a server: your applications are not sent anywhere.",
                     fr = "L'app ne contient aucun code qui communique avec un serveur : tes candidatures ne sont envoyées nulle part.",
                 ),
+                lang.pick(en = "If you choose “Open with…”, the file is handed to the app you select on your device.", fr = "Si tu choisis « Ouvrir avec… », le fichier est transmis à l'application que tu sélectionnes sur ton appareil."),
                 lang.pick(
                     en = "No account is needed and the app shares nothing with third parties.",
                     fr = "Aucun compte n'est nécessaire et rien n'est partagé avec des tiers par l'app.",
@@ -110,10 +117,10 @@ class AboutContent private constructor(private val lang: AppLanguage) {
             ),
             note = lang.pick(
                 en = "Your phone's system may back up app data (Google backup on Android, iCloud or device backup on iOS) " +
-                    "depending on your settings: that mechanism is managed by the system, not by the app.",
+                    "depending on your settings: that mechanism is managed by the system, not by the app. CV and cover letter files, however, are never included in these backups.",
                 fr = "Le système de ton téléphone peut, lui, sauvegarder les données des applications " +
                     "(sauvegarde Google sur Android, iCloud ou sauvegarde de l'appareil sur iOS) selon tes réglages : " +
-                    "ce mécanisme est géré par le système, pas par l'app.",
+                    "ce mécanisme est géré par le système, pas par l'app. Les fichiers de CV et de lettre de motivation, eux, ne sont jamais inclus dans ces sauvegardes.",
             ),
         ),
         AboutSection(
@@ -145,8 +152,8 @@ class AboutContent private constructor(private val lang: AppLanguage) {
                 lang.pick(en = "edit it: the edit button on each application;", fr = "les modifier : le bouton d'édition de chaque candidature ;"),
                 lang.pick(en = "delete an application: swipe it sideways;", fr = "supprimer une candidature : glisse-la sur le côté ;"),
                 lang.pick(
-                    en = "delete everything: the “$deleteAllLabel” button below erases all your applications from the device.",
-                    fr = "tout supprimer : le bouton « $deleteAllLabel » ci-dessous efface toutes tes candidatures de l'appareil.",
+                    en = "delete everything: the “$deleteAllLabel” button below erases all your applications and documents from the device.",
+                    fr = "tout supprimer : le bouton « $deleteAllLabel » ci-dessous efface toutes tes candidatures et tous tes documents de l'appareil.",
                 ),
             ),
             note = lang.pick(

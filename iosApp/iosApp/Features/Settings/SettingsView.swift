@@ -8,6 +8,11 @@ struct SettingsView: View {
     var body: some View {
         List {
             NavigationLink {
+                DocumentsView()
+            } label: {
+                Label(content.documentsRowLabel, systemImage: "doc.text")
+            }
+            NavigationLink {
                 AboutView()
             } label: {
                 Label(content.aboutRowLabel, systemImage: "info.circle")

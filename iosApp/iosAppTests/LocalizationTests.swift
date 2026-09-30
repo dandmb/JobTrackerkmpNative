@@ -9,7 +9,8 @@ final class LocalizationTests: XCTestCase {
     private let accents = try! NSRegularExpression(pattern: "[àâçéèêëîïôûùüÿœ«»]", options: [.caseInsensitive])
 
     private let sameInBothLanguages: Set<String> = ["sort_az", "sort_za", "form_section_dates", "form_field_notes",
-                                                    "form_salary_min_short", "form_salary_max_short"]
+                                                    "form_salary_min_short", "form_salary_max_short",
+                                                    "form_section_documents", "form_document_cv", "card_documents_cv", "ok"]
 
     private func placeholders(_ value: String) -> [String] {
         let regex = try! NSRegularExpression(pattern: "%(\\d+\\$)?[@d]")

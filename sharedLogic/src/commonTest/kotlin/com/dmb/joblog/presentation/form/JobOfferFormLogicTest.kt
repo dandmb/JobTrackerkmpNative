@@ -509,4 +509,59 @@ class JobOfferFormLogicTest {
 
         assertEquals("55k+", logic.toJobOffer(draft(salaryMin = salary.min, salaryMax = salary.max), existing).salaryRange)
     }
+
+    private val today = LocalDate(2026, 9, 30)
+
+    private fun untouched(existing: com.dmb.joblog.domain.model.JobOffer?) = logic.initialDraft(existing, today)
+
+    @Test
+    fun hasUnsavedChanges_untouchedNewForm_isFalse() {
+        assertFalse(logic.hasUnsavedChanges(untouched(null), existing = null, today = today))
+    }
+
+    @Test
+    fun hasUnsavedChanges_untouchedEditForm_isFalse() {
+        val existing = jobOffer(title = "Dev", company = "Acme", salaryRange = "55k - 70k", cvAttachmentId = 4)
+
+        assertFalse(logic.hasUnsavedChanges(untouched(existing), existing, today))
+    }
+
+    @Test
+    fun hasUnsavedChanges_anyTypedField_isTrue() {
+        assertTrue(logic.hasUnsavedChanges(untouched(null).copy(title = "D"), null, today))
+        assertTrue(logic.hasUnsavedChanges(untouched(null).copy(salaryMax = "70"), null, today))
+        assertTrue(logic.hasUnsavedChanges(untouched(null).copy(appliedDate = LocalDate(2026, 9, 1)), null, today))
+    }
+
+    @Test
+    fun hasUnsavedChanges_aDocumentImportedForThisApplicationOnly_isTrue() {
+        assertTrue(logic.hasUnsavedChanges(untouched(null).copy(coverLetterAttachmentId = 9), null, today))
+    }
+
+    @Test
+    fun hasUnsavedChanges_aDocumentRemovedFromAnExistingApplication_isTrue() {
+        val existing = jobOffer(cvAttachmentId = 4)
+
+        assertTrue(logic.hasUnsavedChanges(untouched(existing).copy(cvAttachmentId = null), existing, today))
+    }
+
+    @Test
+    fun hasUnsavedChanges_aFieldChangedThenRestored_isFalse() {
+        val existing = jobOffer(title = "Dev")
+
+        assertFalse(logic.hasUnsavedChanges(untouched(existing).copy(title = "Dev"), existing, today))
+    }
+
+    @Test
+    fun initialDraft_ofAnExistingOffer_isWhatTheFormShowsWhenOpened() {
+        val existing = jobOffer(title = "Dev", company = "Acme", location = null, salaryRange = "55k+", notes = null)
+
+        val draft = logic.initialDraft(existing, today)
+
+        assertEquals("Dev", draft.title)
+        assertEquals("", draft.location)
+        assertEquals("55", draft.salaryMin)
+        assertEquals("", draft.salaryMax)
+        assertEquals(existing.appliedDate, draft.appliedDate)
+    }
 }

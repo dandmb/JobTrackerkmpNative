@@ -13,12 +13,14 @@ final class JobOfferFormBridgeTests: XCTestCase {
     private func build(
         existing: JobOffer? = nil, title: String = "Dev", company: String = "Acme", url: String = "", location: String = "",
         source: String = "", salaryMin: String = "", salaryMax: String = "", notes: String = "",
-        applied: Date? = nil, interview: Date? = nil, result: Date? = nil
+        applied: Date? = nil, interview: Date? = nil, result: Date? = nil,
+        cv: Int64? = nil, letter: Int64? = nil
     ) -> JobOffer {
         JobOfferFormBridge.buildOffer(
             existing: existing, title: title, company: company, url: url, location: location, source: source,
             salaryMin: salaryMin, salaryMax: salaryMax, notes: notes,
-            appliedDate: applied ?? date(2026, 9, 5), interviewDate: interview, resultDate: result
+            appliedDate: applied ?? date(2026, 9, 5), interviewDate: interview, resultDate: result,
+            cvAttachmentId: cv, coverLetterAttachmentId: letter
         )
     }
 
@@ -114,6 +116,63 @@ final class JobOfferFormBridgeTests: XCTestCase {
 
         XCTAssertEqual(offer.id, 7)
         XCTAssertEqual(offer.status, .rejected)
+    }
+
+    func test_buildOffer_documentIds_arePassedThrough() {
+        let offer = build(cv: 4, letter: 9)
+
+        XCTAssertEqual(offer.cvAttachmentId?.int64Value, 4)
+        XCTAssertEqual(offer.coverLetterAttachmentId?.int64Value, 9)
+    }
+
+    func test_buildOffer_documentRemovedInTheForm_isNoLongerAttached() {
+        let offer = build(existing: makeOffer(id: 7, cvAttachmentId: 4, coverLetterAttachmentId: 9), cv: nil, letter: 9)
+
+        XCTAssertNil(offer.cvAttachmentId)
+        XCTAssertEqual(offer.coverLetterAttachmentId?.int64Value, 9)
+    }
+
+    // MARK: modifications non enregistrées (confirmation avant d'abandonner)
+
+    private func unsaved(
+        existing: JobOffer? = nil, title: String = "", company: String = "", salaryMax: String = "",
+        cv: Int64? = nil, letter: Int64? = nil
+    ) -> Bool {
+        let salary = JobOfferFormLogic.shared.parseSalaryFields(salaryRange: existing?.salaryRange)
+        return JobOfferFormBridge.hasUnsavedChanges(
+            existing: existing, title: title, company: company, url: existing?.url ?? "", location: existing?.location ?? "",
+            source: existing?.source ?? "", salaryMin: salary.min, salaryMax: salaryMax.isEmpty ? salary.max : salaryMax,
+            notes: existing?.notes ?? "", appliedDate: existing?.appliedDate.toDate() ?? Date(),
+            interviewDate: existing?.interviewDate?.toDate(), resultDate: existing?.resultDate?.toDate(),
+            cvAttachmentId: cv, coverLetterAttachmentId: letter
+        )
+    }
+
+    func test_hasUnsavedChanges_untouchedNewForm_isFalse() {
+        XCTAssertFalse(unsaved())
+    }
+
+    func test_hasUnsavedChanges_untouchedEditForm_isFalse() {
+        let existing = makeOffer(id: 3, title: "Dev", company: "Acme", salaryRange: "55k - 70k", cvAttachmentId: 4)
+
+        XCTAssertFalse(unsaved(existing: existing, title: "Dev", company: "Acme", cv: 4))
+    }
+
+    func test_hasUnsavedChanges_typedTitle_isTrue() {
+        XCTAssertTrue(unsaved(title: "D"))
+    }
+
+    func test_hasUnsavedChanges_onlyADocumentImportedForThisApplication_isTrue() {
+        XCTAssertTrue(unsaved(letter: 9))
+    }
+
+    func test_formSheet_blocksTheSwipe_andAsksBeforeDiscardingFromCancel() {
+        XCTAssertTrue(sheetSource.contains(".interactiveDismissDisabled(hasUnsavedChanges)"))
+        XCTAssertTrue(sheetSource.contains("if hasUnsavedChanges { showDiscardConfirmation = true } else { onDone() }"))
+        for key in ["form_discard_title", "form_discard_message", "form_discard_confirm", "form_discard_cancel"] {
+            XCTAssertTrue(sheetSource.contains("L(\"\(key)\")"), key)
+        }
+        XCTAssertTrue(sheetSource.contains("JobOfferFormBridge.hasUnsavedChanges("), "la règle vient de la logique partagée")
     }
 
     func test_editThenSave_existingOfferLoadedIntoTheFormAndSavedBack_isUnchanged() {

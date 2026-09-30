@@ -13,7 +13,7 @@ class PrivacyContentTest {
     @Test
     fun frenchText_isExactlyTheApprovedVerbatimText() {
         assertEquals("Politique de confidentialité — JobLog", fr.documentTitle)
-        assertEquals("Dernière mise à jour : 27 septembre 2026", fr.lastUpdatedLabel)
+        assertEquals("Dernière mise à jour : 29 septembre 2026", fr.lastUpdatedLabel)
         assertEquals(
             "JobLog est une application de suivi de candidatures développée par Dan Bizwa. Cette politique explique quelles données l'application traite et comment.",
             fr.introText,
@@ -38,24 +38,25 @@ class PrivacyContentTest {
                 "la fourchette de salaire ;",
                 "les dates de candidature, d'entretien et de résultat ;",
                 "le statut de la candidature ;",
+                "les fichiers de CV et de lettre de motivation que tu choisis d'ajouter (PDF, Word ou image), copiés dans l'espace de stockage privé de l'application sur ton appareil ;",
                 "tes notes.",
             ),
             dataRecorded.bullets,
         )
         assertEquals(
-            "L'application ajoute automatiquement la date et l'heure de création de chaque candidature, pour ordonner la liste, et retient si tu as déjà vu l'écran de bienvenue. Elle ne te demande ni nom, ni adresse e-mail, ni création de compte.",
+            "L'application ajoute automatiquement la date et l'heure de création de chaque candidature, pour ordonner la liste, et retient si tu as déjà vu l'écran de bienvenue. Pour chaque document, elle conserve aussi son nom, son format, sa taille et sa date d'ajout. Elle ne te demande ni nom, ni adresse e-mail, ni création de compte.",
             dataRecorded.note,
         )
 
         val whereStored = fr.sections[2]
         assertEquals("3. Où sont stockées tes données", whereStored.title)
         assertEquals(
-            "Toutes tes données sont stockées dans une base de données locale, sur ton appareil. L'application ne contient aucun code qui communique avec un serveur : tes candidatures ne sont envoyées nulle part, ni à Dan Bizwa, ni à un tiers.",
+            "Toutes tes données sont stockées dans une base de données locale et, pour les CV et lettres de motivation, dans l'espace de stockage privé de l'application, sur ton appareil. L'application ne contient aucun code qui communique avec un serveur : tes candidatures ne sont envoyées nulle part, ni à Dan Bizwa, ni à un tiers. Si tu choisis « Ouvrir avec… », le fichier est transmis à l'application que tu sélectionnes sur ton appareil.",
             whereStored.intro,
         )
         assertEquals(
             "Exception, sur Android uniquement : la police d'écriture de l'application est fournie par les services Google Play, qui la téléchargent lors du premier lancement. Cette requête réseau ne concerne que la police d'écriture ; elle ne transmet aucune de tes candidatures ni aucune donnée personnelle.\n\n" +
-                "Sauvegardes système : selon les réglages de ton appareil, le système d'exploitation (sauvegarde Google sur Android, iCloud ou sauvegarde locale sur iOS) peut inclure les données de l'application dans une sauvegarde générale de ton téléphone. Ce mécanisme est géré par le système d'exploitation, pas par JobLog, et échappe au contrôle de l'application.",
+                "Sauvegardes système : selon les réglages de ton appareil, le système d'exploitation (sauvegarde Google sur Android, iCloud ou sauvegarde locale sur iOS) peut inclure les données de l'application dans une sauvegarde générale de ton téléphone. Ce mécanisme est géré par le système d'exploitation, pas par JobLog, et échappe au contrôle de l'application. Les fichiers de CV et de lettre de motivation, eux, ne sont jamais inclus dans ces sauvegardes.",
             whereStored.note,
         )
 

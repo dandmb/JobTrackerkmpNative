@@ -47,6 +47,17 @@ struct JobOfferCard: View {
                     .appTextStyle(.bodyMedium)
                     .padding(.top, 4)
             }
+
+            let documentLabels = [
+                offer.cvAttachmentId.map { _ in L("card_documents_cv") },
+                offer.coverLetterAttachmentId.map { _ in L("card_documents_letter") },
+            ].compactMap { $0 }
+            if !documentLabels.isEmpty {
+                Text("📎 " + documentLabels.joined(separator: " · "))
+                    .appTextStyle(.bodyMedium)
+                    .foregroundStyle(Color.onSurfaceVariant)
+                    .padding(.top, 4)
+            }
         }
         .foregroundStyle(Color.onSurfaceBase)
         .padding(16)
@@ -74,7 +85,7 @@ struct JobOfferCard: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(L("card_edit_a11y", offer.title))
+            .accessibilityLabel(L("card_edit_a11y", offer.title.toTitleCase()))
         }
     }
 

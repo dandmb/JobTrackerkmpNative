@@ -1,31 +1,54 @@
 package com.dmb.joblog.data.repository
 
+import com.dmb.joblog.data.local.DatabaseTransaction
 import com.dmb.joblog.data.local.dao.JobOfferDao
+import com.dmb.joblog.data.local.entity.JobOfferAttachmentEntity
+import com.dmb.joblog.data.local.entity.JobOfferEntity
+import com.dmb.joblog.data.mapper.attachmentIdsByRole
 import com.dmb.joblog.data.mapper.toDomain
 import com.dmb.joblog.data.mapper.toEntity
 import com.dmb.joblog.domain.model.ApplicationStatus
 import com.dmb.joblog.domain.model.JobOffer
 import com.dmb.joblog.domain.repository.JobOfferRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 
 internal class JobOfferRepositoryImpl(
     private val dao: JobOfferDao,
     private val purgeDeletedData: suspend () -> Unit = {},
+    private val onAttachmentsDetached: suspend (Set<Long>) -> Unit = {},
+    private val inTransaction: DatabaseTransaction = DatabaseTransaction { it() },
 ) : JobOfferRepository {
 
-    override fun getAll(): Flow<List<JobOffer>> =
-        dao.getAll().map { list -> list.map { it.toDomain() } }
+    override fun getAll(): Flow<List<JobOffer>> = withAttachments(dao.getAll())
 
-    override fun getByStatus(status: ApplicationStatus): Flow<List<JobOffer>> =
-        dao.getByStatus(status.name).map { list -> list.map { it.toDomain() } }
+    override fun getByStatus(status: ApplicationStatus): Flow<List<JobOffer>> = withAttachments(dao.getByStatus(status.name))
 
-    override suspend fun add(offer: JobOffer): Long =
-        dao.insert(offer.toEntity())
+    private fun withAttachments(offers: Flow<List<JobOfferEntity>>): Flow<List<JobOffer>> =
+        combine(offers, dao.getAllAttachmentLinks()) { entities, links ->
+            val linksByOffer = links.groupBy { it.jobOfferId }
+            entities.map { it.toDomain(linksByOffer[it.id].orEmpty()) }
+        }
+
+    override suspend fun add(offer: JobOffer): Long {
+        var id = 0L
+        inTransaction.run {
+            id = dao.insert(offer.toEntity())
+            writeAttachmentLinks(id, offer)
+        }
+        return id
+    }
 
     override suspend fun update(offer: JobOffer) {
-        val existing = dao.getById(offer.id)
-        dao.update(offer.toEntity(existingCreatedAt = existing?.createdAtEpochMillis))
+        var previousAttachmentIds = emptySet<Long>()
+        inTransaction.run {
+            val existing = dao.getById(offer.id)
+            previousAttachmentIds = dao.getAttachmentLinks(offer.id).map { it.attachmentId }.toSet()
+            dao.update(offer.toEntity(existingCreatedAt = existing?.createdAtEpochMillis))
+            writeAttachmentLinks(offer.id, offer)
+        }
+        val detached = previousAttachmentIds - offer.attachmentIdsByRole().values.filterNotNull().toSet()
+        if (detached.isNotEmpty()) onAttachmentsDetached(detached)
     }
 
     override suspend fun delete(offer: JobOffer) =
@@ -35,11 +58,25 @@ internal class JobOfferRepositoryImpl(
         dao.getById(id)?.createdAtEpochMillis
 
     override suspend fun restore(offer: JobOffer, createdAtEpochMillis: Long) {
-        dao.insert(offer.toEntity(existingCreatedAt = createdAtEpochMillis))
+        inTransaction.run {
+            val id = dao.insert(offer.toEntity(existingCreatedAt = createdAtEpochMillis))
+            writeAttachmentLinks(id, offer)
+        }
+    }
+
+    private suspend fun writeAttachmentLinks(jobOfferId: Long, offer: JobOffer) {
+        for ((role, attachmentId) in offer.attachmentIdsByRole()) {
+            if (attachmentId != null && dao.attachmentExists(attachmentId) > 0) {
+                dao.upsertAttachmentLink(JobOfferAttachmentEntity(jobOfferId = jobOfferId, role = role.name, attachmentId = attachmentId))
+            } else {
+                dao.deleteAttachmentLink(jobOfferId, role.name)
+            }
+        }
     }
 
     override suspend fun deleteAll() {
         dao.deleteAll()
+        dao.deleteAllAttachments()
         purgeDeletedData()
     }
 }

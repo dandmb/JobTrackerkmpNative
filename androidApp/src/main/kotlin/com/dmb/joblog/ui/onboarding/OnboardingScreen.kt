@@ -3,6 +3,11 @@ package com.dmb.joblog.ui.onboarding
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -52,17 +57,36 @@ private val PageImages: List<Int> = listOf(R.drawable.onboarding_1, R.drawable.o
 fun OnboardingScreen(onFinished: () -> Unit) {
     val language = rememberAppLanguage()
     val content = remember(language) { OnboardingContent.of(language) }
-    val pages = content.pages
-    val pagerState = rememberPagerState(pageCount = { pages.size })
+    val pagerState = rememberPagerState(pageCount = { content.pages.size })
     val scope = rememberCoroutineScope()
-    val current = pagerState.currentPage
+    val onPrimary: () -> Unit = {
+        val current = pagerState.currentPage
+        if (content.isLastPage(current)) {
+            onFinished()
+        } else {
+            scope.launch { pagerState.animateScrollToPage(content.nextPageIndex(current)) }
+        }
+    }
 
-    Column(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .safeDrawingPadding()
     ) {
+        if (maxWidth > maxHeight) {
+            OnboardingLandscape(content, pagerState, onFinished, onPrimary)
+        } else {
+            OnboardingPortrait(content, pagerState, onFinished, onPrimary)
+        }
+    }
+}
+
+@Composable
+private fun OnboardingPortrait(content: OnboardingContent, pagerState: PagerState, onFinished: () -> Unit, onPrimary: () -> Unit) {
+    val pages = content.pages
+    val current = pagerState.currentPage
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.CenterEnd) {
             if (content.showsSkip(current)) {
                 TextButton(onClick = onFinished, modifier = Modifier.padding(end = 8.dp)) {
@@ -86,16 +110,50 @@ fun OnboardingScreen(onFinished: () -> Unit) {
         )
 
         Button(
-            onClick = {
-                if (content.isLastPage(current)) {
-                    onFinished()
-                } else {
-                    scope.launch { pagerState.animateScrollToPage(content.nextPageIndex(current)) }
-                }
-            },
+            onClick = onPrimary,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp),
         ) {
             Text(content.primaryButtonLabel(current))
+        }
+    }
+}
+
+@Composable
+private fun OnboardingLandscape(content: OnboardingContent, pagerState: PagerState, onFinished: () -> Unit, onPrimary: () -> Unit) {
+    val pages = content.pages
+    val current = pagerState.currentPage
+    Row(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HorizontalPager(state = pagerState, modifier = Modifier.weight(1f).fillMaxHeight()) { index ->
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                OnboardingImage(PageImages[index], Modifier)
+            }
+        }
+        Column(modifier = Modifier.weight(1f).fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(modifier = Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.CenterEnd) {
+                if (content.showsSkip(current)) {
+                    TextButton(onClick = onFinished) { Text(content.skipLabel) }
+                }
+            }
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    OnboardingTexts(pages[current].title, pages[current].description)
+                }
+            }
+            PageIndicators(
+                count = pages.size,
+                current = current,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            )
+            Button(onClick = onPrimary, modifier = Modifier.fillMaxWidth()) {
+                Text(content.primaryButtonLabel(current))
+            }
         }
     }
 }
@@ -107,34 +165,42 @@ private fun OnboardingPageContent(imageRes: Int, title: String, description: Str
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        val painter = painterResource(imageRes)
-        Image(
-            painter,
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .weight(1f, fill = false)
-                .widthIn(max = 320.dp)
-                .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(20.dp))
-                .clip(RoundedCornerShape(20.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp)),
-        )
+        OnboardingImage(imageRes, Modifier.weight(1f, fill = false).widthIn(max = 320.dp))
         Spacer(modifier = Modifier.height(40.dp))
-        Text(
-            title,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            description,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        OnboardingTexts(title, description)
     }
+}
+
+@Composable
+private fun OnboardingImage(imageRes: Int, modifier: Modifier) {
+    val painter = painterResource(imageRes)
+    Image(
+        painter,
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+            .aspectRatio(painter.intrinsicSize.width / painter.intrinsicSize.height)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp)),
+    )
+}
+
+@Composable
+private fun OnboardingTexts(title: String, description: String) {
+    Text(
+        title,
+        style = MaterialTheme.typography.headlineSmall,
+        color = MaterialTheme.colorScheme.onBackground,
+        textAlign = TextAlign.Center,
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+    Text(
+        description,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable

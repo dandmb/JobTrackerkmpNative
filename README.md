@@ -9,7 +9,7 @@ on both Android and iOS, and no server, no account and no tracking.
 | | Android | iOS |
 |---|---|---|
 | **List** | <img src="docs/screenshots/list-android.webp" alt="Android: list of tracked applications, with search, status filters, a stats summary card and an application card" width="220"> | <img src="docs/screenshots/list-ios.webp" alt="iOS: list of tracked applications, with status filters, a stats summary card and an application card" width="220"> |
-| **Add application** | <img src="docs/screenshots/add-application-android.webp" alt="Android: form to add a new application, with title, company, location, source, salary range and dates" width="220"> | <img src="docs/screenshots/add-application-ios.webp" alt="iOS: form to add a new application, with title, company, location, source, salary range and dates" width="220"> |
+| **Add application** | <img src="docs/screenshots/add-application-android.webp" alt="Android: form to add a new application, with title, company, location, source, salary range, dates and the start of the Documents section" width="220"> | <img src="docs/screenshots/add-application-ios.webp" alt="iOS: form to add a new application, with title, company, location, source, salary range and dates" width="220"> |
 | **About** | <img src="docs/screenshots/about-android.webp" alt="Android: About screen, listing what the app stores and where the data lives" width="220"> | <img src="docs/screenshots/about-ios.webp" alt="iOS: About screen, listing what the app stores and where the data lives" width="220"> |
 
 *(Sample data, never a real company. These screenshots will need to be regenerated if the UI they show changes.)*
@@ -23,12 +23,17 @@ on both Android and iOS, and no server, no account and no tracking.
 - **Search, sort and filter** — search by title/company, sort by date or alphabetically, and
   filter the list by one or several statuses at once.
 - **Stats summary** — a card at the top of the list counts every application by status.
+- **CV and cover letter** — attach a CV and a cover letter (PDF, Word or image, up to 10 MB) to each
+  application, from a reusable "My documents" library or for that application only; preview PDFs and
+  images in the app, open Word files with another app. No permission is needed: files are picked with
+  the system file picker and copied into the app's private storage.
 - **Onboarding** — a short 3-page walkthrough on first launch, illustrated with real screenshots
   of the app.
 - **About / Privacy / Settings** — what the app stores, your rights over your data, a one-tap
   "delete everything", and a privacy policy screen.
 
-All data stays **on the device**, in a local database. Nothing is sent to a server.
+All data stays **on the device**, in a local database and, for CV and cover letter files, in the
+app's private storage (excluded from system backups). Nothing is sent to a server.
 
 ## Tech stack
 
