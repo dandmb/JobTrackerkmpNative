@@ -81,7 +81,8 @@ android {
     }
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -90,6 +91,9 @@ android {
         }
         create("staging") {
             initWith(getByName("release"))
+            // initWith copie aussi R8 : sans ces deux lignes, staging serait minifié comme release.
+            isMinifyEnabled = false
+            isShrinkResources = false
             applicationIdSuffix = ".staging"
             signingConfig = signingConfigs.findByName("staging")
             matchingFallbacks += "release"   // les modules dépendants n'ont pas de build type « staging »

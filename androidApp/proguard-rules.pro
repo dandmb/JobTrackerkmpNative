@@ -1,21 +1,4 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Aucune règle propre au projet, volontairement : les règles nécessaires sont livrées par les bibliothèques
+# (Room, sqlite-bundled, AndroidX Startup, Koin, kotlinx-datetime) et le code de l'app n'utilise pas la réflexion.
+# Avant d'ajouter une dépendance qui instancie des classes par leur nom ou sérialise par réflexion, rejouer les
+# parcours sur le build release minifié : debug et staging ne passent pas par R8 et ne révèlent pas ces pannes.
