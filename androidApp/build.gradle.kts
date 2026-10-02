@@ -39,6 +39,10 @@ val stagingKeystorePath = envOrNull("STAGING_KEYSTORE_PATH")
 val stagingKeystorePassword = envOrNull("STAGING_KEYSTORE_PASSWORD")
 val stagingKeyAlias = envOrNull("STAGING_KEY_ALIAS")
 val hasStagingSigning = stagingKeystorePath != null && stagingKeystorePassword != null && stagingKeyAlias != null
+val releaseKeystorePath = envOrNull("RELEASE_KEYSTORE_PATH")
+val releaseKeystorePassword = envOrNull("RELEASE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = envOrNull("RELEASE_KEY_ALIAS")
+val hasReleaseSigning = releaseKeystorePath != null && releaseKeystorePassword != null && releaseKeyAlias != null
 
 android {
     namespace = "com.dmb.joblog"
@@ -61,6 +65,14 @@ android {
                 keyPassword = stagingKeystorePassword   // mot de passe de la clé = celui du keystore
             }
         }
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeystorePassword
+            }
+        }
     }
     packaging {
         resources {
@@ -74,6 +86,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.findByName("release")
         }
         create("staging") {
             initWith(getByName("release"))
