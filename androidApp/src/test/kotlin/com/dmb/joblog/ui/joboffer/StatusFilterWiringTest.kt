@@ -84,7 +84,7 @@ class StatusFilterWiringTest {
 
     @Test
     fun selectedStatuses_isResetWhenTheOfferListBecomesEmpty() {
-        val resetBlock = screen.substringAfter("LaunchedEffect(state.offers.isEmpty())")
+        val resetBlock = screen.substringAfter("LaunchedEffect(resetSearchAndFilter)")
         assertTrue(resetBlock.substringBefore("}").contains("selectedStatuses = emptySet()"))
     }
 

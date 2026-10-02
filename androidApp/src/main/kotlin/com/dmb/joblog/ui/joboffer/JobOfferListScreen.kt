@@ -93,8 +93,9 @@ fun JobOfferListScreen(
         pendingUndoOfferId = null
     }
 
-    LaunchedEffect(state.offers.isEmpty()) {
-        if (state.offers.isEmpty()) {
+    val resetSearchAndFilter = shouldResetSearchAndFilter(state)
+    LaunchedEffect(resetSearchAndFilter) {
+        if (resetSearchAndFilter) {
             searchQuery = ""
             selectedStatuses = emptySet()
         }

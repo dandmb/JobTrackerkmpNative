@@ -49,7 +49,7 @@ class ListLayoutWiringTest {
 
     @Test
     fun searchQuery_isClearedWhenTheListBecomesEmpty() {
-        val effect = body.substringAfter("LaunchedEffect(state.offers.isEmpty()) {").substringBefore("StatusBarIconsForPrimaryTopBar")
+        val effect = body.substringAfter("LaunchedEffect(resetSearchAndFilter) {").substringBefore("StatusBarIconsForPrimaryTopBar")
         assertTrue(effect.contains("searchQuery = \"\""))
         assertTrue(effect.contains("selectedStatuses = emptySet()"))
     }
